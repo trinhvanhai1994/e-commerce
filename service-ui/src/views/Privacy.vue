@@ -1,0 +1,101 @@
+<template>
+  <div class="min-h-screen bg-yellow-50">
+    <!-- Content Section -->
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
+        <div class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Chính sách bảo mật</h1>
+          <p class="text-gray-600 text-lg">Thông tin về cách chúng tôi thu thập và sử dụng thông tin cá nhân</p>
+        </div>
+        
+        <div class="prose prose-lg max-w-none">
+          <div class="space-y-6">
+            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
+              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                THU THẬP THÔNG TIN
+              </h3>
+              <p class="text-gray-700 leading-relaxed">
+                Chính sách bảo mật này nhằm giúp Quý khách hiểu về cách website thu thập và sử dụng thông tin cá nhân của mình thông qua việc sử dụng trang web, bao gồm mọi thông tin có thể cung cấp thông qua trang web khi Quý khách đăng ký tài khoản, đăng ký nhận thông tin liên lạc từ chúng tôi, hoặc khi Quý khách mua sản phẩm, dịch vụ, yêu cầu thêm thông tin dịch vụ từ chúng tôi.
+              </p>
+            </div>
+
+            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
+              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                SỬ DỤNG THÔNG TIN
+              </h3>
+              <p class="text-gray-700 leading-relaxed">
+                Chúng tôi sử dụng thông tin cá nhân của Quý khách để liên lạc khi cần thiết liên quan đến việc Quý khách sử dụng website của chúng tôi, để trả lời các câu hỏi hoặc gửi tài liệu và thông tin Quý khách yêu cầu.
+              </p>
+            </div>
+
+            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
+              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                BẢO MẬT THÔNG TIN
+              </h3>
+              <p class="text-gray-700 leading-relaxed">
+                Trang web của chúng tôi coi trọng việc bảo mật thông tin và sử dụng các biện pháp tốt nhất để bảo vệ thông tin cũng như việc thanh toán của khách hàng.
+              </p>
+            </div>
+
+            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
+              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                </svg>
+                CHIA SẺ THÔNG TIN
+              </h3>
+              <p class="text-gray-700 leading-relaxed">
+                Mọi thông tin giao dịch sẽ được bảo mật ngoại trừ trong trường hợp cơ quan pháp luật yêu cầu.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200 shadow-md">
+            <h3 class="text-lg font-semibold text-green-700 mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              Liên hệ hỗ trợ
+            </h3>
+            <p class="text-green-700">
+              Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật này, vui lòng liên hệ với chúng tôi qua:
+            </p>
+            <div class="mt-3 flex flex-col sm:flex-row gap-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                <span class="text-green-700 font-semibold">HOTLINE: 0396860584</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-green-700 font-semibold">thiyen.vietnam@gmail.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+// Privacy Policy Page
+</script>
+
+<style scoped>
+.prose {
+  max-width: none;
+}
+</style> 
