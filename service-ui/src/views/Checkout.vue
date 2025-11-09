@@ -363,6 +363,7 @@ async function placeOrder() {
     console.log('Create Order API Response:', response) // Debug log
     
     // Handle ApiResponse format: {success: true, data: {orderId: "...", message: "..."}}
+    // Prefer orderId field, fallback to id for backward compatibility
     let orderId = null
     if (response && response.orderId) {
       // Direct orderId in response (after ServiceApiAdapter processing)
@@ -371,8 +372,11 @@ async function placeOrder() {
       // Nested in data
       orderId = response.data.orderId
     } else if (response && response.id) {
-      // Fallback to id
+      // Fallback to id (backward compatibility)
       orderId = response.id
+    } else if (response && response.data && response.data.id) {
+      // Fallback to nested id
+      orderId = response.data.id
     } else {
       console.error('Unexpected create order response format:', response)
       throw new Error('Không thể tạo đơn hàng - response format không hợp lệ')

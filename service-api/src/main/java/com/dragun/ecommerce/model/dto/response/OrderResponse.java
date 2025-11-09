@@ -14,7 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderResponse {
-    private String id;
+    private String id; // Keep for backward compatibility, maps to orderId
+    private String orderId; // New field for explicit orderId
     private CustomerInfo customerInfo;
     private List<OrderItemResponse> items;
     private BigDecimal subTotal;

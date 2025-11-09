@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,11 @@ public class OrderService {
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         Order order = new Order();
+        
+        // Generate orderId with format: yyyymmdd + 5 digits incrementing
+        String orderId = generateOrderId();
+        order.setOrderId(orderId);
+        
         order.setCustomerName(request.getCustomerInfo().getName());
         order.setCustomerPhone(request.getCustomerInfo().getPhone());
         order.setCustomerAddress(request.getCustomerInfo().getAddress());
@@ -114,6 +121,23 @@ public class OrderService {
         return mapToResponse(updatedOrder);
     }
     
+    /**
+     * Generate orderId with format: yyyymmdd + 5 digits incrementing
+     * Example: 20241109 + 00001 = 2024110900001
+     */
+    private String generateOrderId() {
+        LocalDate today = LocalDate.now();
+        String datePrefix = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        
+        // Count orders created today
+        long orderCountToday = orderRepository.countByCreatedAtDate(today);
+        
+        // Generate 5-digit sequence number (00001, 00002, ...)
+        String sequence = String.format("%05d", orderCountToday + 1);
+        
+        return datePrefix + sequence;
+    }
+    
     private OrderResponse mapToResponse(Order order) {
         OrderResponse.CustomerInfo customerInfo = OrderResponse.CustomerInfo.builder()
             .name(order.getCustomerName())
@@ -134,7 +158,8 @@ public class OrderService {
             .collect(Collectors.toList());
         
         return OrderResponse.builder()
-            .id(order.getOrderId())
+            .id(order.getOrderId()) // Keep for backward compatibility
+            .orderId(order.getOrderId()) // New explicit field
             .customerInfo(customerInfo)
             .items(items)
             .subTotal(order.getSubTotal())

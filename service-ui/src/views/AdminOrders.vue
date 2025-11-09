@@ -132,8 +132,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(order, index) in pagedOrders" :key="order.id" class="border-b hover:bg-green-50 cursor-pointer transition-colors duration-200" @click="showOrderDetail(order)">
-                <td class="px-3 py-2 text-green-700 font-semibold cursor-pointer">{{ order.id }}</td>
+              <tr v-for="(order, index) in pagedOrders" :key="getOrderId(order)" class="border-b hover:bg-green-50 cursor-pointer transition-colors duration-200" @click="showOrderDetail(order)">
+                <td class="px-3 py-2 text-green-700 font-semibold cursor-pointer">{{ getOrderId(order) }}</td>
                 <td class="px-3 py-2">
                   <div class="space-y-1">
                     <div class="font-semibold text-gray-900">
@@ -163,7 +163,7 @@
                     :value="getOrderStatus(order)"
                     class="px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full font-medium cursor-pointer"
                     :class="getStatusSelectClass(getOrderStatus(order))"
-                    :data-order-id="order.id"
+                    :data-order-id="getOrderId(order)"
                   >
                     <option :value="ORDER_STATUS.ORDER_STATUS_PENDING">Chờ xác nhận</option>
                     <option :value="ORDER_STATUS.ORDER_STATUS_CONFIRMED">Đã xác nhận</option>
@@ -459,7 +459,7 @@ async function loadOrders() {
       // Ensure status matches one of the valid ORDER_STATUS values
       const validStatuses = Object.values(ORDER_STATUS)
       if (!validStatuses.includes(normalizedStatus)) {
-        console.warn(`Order ${order.id}: Invalid status "${normalizedStatus}", defaulting to PENDING`)
+        console.warn(`Order ${getOrderId(order)}: Invalid status "${normalizedStatus}", defaulting to PENDING`)
         normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
       }
       
@@ -480,7 +480,7 @@ async function loadOrders() {
     await nextTick() // Double nextTick to ensure DOM is fully rendered
     
     orders.value.forEach((order, index) => {
-      const selectElement = document.querySelector(`select[data-order-id="${order.id}"]`)
+      const selectElement = document.querySelector(`select[data-order-id="${getOrderId(order)}"]`)
       if (selectElement) {
         const statusValue = order.status
         
@@ -685,6 +685,11 @@ function formatPrice(price) {
 }
 
 // Helper functions to get customer info
+// Helper function to get orderId (prefer orderId field, fallback to id)
+function getOrderId(order) {
+  return order?.orderId || order?.id || 'N/A'
+}
+
 function getCustomerName(order) {
   if (order.customerInfo && order.customerInfo.name) {
     return order.customerInfo.name
@@ -959,10 +964,10 @@ function confirmUpdateStatus(order, newStatus, orderIndex) {
   }
   
   // Debug log to verify normalization
-  console.log(`confirmUpdateStatus: Order ${order.id}, Status="${normalizedStatus}"`)
+  console.log(`confirmUpdateStatus: Order ${getOrderId(order)}, Status="${normalizedStatus}"`)
   
   pendingUpdate.value = {
-    orderId: order.id,
+    orderId: getOrderId(order),
     currentStatus: getOrderStatus(order),
     newStatus: normalizedStatus, // Use normalized uppercase status
     orderIndex: orderIndex
@@ -1081,7 +1086,10 @@ async function confirmUpdateStatusAction() {
 const filteredOrders = computed(() => {
   let result = orders.value
   if (filters.value.orderId) {
-    result = result.filter(o => o.id.includes(filters.value.orderId))
+    result = result.filter(o => {
+      const orderId = getOrderId(o)
+      return orderId.includes(filters.value.orderId)
+    })
   }
   if (filters.value.status) {
     result = result.filter(o => getOrderStatus(o) === filters.value.status)

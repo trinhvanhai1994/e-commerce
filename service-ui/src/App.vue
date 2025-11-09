@@ -252,8 +252,10 @@ function removeFromCart(item) {
     </noscript>
     <router-view v-slot="{ Component, route }">
       <transition name="fade" mode="out-in">
-        <component :is="Component" v-if="route.path.startsWith('/admin')" />
-        <div v-else>
+        <div v-if="route.path.startsWith('/admin')" :key="route.path">
+          <component :is="Component" />
+        </div>
+        <div v-else :key="route.path">
           <!-- Header chung toàn site: logo trên, tên thương hiệu dưới, menu ngang bên phải, tìm kiếm/giỏ hàng bên phải -->
           <header class="w-full border-b border-gray-100 sticky top-0 z-40 py-1 md:py-2" style="background-color: #eef1c5;">
             <div class="max-w-7xl mx-auto px-4">
