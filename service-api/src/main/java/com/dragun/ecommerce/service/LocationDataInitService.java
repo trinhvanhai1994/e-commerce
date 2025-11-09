@@ -94,24 +94,8 @@ public class LocationDataInitService {
             );
             
             List<District> districts = districtMap.values().stream()
-                .peek(d -> {
-                    // Debug: log first few districts
-                    if (districtMap.values().stream().limit(3).anyMatch(d2 -> d2 == d)) {
-                        log.debug("Parsed district: code={}, name={}, parentCode={}", 
-                            d.getCode(), d.getName(), d.getParentCode());
-                    }
-                })
-                .filter(d -> {
-                    if (d.getCode() == null || d.getName() == null) {
-                        log.warn("District missing code or name: {}", d);
-                        return false;
-                    }
-                    if (d.getParentCode() == null || d.getParentCode().isEmpty()) {
-                        log.warn("District {} has null/empty parentCode", d.getCode());
-                        return false;
-                    }
-                    return true;
-                })
+                .filter(d -> d.getCode() != null && d.getName() != null && 
+                             d.getParentCode() != null && !d.getParentCode().isEmpty())
                 .toList();
             
             if (!districts.isEmpty()) {
@@ -120,15 +104,6 @@ public class LocationDataInitService {
                 for (int i = 0; i < districts.size(); i += batchSize) {
                     int end = Math.min(i + batchSize, districts.size());
                     List<District> batch = districts.subList(i, end);
-                    
-                    // Validate batch before saving
-                    for (District d : batch) {
-                        if (d.getParentCode() == null || d.getParentCode().isEmpty()) {
-                            log.error("District {} has null parentCode before save!", d.getCode());
-                            throw new IllegalStateException("District " + d.getCode() + " has null parentCode");
-                        }
-                    }
-                    
                     districtRepository.saveAll(batch);
                     log.debug("Saved districts batch {}-{}", i, end);
                 }
@@ -146,8 +121,8 @@ public class LocationDataInitService {
             );
             
             List<Ward> wards = wardMap.values().stream()
-                .filter(w -> w.getCode() != null && w.getName() != null && w.getParentCode() != null)
-                .filter(w -> w.getParentCode() != null && !w.getParentCode().isEmpty())
+                .filter(w -> w.getCode() != null && w.getName() != null && 
+                             w.getParentCode() != null && !w.getParentCode().isEmpty())
                 .toList();
             
             if (!wards.isEmpty()) {

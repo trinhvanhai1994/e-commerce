@@ -1,6 +1,8 @@
 package com.dragun.ecommerce.model.entity;
 
+import com.dragun.ecommerce.model.enums.OrderStatus;
 import jakarta.persistence.*;
+import jakarta.persistence.Convert;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +46,8 @@ public class Order {
     private String wardCode;
     
     @Column(nullable = false)
-    private String status;
+    @Convert(converter = com.dragun.ecommerce.model.converter.OrderStatusConverter.class)
+    private OrderStatus status;
     
     @Column(name = "payment_method")
     private String paymentMethod;

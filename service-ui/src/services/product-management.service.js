@@ -18,7 +18,7 @@ export const productManagementService = {
         return getMockProducts()
       }
       
-      const data = await httpClient.get('/api/thiyen/products/list')
+      const data = await httpClient.get('/api/dragun/products/list')
       return Array.isArray(data) ? data : data.data || []
     } catch (error) {
       if (shouldUseMock()) {
@@ -43,7 +43,7 @@ export const productManagementService = {
         }
       }
       
-      return await httpClient.post('/api/thiyen/products', productData)
+      return await httpClient.post('/api/dragun/admin/products', productData)
     } catch (error) {
       if (shouldUseMock()) {
         return {
@@ -72,7 +72,7 @@ export const productManagementService = {
         }
       }
       
-      return await httpClient.put(`/api/thiyen/products/${id}`, productData)
+      return await httpClient.put('/api/dragun/admin/products', productData)
     } catch (error) {
       if (shouldUseMock()) {
         return {
@@ -99,7 +99,7 @@ export const productManagementService = {
         }
       }
       
-      return await httpClient.delete(`/api/thiyen/products/${id}`)
+      return await httpClient.delete(`/api/dragun/admin/products/${id}`)
     } catch (error) {
       if (shouldUseMock()) {
         return {

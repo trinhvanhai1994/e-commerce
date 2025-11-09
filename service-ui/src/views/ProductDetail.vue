@@ -548,7 +548,7 @@
         <div class="space-y-6">
           <div class="grid grid-cols-1 gap-6">
             <div class="product-detail-section">
-              <h3 v-if="product.id === 52" class="section-title">1. BỘT NGŨ HẮC MÈ ĐEN</h3>
+              <h3 v-if="product.id === 5" class="section-title">1. BỘT NGŨ HẮC MÈ ĐEN</h3>
               <h3 class="section-title">CÔNG DỤNG</h3>
               <ul class="benefits-list">
                 <li v-if="product.id === 1 || product.id === 2">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo </li>

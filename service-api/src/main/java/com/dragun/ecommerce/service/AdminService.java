@@ -8,13 +8,10 @@ import com.dragun.ecommerce.model.dto.response.ProductResponse;
 import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.model.entity.User;
 import com.dragun.ecommerce.repository.UserRepository;
-import com.dragun.ecommerce.security.UserDetailsServiceImpl;
-import com.dragun.ecommerce.util.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +22,6 @@ public class AdminService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
     private final ProductService productService;
     
     public LoginResponse login(LoginRequest request) {

@@ -341,7 +341,7 @@ function validateForm() {
 async function placeOrder() {
   if (!validateForm()) return
   
-  // Prepare order data
+  // Prepare order data - only send required fields according to API spec
   const orderData = {
     customerInfo: {
       name: form.value.name,
@@ -349,22 +349,12 @@ async function placeOrder() {
       province: form.value.province,
       district: form.value.district,
       ward: form.value.ward,
-      phone: form.value.phone,
-      notes: form.value.notes
+      phone: form.value.phone
     },
     items: cartItems.value.map(item => ({
       productId: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      image: getProductImage(item.id)
-    })),
-    subTotal: subTotal.value,
-    shippingFee: shippingFee.value,
-    total: cartTotal.value,
-    paymentMethod: 'COD',
-    status: 'pending',
-    type: 'THI_YEN'
+      quantity: item.quantity
+    }))
   }
   
   try {
@@ -372,19 +362,16 @@ async function placeOrder() {
     const response = await orderAPI.createOrder(orderData)
     console.log('Create Order API Response:', response) // Debug log
     
-    // Handle different response formats
+    // Handle ApiResponse format: {success: true, data: {orderId: "...", message: "..."}}
     let orderId = null
-    if (response && response.success && response.orderId) {
-      // Format: {success: true, orderId: "..."}
+    if (response && response.orderId) {
+      // Direct orderId in response (after ServiceApiAdapter processing)
       orderId = response.orderId
     } else if (response && response.data && response.data.orderId) {
-      // Format: {data: {orderId: "..."}}
+      // Nested in data
       orderId = response.data.orderId
-    } else if (response && response.orderId) {
-      // Format: {orderId: "..."}
-      orderId = response.orderId
     } else if (response && response.id) {
-      // Format: {id: "..."}
+      // Fallback to id
       orderId = response.id
     } else {
       console.error('Unexpected create order response format:', response)

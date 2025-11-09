@@ -46,21 +46,25 @@ async function handleLogin() {
       password: password.value,
     })
     
-    if (response.success || response.token) {
-      // Store auth token if available
-      if (response.token) {
-        localStorage.setItem('authToken', response.token)
-      }
+    // Handle ApiResponse format: {success: true, data: LoginResponse}
+    // ServiceApiAdapter should extract data, so response should be LoginResponse or {success, data, token, user}
+    const loginData = response.data || response
+    
+    if (loginData.token || response.token) {
+      // Store auth token - required for ServiceApiAdapter
+      const token = loginData.token || response.token
+      localStorage.setItem('authToken', token)
       
       // Store admin info
       localStorage.setItem('isAdmin', '1')
-      if (response.user) {
-        localStorage.setItem('adminUser', JSON.stringify(response.user))
+      const user = loginData.user || response.user
+      if (user) {
+        localStorage.setItem('adminUser', JSON.stringify(user))
       }
       
       router.push('/admin/orders')
     } else {
-      error.value = response.message || 'Sai tài khoản hoặc mật khẩu!'
+      error.value = response.message || loginData.message || 'Sai tài khoản hoặc mật khẩu!'
     }
   } catch (err) {
     error.value = err.message || 'Sai tài khoản hoặc mật khẩu!'

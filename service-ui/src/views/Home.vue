@@ -654,11 +654,11 @@ async function fetchProducts() {
         discount: 36
       },
       {
-        id: 52,
+        id: 5,
         name: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)',
         price: 499000,
         oldPrice: 780000,
-        image: getProductImage(52),
+        image: getProductImage(5),
         shortDesc: 'Combo tiết kiệm cho gia đình...',
         category: 'combo',
         rating: 5,

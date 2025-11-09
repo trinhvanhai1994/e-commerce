@@ -36,11 +36,11 @@
             <label class="block text-gray-700 text-sm font-semibold mb-1">Trạng Thái</label>
             <select v-model="filters.status" class="border rounded px-3 py-2 w-40">
               <option value="">Tất Cả</option>
-              <option value="PENDING">Chờ xác nhận</option>
-              <option value="confirmed">Đã xác nhận</option>
-              <option value="shipping">Đang giao</option>
-              <option value="delivered">Đã giao</option>
-              <option value="cancelled">Đã hủy</option>
+              <option :value="ORDER_STATUS.ORDER_STATUS_PENDING">Chờ xác nhận</option>
+              <option :value="ORDER_STATUS.ORDER_STATUS_CONFIRMED">Đã xác nhận</option>
+              <option :value="ORDER_STATUS.ORDER_STATUS_SHIPPING">Đang giao</option>
+              <option :value="ORDER_STATUS.ORDER_STATUS_DELIVERED">Đã giao</option>
+              <option :value="ORDER_STATUS.ORDER_STATUS_CANCELLED">Đã hủy</option>
             </select>
           </div>
           <div>
@@ -159,17 +159,17 @@
                   <!-- Status update dropdown for admin -->
                   <select 
                     @click.stop
-                    @change="confirmUpdateStatus(order, $event.target.value, index)"
-                    :value="order.status || 'PENDING'"
+                    @change="handleStatusChange(order, $event, index)"
+                    :value="getOrderStatus(order)"
                     class="px-3 py-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full font-medium cursor-pointer"
-                    :class="getStatusSelectClass(order.status || 'PENDING')"
+                    :class="getStatusSelectClass(getOrderStatus(order))"
                     :data-order-id="order.id"
                   >
-                    <option value="PENDING">Chờ xác nhận</option>
-                    <option value="confirmed">Đã xác nhận</option>
-                    <option value="shipping">Đang giao</option>
-                    <option value="delivered">Đã giao</option>
-                    <option value="cancelled">Đã hủy</option>
+                    <option :value="ORDER_STATUS.ORDER_STATUS_PENDING">Chờ xác nhận</option>
+                    <option :value="ORDER_STATUS.ORDER_STATUS_CONFIRMED">Đã xác nhận</option>
+                    <option :value="ORDER_STATUS.ORDER_STATUS_SHIPPING">Đang giao</option>
+                    <option :value="ORDER_STATUS.ORDER_STATUS_DELIVERED">Đã giao</option>
+                    <option :value="ORDER_STATUS.ORDER_STATUS_CANCELLED">Đã hủy</option>
                   </select>
                 </td>
                 <td class="px-3 py-2">{{ order.paymentMethod || order.payment }}</td>
@@ -290,8 +290,8 @@
                 </div>
                 <div>
                   <label class="text-sm font-medium text-gray-600">Trạng thái:</label>
-                  <span class="px-2 py-1 text-xs rounded-full font-medium" :class="getStatusClass(selectedOrder.status || 'PENDING')">
-                    {{ getStatusText(selectedOrder.status || 'PENDING') }}
+                  <span class="px-2 py-1 text-xs rounded-full font-medium" :class="getStatusClass(getOrderStatus(selectedOrder))">
+                    {{ getStatusText(getOrderStatus(selectedOrder)) }}
                   </span>
                 </div>
                 <div>
@@ -380,9 +380,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import AdminLayout from './AdminLayout.vue'
 import { orderAPI } from '../utils/api'
+import { 
+  ORDER_STATUS, 
+  getStatusText as getStatusTextUtil, 
+  getStatusClass as getStatusClassUtil,
+  getStatusSelectClass as getStatusSelectClassUtil 
+} from '../constants/orderStatus.js'
 
 const orders = ref([])
 const loading = ref(true)
@@ -418,25 +424,81 @@ async function loadOrders() {
   
   try {
     const response = await orderAPI.getOrders()
-    console.log('API Response:', response) // Debug log
     
-    // Handle different response formats
-    if (response && response.success && response.orders) {
-      // Format: {success: true, orders: [...]}
-      orders.value = response.orders
-    } else if (Array.isArray(response)) {
-      // Format: [...] (direct array)
-      orders.value = response
+    // Handle ApiResponse format: {success: true, data: [...]}
+    // ServiceApiAdapter should extract data, so response should be array or {data: [...]}
+    let ordersData = []
+    if (Array.isArray(response)) {
+      // Direct array (after ServiceApiAdapter processing)
+      ordersData = response
     } else if (response && response.data && Array.isArray(response.data)) {
-      // Format: {data: [...]}
-      orders.value = response.data
+      // Nested in data
+      ordersData = response.data
     } else if (response && response.orders && Array.isArray(response.orders)) {
-      // Format: {orders: [...]}
-      orders.value = response.orders
+      // Fallback format: {orders: [...]}
+      ordersData = response.orders
     } else {
       console.error('Unexpected response format:', response)
       throw new Error('Invalid response format from API')
     }
+    
+    // Ensure status is properly set (UPPERCASE) and matches ORDER_STATUS constants
+    // CRITICAL: Normalize status and ensure exact match with ORDER_STATUS constants
+    ordersData = ordersData.map(order => {
+      // Get original status
+      let originalStatus = order.status
+      
+      // Normalize status to UPPERCASE if it exists
+      let normalizedStatus = originalStatus
+      if (normalizedStatus) {
+        normalizedStatus = String(normalizedStatus).toUpperCase().trim()
+      } else {
+        normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+      }
+      
+      // Ensure status matches one of the valid ORDER_STATUS values
+      const validStatuses = Object.values(ORDER_STATUS)
+      if (!validStatuses.includes(normalizedStatus)) {
+        console.warn(`Order ${order.id}: Invalid status "${normalizedStatus}", defaulting to PENDING`)
+        normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+      }
+      
+      // Create new object with normalized status
+      // IMPORTANT: Use exact ORDER_STATUS constant value (e.g., ORDER_STATUS.ORDER_STATUS_CONFIRMED = 'CONFIRMED')
+      const normalizedOrder = {
+        ...order,
+        status: normalizedStatus // Use normalized status directly (already UPPERCASE and validated)
+      }
+      
+      return normalizedOrder
+    })
+    
+    orders.value = ordersData
+    
+    // Force update select elements after data is loaded
+    await nextTick()
+    await nextTick() // Double nextTick to ensure DOM is fully rendered
+    
+    orders.value.forEach((order, index) => {
+      const selectElement = document.querySelector(`select[data-order-id="${order.id}"]`)
+      if (selectElement) {
+        const statusValue = order.status
+        
+        // Get all option values
+        const options = Array.from(selectElement.options)
+        
+        // Set value
+        selectElement.value = statusValue
+        
+        // If still not matching, use selectedIndex
+        if (selectElement.value !== statusValue) {
+          const optionIndex = options.findIndex(opt => String(opt.value) === String(statusValue))
+          if (optionIndex >= 0) {
+            selectElement.selectedIndex = optionIndex
+          }
+        }
+      }
+    })
     
   } catch (err) {
     console.error('Error loading orders:', err)
@@ -449,7 +511,7 @@ async function loadOrders() {
         customerName: 'TRAN XUAN NGHIA', 
         createdAt: '2025-07-24 10:59:19', 
         address: 'C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội', 
-        status: 'confirmed', 
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
         paymentMethod: 'COD', 
         total: 618000, 
         type: 'THI_YEN',
@@ -494,7 +556,7 @@ async function loadOrders() {
         customerName: 'Phuong Thao Vu', 
         createdAt: '2025-07-24 07:19:45', 
         address: '72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội', 
-        status: 'confirmed', 
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
         paymentMethod: 'COD', 
         total: 598000, 
         type: 'THI_YEN',
@@ -521,7 +583,7 @@ async function loadOrders() {
         customerName: 'Đoàn Hải Nam', 
         createdAt: '2025-07-23 23:09:00', 
         address: '4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội', 
-        status: 'shipping', 
+        status: ORDER_STATUS.ORDER_STATUS_SHIPPING, 
         paymentMethod: 'COD', 
         total: 618000, 
         type: 'THI_YEN',
@@ -548,7 +610,7 @@ async function loadOrders() {
         customerName: 'Vĩ Bùi', 
         createdAt: '2025-07-23 12:43:35', 
         address: '444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh', 
-        status: 'delivered', 
+        status: ORDER_STATUS.ORDER_STATUS_DELIVERED, 
         paymentMethod: 'COD', 
         total: 598000, 
         type: 'THI_YEN',
@@ -575,7 +637,7 @@ async function loadOrders() {
         customerName: 'Nguyen thanh vu', 
         createdAt: '2025-07-23 10:22:22', 
         address: '103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh', 
-        status: 'confirmed', 
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
         paymentMethod: 'COD', 
         total: 618000, 
         type: 'THI_YEN',
@@ -587,7 +649,7 @@ async function loadOrders() {
         },
         items: [
           {
-            id: 52, // Sẽ lấy từ defaultProducts: "COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)"
+            id: 5, // Sẽ lấy từ defaultProducts: "COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)"
             name: '', // Test case: name rỗng, sẽ fallback to defaultProducts
             description: '', // Test case: description rỗng, sẽ fallback to defaultProducts
             price: 499000,
@@ -669,18 +731,10 @@ function getProductImage(item) {
 }
 
 function getDefaultProductImage(productId) {
-  console.log('getDefaultProductImage called with productId:', productId, 'type:', typeof productId)
-  
   // Đảm bảo productId là number
   const numericProductId = Number(productId)
-  console.log('Converted to numeric:', numericProductId)
-  
   const product = defaultProducts.find(p => p.id === numericProductId)
-  console.log('Found product for image:', product)
-  
-  const result = product ? product.image : '/images/products/Combo-mix.png' // Ảnh mặc định chung
-  console.log('Returning image:', result)
-  return result
+  return product ? product.image : '/images/products/Combo-mix.png' // Ảnh mặc định chung
 }
 
 function handleImageError(event, item) {
@@ -688,15 +742,11 @@ function handleImageError(event, item) {
   const productId = item.id || item.productId
   const defaultImage = getDefaultProductImage(productId)
   
-  console.log('handleImageError:', { productId, defaultImage, currentSrc: event.target.src })
-  
   // Nếu ảnh hiện tại không phải là ảnh mặc định, thử ảnh mặc định
   if (event.target.src !== defaultImage) {
-    console.log('Trying fallback image:', defaultImage)
     event.target.src = defaultImage
   } else {
     // Nếu ảnh mặc định cũng lỗi, hiển thị placeholder
-    console.log('Fallback image also failed, showing placeholder')
     event.target.style.display = 'none'
     event.target.nextElementSibling.style.display = 'flex'
   }
@@ -704,29 +754,22 @@ function handleImageError(event, item) {
 
 // Product name and description helper functions
 function getProductName(item) {
-  console.log('getProductName called with item:', item)
-  
   // Thử các field có thể có tên sản phẩm
   if (item.name && item.name.trim() !== '') {
-    console.log('Using item.name:', item.name)
     return item.name
   }
   if (item.productName && item.productName.trim() !== '') {
-    console.log('Using item.productName:', item.productName)
     return item.productName
   }
   if (item.title && item.title.trim() !== '') {
-    console.log('Using item.title:', item.title)
     return item.title
   }
   if (item.productTitle && item.productTitle.trim() !== '') {
-    console.log('Using item.productTitle:', item.productTitle)
     return item.productTitle
   }
   
   // Fallback: tên mặc định theo ID (thử cả id và productId)
   const productId = item.id || item.productId
-  console.log('Falling back to default product name for ID:', productId, 'from item.id:', item.id, 'item.productId:', item.productId)
   return getDefaultProductName(productId)
 }
 
@@ -786,7 +829,7 @@ const defaultProducts = [
     oldPrice: 780000
   },
   { 
-    id: 52, 
+    id: 5, 
     name: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)', 
     description: 'Combo tiết kiệm cho gia đình với 1 lon mè đen và 1 lon hồng đậu', 
     image: '/images/products/Combo-mix.png',
@@ -797,19 +840,10 @@ const defaultProducts = [
 ]
 
 function getDefaultProductName(productId) {
-  console.log('getDefaultProductName called with productId:', productId, 'type:', typeof productId)
-  
   // Đảm bảo productId là number
   const numericProductId = Number(productId)
-  console.log('Converted to numeric:', numericProductId)
-  
   const product = defaultProducts.find(p => p.id === numericProductId)
-  console.log('Found product:', product)
-  console.log('Available products:', defaultProducts.map(p => ({ id: p.id, name: p.name })))
-  
-  const result = product ? product.name : `Sản phẩm #${productId}`
-  console.log('Returning:', result)
-  return result
+  return product ? product.name : `Sản phẩm #${productId}`
 }
 
 function getDefaultProductDescription(productId) {
@@ -817,89 +851,191 @@ function getDefaultProductDescription(productId) {
   return product ? product.description : null
 }
 
-// Get status text
+// Get order status with normalization (for display)
+function getOrderStatus(order) {
+  if (!order) {
+    return ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  let status = order.status
+  if (status) {
+    status = String(status).toUpperCase().trim()
+  } else {
+    status = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  const validStatuses = Object.values(ORDER_STATUS)
+  if (!validStatuses.includes(status)) {
+    status = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  return status
+}
+
+// Get order status value for select binding (must return exact string match)
+// Note: This function is no longer used in template, but kept for force update logic
+function getOrderStatusValue(order) {
+  if (!order) {
+    return ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  let status = order.status
+  if (status) {
+    status = String(status).toUpperCase().trim()
+  } else {
+    status = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  // Ensure exact match with ORDER_STATUS constants
+  const validStatuses = Object.values(ORDER_STATUS)
+  if (!validStatuses.includes(status)) {
+    status = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  return String(status)
+}
+
+// Get select status value - wrapper for template binding
+function getSelectStatusValue(order) {
+  return getOrderStatusValue(order)
+}
+
+// Get status text - using constants
 function getStatusText(status) {
-  const statusMap = {
-    'PENDING': 'Chờ xác nhận',
-    'confirmed': 'Đã xác nhận',
-    'shipping': 'Đang giao',
-    'delivered': 'Đã giao',
-    'cancelled': 'Đã hủy',
-    '': 'Chờ xác nhận'
-  }
-  return statusMap[status] || 'Chờ xác nhận'
+  return getStatusTextUtil(status)
 }
 
-// Get status class
+// Get status class - using constants
 function getStatusClass(status) {
-  const classMap = {
-    'PENDING': 'bg-yellow-100 text-yellow-800',
-    'confirmed': 'bg-blue-100 text-blue-800',
-    'shipping': 'bg-orange-100 text-orange-800',
-    'delivered': 'bg-green-100 text-green-800',
-    'cancelled': 'bg-red-100 text-red-800',
-    '': 'bg-yellow-100 text-yellow-800'
-  }
-  return classMap[status] || 'bg-yellow-100 text-yellow-800'
+  return getStatusClassUtil(status)
 }
 
-// Get status select class
+// Get status select class - using constants
 function getStatusSelectClass(status) {
-  const classMap = {
-    'PENDING': 'bg-yellow-50 border-yellow-300 text-yellow-800 hover:bg-yellow-100',
-    'confirmed': 'bg-blue-50 border-blue-300 text-blue-800 hover:bg-blue-100',
-    'shipping': 'bg-orange-50 border-orange-300 text-orange-800 hover:bg-orange-100',
-    'delivered': 'bg-green-50 border-green-300 text-green-800 hover:bg-green-100',
-    'cancelled': 'bg-red-50 border-red-300 text-red-800 hover:bg-red-100',
-    '': 'bg-yellow-50 border-yellow-300 text-yellow-800 hover:bg-yellow-100'
+  return getStatusSelectClassUtil(status)
+}
+
+// Handle status change from select dropdown
+function handleStatusChange(order, event, orderIndex) {
+  // Get the selected value from the select element
+  const selectedValue = event.target.value
+  
+  // CRITICAL: Normalize to UPPERCASE immediately
+  let normalizedStatus = selectedValue
+  if (normalizedStatus) {
+    // Convert to string, uppercase, and trim whitespace
+    normalizedStatus = String(normalizedStatus).toUpperCase().trim()
+  } else {
+    normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
   }
-  return classMap[status] || 'bg-yellow-50 border-yellow-300 text-yellow-800 hover:bg-yellow-100'
+  
+      // Ensure it matches one of the valid ORDER_STATUS values
+      const validStatuses = Object.values(ORDER_STATUS)
+      if (!validStatuses.includes(normalizedStatus)) {
+        console.warn(`handleStatusChange: Invalid status "${normalizedStatus}", defaulting to PENDING`)
+        normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+      }
+      
+      // Call confirmUpdateStatus with normalized value
+      confirmUpdateStatus(order, normalizedStatus, orderIndex)
 }
 
 // Confirmation modal functions
 function confirmUpdateStatus(order, newStatus, orderIndex) {
+  // newStatus should already be normalized to UPPERCASE from handleStatusChange
+  // But we normalize again to be safe
+  let normalizedStatus = newStatus
+  if (normalizedStatus) {
+    normalizedStatus = String(normalizedStatus).toUpperCase().trim()
+  } else {
+    normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  // Ensure it matches one of the valid ORDER_STATUS values
+  const validStatuses = Object.values(ORDER_STATUS)
+  if (!validStatuses.includes(normalizedStatus)) {
+    console.warn(`confirmUpdateStatus: Invalid status "${normalizedStatus}", defaulting to PENDING`)
+    normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+  }
+  
+  // Debug log to verify normalization
+  console.log(`confirmUpdateStatus: Order ${order.id}, Status="${normalizedStatus}"`)
+  
   pendingUpdate.value = {
     orderId: order.id,
-    currentStatus: order.status || 'PENDING',
-    newStatus: newStatus,
+    currentStatus: getOrderStatus(order),
+    newStatus: normalizedStatus, // Use normalized uppercase status
     orderIndex: orderIndex
   }
   showConfirmModal.value = true
 }
 
-function cancelUpdateStatus() {
+async function cancelUpdateStatus() {
   showConfirmModal.value = false
   // Reset the dropdown to original value
   if (pendingUpdate.value.orderIndex !== -1) {
-    const order = orders.value[pendingUpdate.value.orderIndex]
-    // Find the select element and reset it
-    const selectElement = document.querySelector(`select[data-order-id="${order.id}"]`)
+    const orderIndex = pendingUpdate.value.orderIndex
+    // Reset status to currentStatus (already normalized to UPPERCASE)
+    orders.value[orderIndex].status = pendingUpdate.value.currentStatus
+    
+    // Force update select element to show correct value
+    await nextTick()
+    const selectElement = document.querySelector(`select[data-order-id="${orders.value[orderIndex].id}"]`)
     if (selectElement) {
-      selectElement.value = order.status || 'PENDING'
+      selectElement.value = pendingUpdate.value.currentStatus
     }
   }
 }
 
 async function confirmUpdateStatusAction() {
   try {
-    console.log('Updating order status:', pendingUpdate.value.orderId, 'to:', pendingUpdate.value.newStatus)
+    // CRITICAL: Normalize status to UPPERCASE before sending to API
+    // Get the status from pendingUpdate (already normalized in confirmUpdateStatus)
+    let statusToUpdate = pendingUpdate.value.newStatus
     
-    const response = await orderAPI.updateOrderStatus(pendingUpdate.value.orderId, pendingUpdate.value.newStatus)
-    console.log('Update Status API Response:', response)
+    // Double-check: Normalize again to ensure it's UPPERCASE
+    if (statusToUpdate) {
+      statusToUpdate = String(statusToUpdate).toUpperCase().trim()
+    } else {
+      statusToUpdate = ORDER_STATUS.ORDER_STATUS_PENDING
+    }
     
-    // Handle different response formats
+    // Ensure it matches one of the valid ORDER_STATUS values
+    const validStatuses = Object.values(ORDER_STATUS)
+    if (!validStatuses.includes(statusToUpdate)) {
+      console.warn(`confirmUpdateStatusAction: Invalid status "${statusToUpdate}", defaulting to PENDING`)
+      statusToUpdate = ORDER_STATUS.ORDER_STATUS_PENDING
+    }
+    
+    const response = await orderAPI.updateOrderStatus(pendingUpdate.value.orderId, statusToUpdate)
+    
+    // Handle ApiResponse format: {success: true, data: OrderResponse, message: "..."}
+    // ServiceApiAdapter should extract data, so response should be OrderResponse or {success, data, message}
     let isSuccess = false
-    if (response && response.success) {
+    let updatedStatus = statusToUpdate // Use normalized status
+    
+    if (response && (response.id || response.status)) {
+      // OrderResponse object (after ServiceApiAdapter processing)
+      isSuccess = true
+      // Use status from response if available (should be UPPERCASE)
+      if (response.status) {
+        updatedStatus = String(response.status).toUpperCase().trim()
+      }
+    } else if (response && response.success) {
       // Format: {success: true, message: "..."}
       isSuccess = true
-    } else if (response && response.data && response.data.success) {
-      // Format: {data: {success: true, message: "..."}}
+      // Check if response has data with status
+      if (response.data && response.data.status) {
+        updatedStatus = String(response.data.status).toUpperCase().trim()
+      }
+    } else if (response && response.data) {
+      // Format: {data: OrderResponse}
       isSuccess = true
+      if (response.data.status) {
+        updatedStatus = String(response.data.status).toUpperCase().trim()
+      }
     } else if (response && response.message) {
       // Format: {message: "..."}
-      isSuccess = true
-    } else if (response && typeof response === 'string') {
-      // Format: "success message"
       isSuccess = true
     } else {
       console.error('Unexpected update status response format:', response)
@@ -908,12 +1044,29 @@ async function confirmUpdateStatusAction() {
     if (isSuccess) {
       // Update local state immediately for better UX
       if (pendingUpdate.value.orderIndex !== -1) {
-        orders.value[pendingUpdate.value.orderIndex].status = pendingUpdate.value.newStatus
+        const orderIndex = pendingUpdate.value.orderIndex
+        // Normalize status to UPPERCASE
+        updatedStatus = String(updatedStatus).toUpperCase().trim()
+        // Ensure it matches one of the valid ORDER_STATUS values
+        const validStatuses = Object.values(ORDER_STATUS)
+        if (!validStatuses.includes(updatedStatus)) {
+          console.warn(`Invalid status "${updatedStatus}", defaulting to PENDING`)
+          updatedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
+        }
+        // Update status with normalized value
+        orders.value[orderIndex].status = updatedStatus
+        
+        // Force update select element
+        await nextTick()
+        const selectElement = document.querySelector(`select[data-order-id="${orders.value[orderIndex].id}"]`)
+        if (selectElement) {
+          selectElement.value = updatedStatus
+        }
       }
       
       alert('Cập nhật trạng thái đơn hàng thành công!')
-      // Reload orders to reflect the change
-      loadOrders()
+      // Reload orders to reflect the change from server
+      await loadOrders()
     } else {
       alert('Cập nhật trạng thái đơn hàng thất bại: ' + (response && response.message || 'Lỗi không xác định'))
     }
@@ -931,7 +1084,7 @@ const filteredOrders = computed(() => {
     result = result.filter(o => o.id.includes(filters.value.orderId))
   }
   if (filters.value.status) {
-    result = result.filter(o => (o.status || 'PENDING') === filters.value.status)
+    result = result.filter(o => getOrderStatus(o) === filters.value.status)
   }
   if (filters.value.paymentMethod) {
     result = result.filter(o => (o.paymentMethod || o.payment) === filters.value.paymentMethod)
@@ -962,9 +1115,15 @@ const filteredOrders = computed(() => {
         break
       case 'status':
         // Sắp xếp theo thứ tự ưu tiên trạng thái
-        const statusOrder = { 'PENDING': 1, 'confirmed': 2, 'shipping': 3, 'delivered': 4, 'cancelled': 5 }
-        valueA = statusOrder[a.status || 'PENDING'] || 1
-        valueB = statusOrder[b.status || 'PENDING'] || 1
+        const statusOrder = { 
+          [ORDER_STATUS.ORDER_STATUS_PENDING]: 1, 
+          [ORDER_STATUS.ORDER_STATUS_CONFIRMED]: 2, 
+          [ORDER_STATUS.ORDER_STATUS_SHIPPING]: 3, 
+          [ORDER_STATUS.ORDER_STATUS_DELIVERED]: 4, 
+          [ORDER_STATUS.ORDER_STATUS_CANCELLED]: 5 
+        }
+        valueA = statusOrder[getOrderStatus(a)] || 1
+        valueB = statusOrder[getOrderStatus(b)] || 1
         break
       case 'total':
         valueA = a.total || 0
@@ -1035,63 +1194,9 @@ function handleKeydown(event) {
   }
 }
 
-// Test function để kiểm tra việc lấy tên sản phẩm và ảnh
-function testProductNameRetrieval() {
-  console.log('=== TESTING PRODUCT NAME & IMAGE RETRIEVAL ===')
-  
-  // Test với các productId khác nhau
-  const testCases = [1, 2, 3, 4, 52, 99, '1', '2', undefined, null]
-  
-  testCases.forEach(productId => {
-    console.log(`\n--- Testing productId: ${productId} (type: ${typeof productId}) ---`)
-    
-    // Test tên sản phẩm
-    const nameResult = getDefaultProductName(productId)
-    console.log(`Name Result: "${nameResult}"`)
-    
-    // Test ảnh sản phẩm
-    const imageResult = getDefaultProductImage(productId)
-    console.log(`Image Result: "${imageResult}"`)
-  })
-  
-  console.log('\n=== END TEST ===')
-}
-
-// Test function để kiểm tra với mock data thực tế
-function testWithMockData() {
-  console.log('=== TESTING WITH MOCK DATA ===')
-  
-  // Mock data giống như trong orders
-  const mockItems = [
-    { productId: 1, name: '', description: '', image: '', imageUrl: '' },
-    { productId: 2, name: '', description: '', image: '', imageUrl: '' },
-    { productId: 99, name: '', description: '', image: '', imageUrl: '' }
-  ]
-  
-  mockItems.forEach((item, index) => {
-    console.log(`\n--- Mock Item ${index + 1}: productId = ${item.productId} ---`)
-    
-    const productName = getProductName(item)
-    const productDescription = getProductDescription(item)
-    const productImage = getProductImage(item)
-    
-    console.log(`Product Name: "${productName}"`)
-    console.log(`Product Description: "${productDescription}"`)
-    console.log(`Product Image: "${productImage}"`)
-  })
-  
-  console.log('\n=== END MOCK DATA TEST ===')
-}
-
 // Load orders on component mount
 onMounted(() => {
   loadOrders()
-  
-  // Chạy test khi component mount
-  setTimeout(() => {
-    testProductNameRetrieval()
-    testWithMockData()
-  }, 1000)
   
   // Add keyboard event listener
   document.addEventListener('keydown', handleKeydown)

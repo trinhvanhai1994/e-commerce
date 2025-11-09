@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { ORDER_STATUS } from '../constants/orderStatus.js'
 
 export const useOrderStore = defineStore('order', () => {
   const orders = ref([])
@@ -16,7 +17,7 @@ export const useOrderStore = defineStore('order', () => {
       id: orderId,
       ...orderData,
       createdAt: new Date().toISOString(),
-      status: 'confirmed'
+      status: ORDER_STATUS.ORDER_STATUS_CONFIRMED
     }
 
     // Add to current orders array

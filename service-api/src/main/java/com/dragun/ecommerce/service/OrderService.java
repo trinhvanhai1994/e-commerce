@@ -8,9 +8,9 @@ import com.dragun.ecommerce.model.dto.response.OrderResponse;
 import com.dragun.ecommerce.model.entity.Order;
 import com.dragun.ecommerce.model.entity.OrderItem;
 import com.dragun.ecommerce.model.entity.Product;
+import com.dragun.ecommerce.model.enums.OrderStatus;
 import com.dragun.ecommerce.repository.OrderRepository;
 import com.dragun.ecommerce.repository.ProductRepository;
-import com.dragun.ecommerce.util.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ public class OrderService {
         order.setProvinceCode(request.getCustomerInfo().getProvince());
         order.setDistrictCode(request.getCustomerInfo().getDistrict());
         order.setWardCode(request.getCustomerInfo().getWard());
-        order.setStatus(Constants.ORDER_STATUS_PENDING);
+        order.setStatus(OrderStatus.ORDER_STATUS_PENDING);
         order.setPaymentMethod("COD");
         order.setOrderType("THI_YEN");
         
@@ -103,23 +103,15 @@ public class OrderService {
         Order order = orderRepository.findByOrderId(orderId)
             .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
         
-        // Validate status
-        String newStatus = request.getStatus();
-        if (!isValidStatus(newStatus)) {
-            throw new BadRequestException("Invalid order status: " + newStatus);
+        // Convert string to enum and validate
+        OrderStatus newStatus = OrderStatus.fromValue(request.getStatus());
+        if (newStatus == null) {
+            throw new BadRequestException("Invalid order status: " + request.getStatus());
         }
         
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
         return mapToResponse(updatedOrder);
-    }
-    
-    private boolean isValidStatus(String status) {
-        return status.equals(Constants.ORDER_STATUS_PENDING) ||
-               status.equals(Constants.ORDER_STATUS_CONFIRMED) ||
-               status.equals(Constants.ORDER_STATUS_SHIPPING) ||
-               status.equals(Constants.ORDER_STATUS_DELIVERED) ||
-               status.equals(Constants.ORDER_STATUS_CANCELLED);
     }
     
     private OrderResponse mapToResponse(Order order) {
@@ -148,7 +140,7 @@ public class OrderService {
             .subTotal(order.getSubTotal())
             .shippingFee(order.getShippingFee())
             .total(order.getTotal())
-            .status(order.getStatus())
+            .status(order.getStatus() != null ? order.getStatus().getValue() : null)
             .paymentMethod(order.getPaymentMethod())
             .orderType(order.getOrderType())
             .createdAt(order.getCreatedAt())

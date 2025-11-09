@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductImage } from '../utils/productImage'
 import { orderAPI } from '../utils/api'
+import { ORDER_STATUS, getStatusText } from '../constants/orderStatus.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,7 +18,7 @@ const isDev = ref(import.meta.env.DEV)
 // Computed properties for safe data access
 const orderId = computed(() => order.value?.orderId || 'N/A')
 const orderDate = computed(() => order.value?.createdAt ? formatDate(order.value.createdAt) : 'N/A')
-const orderStatus = computed(() => order.value?.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận')
+const orderStatus = computed(() => getStatusText(order.value?.status || ORDER_STATUS.ORDER_STATUS_PENDING))
 const orderTotal = computed(() => order.value?.total ? formatPrice(order.value.total) : 'N/A')
 const hasItems = computed(() => order.value?.items && order.value.items.length > 0)
 const hasCustomerInfo = computed(() => !!order.value?.customerInfo)

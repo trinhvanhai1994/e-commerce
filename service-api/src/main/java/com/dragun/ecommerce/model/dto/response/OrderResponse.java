@@ -20,7 +20,7 @@ public class OrderResponse {
     private BigDecimal subTotal;
     private BigDecimal shippingFee;
     private BigDecimal total;
-    private String status;
+    private String status; // Serialized as enum value (e.g., "pending", "confirmed")
     private String paymentMethod;
     private String orderType;
     private LocalDateTime createdAt;

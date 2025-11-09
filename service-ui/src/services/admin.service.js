@@ -32,7 +32,10 @@ export const adminService = {
         }
       }
       
-      return await httpClient.post('/api/thiyen/admin/login', credentials)
+      const response = await httpClient.post('/api/dragun/admin/login', credentials)
+      // ServiceApiAdapter extracts data from ApiResponse, so response should be LoginResponse
+      // LoginResponse: { token, user: { id, name, email, role } }
+      return response
     } catch (error) {
       if (shouldUseMock() && credentials.username === 'admin' && credentials.password === 'thiyen1') {
         return {
@@ -60,7 +63,7 @@ export const adminService = {
         return []
       }
       
-      const data = await httpClient.get('/api/thiyen/admin/products')
+      const data = await httpClient.get('/api/dragun/admin/products')
       return Array.isArray(data) ? data : data.data || []
     } catch (error) {
       if (shouldUseMock()) {
@@ -86,7 +89,7 @@ export const adminService = {
       }
       
       const method = productData.id ? 'PUT' : 'POST'
-      return await httpClient.request('/api/thiyen/admin/products', {
+      return await httpClient.request('/api/dragun/admin/products', {
         method,
         body: productData,
       })
@@ -116,7 +119,7 @@ export const adminService = {
         }
       }
       
-      return await httpClient.delete(`/api/thiyen/admin/products/${productId}`)
+      return await httpClient.delete(`/api/dragun/admin/products/${productId}`)
     } catch (error) {
       if (shouldUseMock()) {
         return {

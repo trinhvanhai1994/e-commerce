@@ -17,7 +17,7 @@ export function getProductImage(productId) {
   if (id === 4) {
     return '/images/products/combo-pink.png'
   }
-  if (id === 52) {
+  if (id === 5) {
     return '/images/products/Combo-mix.png'
   }
   return '/images/products/me-den.jpg' // Fallback
@@ -55,7 +55,7 @@ export function getProductGallery(productId) {
       '/images/products/details/pink/9.png'
     ]
   }
-  if (id === 52) {
+  if (id === 5) {
     return [
       '/images/products/details/mix/0.png',
       '/images/products/details/mix/1.png',

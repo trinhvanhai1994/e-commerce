@@ -2,34 +2,31 @@ package com.dragun.ecommerce.util;
 
 public class Constants {
     
-    // API Paths
-    public static final String API_PUBLIC_PREFIX = "/api/thiyen";
-    public static final String API_ADMIN_PREFIX = "/api/thiyen/admin";
-    public static final String API_EXTEND_PREFIX = "/api/extend";
-    
-    // JWT Constants
-    public static final String JWT_SECRET_PROPERTY = "${jwt.secret:ThiYenEcommerceSecretKey2024ForJWTTokenGeneration}";
-    public static final long JWT_EXPIRATION = 86400000; // 24 hours in milliseconds
-    
     // Security Constants
     public static final String[] PUBLIC_ENDPOINTS = {
-        "/api/thiyen/products/**",
+        "/api/dragun/products/**",
         "/api/extend/orders",
-        "/api/extend/orders/customer/**",
+        "/api/extend/orders/**",
         "/provinces",
         "/districts/**",
         "/wards/**"
     };
     
     public static final String[] ADMIN_ENDPOINTS = {
-        "/api/thiyen/admin/**"
+        "/api/dragun/admin/**"
     };
     
-    // Order Status
+    // Order Status - Deprecated: Use OrderStatus enum instead
+    // Kept for backward compatibility
+    @Deprecated
     public static final String ORDER_STATUS_PENDING = "pending";
+    @Deprecated
     public static final String ORDER_STATUS_CONFIRMED = "confirmed";
+    @Deprecated
     public static final String ORDER_STATUS_SHIPPING = "shipping";
+    @Deprecated
     public static final String ORDER_STATUS_DELIVERED = "delivered";
+    @Deprecated
     public static final String ORDER_STATUS_CANCELLED = "cancelled";
     
     // User Roles

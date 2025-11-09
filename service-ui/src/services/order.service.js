@@ -96,22 +96,27 @@ export const orderService = {
   /**
    * Update order status
    * @param {string} orderId - Order ID
-   * @param {string} status - New status
+   * @param {string} status - New status (will be normalized to UPPERCASE)
    * @returns {Promise<Object>} Update response
    */
   async updateOrderStatus(orderId, status) {
     try {
-      if (shouldUseMock()) {
-        return getMockUpdateOrderStatusResponse(orderId, status)
+      // Normalize status to UPPERCASE
+      let normalizedStatus = status
+      if (normalizedStatus) {
+        normalizedStatus = String(normalizedStatus).toUpperCase().trim()
       }
       
-      return await httpClient.request(`/api/extend/orders/${orderId}/status`, {
-        method: 'PUT',
-        params: { status },
-      })
+      if (shouldUseMock()) {
+        return getMockUpdateOrderStatusResponse(orderId, normalizedStatus)
+      }
+      
+      return await httpClient.put(`/api/extend/orders/${orderId}/status`, { status: normalizedStatus })
     } catch (error) {
       if (shouldUseMock()) {
-        return getMockUpdateOrderStatusResponse(orderId, status)
+        // Normalize status for mock response too
+        const normalizedStatus = status ? String(status).toUpperCase().trim() : status
+        return getMockUpdateOrderStatusResponse(orderId, normalizedStatus)
       }
       throw error
     }

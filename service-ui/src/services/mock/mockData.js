@@ -2,6 +2,7 @@
 
 import { apiConfig } from '../http/config.js'
 import { getImageUrlWithCacheBusting } from '../../utils/imageUtils.js'
+import { ORDER_STATUS } from '../../constants/orderStatus.js'
 
 /**
  * Check if mock data should be used
@@ -51,7 +52,7 @@ export function getMockProducts() {
       shortDesc: 'Combo tiết kiệm cho gia đình...',
     },
     {
-      id: 52,
+      id: 5,
       name: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)',
       price: 499000,
       oldPrice: 780000,
@@ -97,7 +98,7 @@ export function getMockProduct(id) {
       getImageUrlWithCacheBusting(`${baseUrl}/images/products/details/pink/8.png`),
       getImageUrlWithCacheBusting(`${baseUrl}/images/products/details/pink/9.png`),
     ]
-  } else if (productId === 52) {
+  } else if (productId === 5) {
     gallery = [
       getImageUrlWithCacheBusting(`${baseUrl}/images/products/details/mix/0.png`),
       getImageUrlWithCacheBusting(`${baseUrl}/images/products/details/mix/1.png`),
@@ -120,7 +121,7 @@ export function getMockProduct(id) {
     2: 'COMBO 2 LON BỘT NGŨ HẮC MÈ ĐEN',
     3: 'BỘT NGŨ SẮC HỒNG ĐẬU',
     4: 'COMBO 2 LON BỘT NGŨ SẮC HỒNG ĐẬU',
-    52: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)',
+    5: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)',
   }
 
   return {
@@ -195,7 +196,7 @@ export function getMockOrderById(orderId) {
       subTotal: 598000,
       shippingFee: 20000,
       total: 618000,
-      status: 'confirmed',
+      status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
       type: 'THI_YEN',
       createdAt: new Date().toISOString(),
     },
@@ -216,7 +217,7 @@ export function getMockOrders() {
         createdAt: '2025-07-24 10:59:19',
         address:
           'C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội',
-        status: 'confirmed',
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
         paymentMethod: 'COD',
         total: 618000,
         type: 'THI_YEN',
@@ -227,7 +228,7 @@ export function getMockOrders() {
         createdAt: '2025-07-24 07:19:45',
         address:
           '72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội',
-        status: 'confirmed',
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
         paymentMethod: 'COD',
         total: 598000,
         type: 'THI_YEN',
@@ -237,7 +238,7 @@ export function getMockOrders() {
         customerName: 'Đoàn Hải Nam',
         createdAt: '2025-07-23 23:09:00',
         address: '4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội',
-        status: 'shipping',
+        status: ORDER_STATUS.ORDER_STATUS_SHIPPING,
         paymentMethod: 'COD',
         total: 618000,
         type: 'THI_YEN',
@@ -247,7 +248,7 @@ export function getMockOrders() {
         customerName: 'Vĩ Bùi',
         createdAt: '2025-07-23 12:43:35',
         address: '444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh',
-        status: 'delivered',
+        status: ORDER_STATUS.ORDER_STATUS_DELIVERED,
         paymentMethod: 'COD',
         total: 598000,
         type: 'THI_YEN',
@@ -257,7 +258,7 @@ export function getMockOrders() {
         customerName: 'Nguyen thanh vu',
         createdAt: '2025-07-23 10:22:22',
         address: '103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh',
-        status: 'confirmed',
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
         paymentMethod: 'COD',
         total: 618000,
         type: 'THI_YEN',
@@ -268,7 +269,7 @@ export function getMockOrders() {
         customerPhone: '0123',
         createdAt: '2025-07-25 10:00:00',
         address: 'Test Address',
-        status: 'confirmed',
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
         paymentMethod: 'COD',
         total: 100000,
         type: 'THI_YEN',
@@ -291,7 +292,7 @@ export function getMockOrdersByCustomer(phone) {
         customerName: 'Nguyễn Văn A',
         phone: phone,
         createdAt: new Date().toISOString(),
-        status: 'confirmed',
+        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED,
         total: 618000,
         type: 'THI_YEN',
         items: [
