@@ -28,15 +28,6 @@
             </svg>
             <span class="text-red-700">{{ error }}</span>
           </div>
-          <button
-            @click="loadMockData"
-            class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors duration-200"
-          >
-            Dùng dữ liệu mẫu
-          </button>
-        </div>
-        <div class="mt-2 text-sm text-red-600">
-          <p>Đang sử dụng dữ liệu mẫu. Kiểm tra console để xem chi tiết lỗi API.</p>
         </div>
       </div>
 
@@ -429,58 +420,6 @@ const loadUsers = async () => {
   } catch (err) {
     console.error("Error loading users:", err);
     error.value = err.message || "Có lỗi xảy ra khi tải dữ liệu khách hàng";
-
-    // Fallback to mock data if API fails
-    console.log("Using fallback mock data...");
-    users.value = [
-      {
-        name: "TRAN XUAN NGHIA",
-        phone: "0396860584",
-        address:
-          "C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội",
-        orders: 2,
-        totalValue: 1236000,
-        lastOrderDate: "2025-07-24 10:59:19",
-      },
-      {
-        name: "Phuong Thao Vu",
-        phone: "0987654321",
-        address:
-          "72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội",
-        orders: 1,
-        totalValue: 598000,
-        lastOrderDate: "2025-07-24 07:19:45",
-      },
-      {
-        name: "Đoàn Hải Nam",
-        phone: "0912345678",
-        address: "4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội",
-        orders: 1,
-        totalValue: 618000,
-        lastOrderDate: "2025-07-23 23:09:00",
-      },
-      {
-        name: "Vĩ Bùi",
-        phone: "0901234567",
-        address: "444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh",
-        orders: 1,
-        totalValue: 598000,
-        lastOrderDate: "2025-07-23 12:43:35",
-      },
-      {
-        name: "Nguyen thanh vu",
-        phone: "0934567890",
-        address: "103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh",
-        orders: 1,
-        totalValue: 618000,
-        lastOrderDate: "2025-07-23 10:22:22",
-      },
-    ];
-
-    // Clear error after showing fallback data
-    setTimeout(() => {
-      error.value = "";
-    }, 3000);
   } finally {
     loading.value = false;
   }
@@ -542,65 +481,6 @@ const testApiData = async () => {
     console.error("Error details:", err.message);
     console.error("Error stack:", err.stack);
   }
-};
-
-// Function để force load mock data
-const loadMockData = () => {
-  console.log("Loading mock data directly...");
-  users.value = [
-    {
-      name: "TRAN XUAN NGHIA",
-      phone: "0396860584",
-      address:
-        "C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội",
-      orders: 2,
-      totalValue: 1236000,
-      lastOrderDate: "2025-07-24 10:59:19",
-    },
-    {
-      name: "Phuong Thao Vu",
-      phone: "0987654321",
-      address:
-        "72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội",
-      orders: 1,
-      totalValue: 598000,
-      lastOrderDate: "2025-07-24 07:19:45",
-    },
-    {
-      name: "Đoàn Hải Nam",
-      phone: "0912345678",
-      address: "4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội",
-      orders: 1,
-      totalValue: 618000,
-      lastOrderDate: "2025-07-23 23:09:00",
-    },
-    {
-      name: "Vĩ Bùi",
-      phone: "0901234567",
-      address: "444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh",
-      orders: 1,
-      totalValue: 598000,
-      lastOrderDate: "2025-07-23 12:43:35",
-    },
-    {
-      name: "Nguyen thanh vu",
-      phone: "0934567890",
-      address: "103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh",
-      orders: 1,
-      totalValue: 618000,
-      lastOrderDate: "2025-07-23 10:22:22",
-    },
-    {
-      name: "Test Customer",
-      phone: "0123",
-      address: "Test Address",
-      orders: 1,
-      totalValue: 100000,
-      lastOrderDate: "2025-07-25 10:00:00",
-    },
-  ];
-  error.value = "";
-  loading.value = false;
 };
 
 // Function để debug tìm kiếm số điện thoại cụ thể

@@ -1,7 +1,6 @@
 // Location Service - Handles location-related API calls (provinces, districts, wards)
 
 import { httpClient } from './http/client.js'
-import { shouldUseMock } from './mock/mockData.js'
 
 /**
  * Location Service
@@ -12,19 +11,7 @@ export const locationService = {
    * @returns {Promise<Array>} Provinces list
    */
   async getProvinces() {
-    try {
-      if (shouldUseMock()) {
-        // Return empty array for mock, can be extended with mock data if needed
-        return []
-      }
-      
-      return await httpClient.get('/provinces')
-    } catch (error) {
-      if (shouldUseMock()) {
-        return []
-      }
-      throw error
-    }
+    return await httpClient.get('/provinces')
   },
 
   /**
@@ -33,22 +20,11 @@ export const locationService = {
    * @returns {Promise<Array>} Districts list
    */
   async getDistricts(provinceCode) {
-    try {
-      if (!provinceCode) {
-        return []
-      }
-      
-      if (shouldUseMock()) {
-        return []
-      }
-      
-      return await httpClient.get(`/districts/${provinceCode}`)
-    } catch (error) {
-      if (shouldUseMock()) {
-        return []
-      }
-      throw error
+    if (!provinceCode) {
+      return []
     }
+    
+    return await httpClient.get(`/districts/${provinceCode}`)
   },
 
   /**
@@ -57,22 +33,11 @@ export const locationService = {
    * @returns {Promise<Array>} Wards list
    */
   async getWards(districtCode) {
-    try {
-      if (!districtCode) {
-        return []
-      }
-      
-      if (shouldUseMock()) {
-        return []
-      }
-      
-      return await httpClient.get(`/wards/${districtCode}`)
-    } catch (error) {
-      if (shouldUseMock()) {
-        return []
-      }
-      throw error
+    if (!districtCode) {
+      return []
     }
+    
+    return await httpClient.get(`/wards/${districtCode}`)
   },
 }
 

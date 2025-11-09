@@ -2,7 +2,7 @@
 // This file re-exports from the new service layer to maintain compatibility
 
 // Re-export config and helper functions
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://debase.vn'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
 
 export const apiConfig = {
   baseURL: API_BASE_URL,
@@ -52,7 +52,6 @@ export const productManagementAPI = {
 
 // Legacy apiCall function - now uses new HTTP client
 import { httpClient } from '../services/http/client.js'
-import { shouldUseMock } from '../services/mock/mockData.js'
 
 /**
  * Legacy apiCall function for backward compatibility
@@ -97,21 +96,6 @@ export async function apiCall(endpoint, options = {}) {
     
     return response
   } catch (error) {
-    // Fallback to mock data if enabled
-    if (shouldUseMock()) {
-      // Try to get mock data based on endpoint
-      const { getMockProducts, getMockProduct } = await import('../services/mock/mockData.js')
-      
-      if (endpoint.includes('/products/list')) {
-        return getMockProducts()
-      }
-      
-      if (endpoint.includes('/products/') && !endpoint.includes('/list')) {
-        const id = endpoint.split('/').pop()
-        return getMockProduct(id)
-      }
-    }
-    
     throw error
   }
 }

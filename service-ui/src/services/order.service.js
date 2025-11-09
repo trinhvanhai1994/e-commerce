@@ -1,14 +1,6 @@
 // Order Service - Handles all order-related API calls
 
 import { httpClient } from './http/client.js'
-import {
-  shouldUseMock,
-  getMockCreateOrderResponse,
-  getMockOrderById,
-  getMockOrders,
-  getMockOrdersByCustomer,
-  getMockUpdateOrderStatusResponse,
-} from './mock/mockData.js'
 
 /**
  * Order Service
@@ -20,18 +12,7 @@ export const orderService = {
    * @returns {Promise<Object>} Created order response
    */
   async createOrder(orderData) {
-    try {
-      if (shouldUseMock()) {
-        return getMockCreateOrderResponse(orderData)
-      }
-      
-      return await httpClient.post('/api/extend/orders', orderData)
-    } catch (error) {
-      if (shouldUseMock()) {
-        return getMockCreateOrderResponse(orderData)
-      }
-      throw error
-    }
+    return await httpClient.post('/api/extend/orders', orderData)
   },
 
   /**
@@ -40,18 +21,7 @@ export const orderService = {
    * @returns {Promise<Object>} Order data
    */
   async getOrderById(orderId) {
-    try {
-      if (shouldUseMock()) {
-        return getMockOrderById(orderId)
-      }
-      
-      return await httpClient.get(`/api/extend/orders/${orderId}`)
-    } catch (error) {
-      if (shouldUseMock()) {
-        return getMockOrderById(orderId)
-      }
-      throw error
-    }
+    return await httpClient.get(`/api/extend/orders/${orderId}`)
   },
 
   /**
@@ -59,18 +29,7 @@ export const orderService = {
    * @returns {Promise<Object>} Orders response
    */
   async getOrders() {
-    try {
-      if (shouldUseMock()) {
-        return getMockOrders()
-      }
-      
-      return await httpClient.get('/api/extend/orders')
-    } catch (error) {
-      if (shouldUseMock()) {
-        return getMockOrders()
-      }
-      throw error
-    }
+    return await httpClient.get('/api/extend/orders')
   },
 
   /**
@@ -79,18 +38,7 @@ export const orderService = {
    * @returns {Promise<Object>} Orders response
    */
   async getOrdersByCustomer(phone) {
-    try {
-      if (shouldUseMock()) {
-        return getMockOrdersByCustomer(phone)
-      }
-      
-      return await httpClient.get(`/api/extend/orders/customer/${phone}`)
-    } catch (error) {
-      if (shouldUseMock()) {
-        return getMockOrdersByCustomer(phone)
-      }
-      throw error
-    }
+    return await httpClient.get(`/api/extend/orders/customer/${phone}`)
   },
 
   /**
@@ -100,26 +48,13 @@ export const orderService = {
    * @returns {Promise<Object>} Update response
    */
   async updateOrderStatus(orderId, status) {
-    try {
-      // Normalize status to UPPERCASE
-      let normalizedStatus = status
-      if (normalizedStatus) {
-        normalizedStatus = String(normalizedStatus).toUpperCase().trim()
-      }
-      
-      if (shouldUseMock()) {
-        return getMockUpdateOrderStatusResponse(orderId, normalizedStatus)
-      }
-      
-      return await httpClient.put(`/api/extend/orders/${orderId}/status`, { status: normalizedStatus })
-    } catch (error) {
-      if (shouldUseMock()) {
-        // Normalize status for mock response too
-        const normalizedStatus = status ? String(status).toUpperCase().trim() : status
-        return getMockUpdateOrderStatusResponse(orderId, normalizedStatus)
-      }
-      throw error
+    // Normalize status to UPPERCASE
+    let normalizedStatus = status
+    if (normalizedStatus) {
+      normalizedStatus = String(normalizedStatus).toUpperCase().trim()
     }
+    
+    return await httpClient.put(`/api/extend/orders/${orderId}/status`, { status: normalizedStatus })
   },
 }
 
