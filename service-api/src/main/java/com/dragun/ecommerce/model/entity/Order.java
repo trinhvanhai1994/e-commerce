@@ -1,0 +1,97 @@
+package com.dragun.ecommerce.model.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Order {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "order_id", unique = true, nullable = false)
+    private String orderId;
+    
+    @Column(name = "customer_name", nullable = false)
+    private String customerName;
+    
+    @Column(name = "customer_phone", nullable = false)
+    private String customerPhone;
+    
+    @Column(name = "customer_address", nullable = false, columnDefinition = "TEXT")
+    private String customerAddress;
+    
+    @Column(name = "province_code")
+    private String provinceCode;
+    
+    @Column(name = "district_code")
+    private String districtCode;
+    
+    @Column(name = "ward_code")
+    private String wardCode;
+    
+    @Column(nullable = false)
+    private String status;
+    
+    @Column(name = "payment_method")
+    private String paymentMethod;
+    
+    @Column(name = "sub_total", nullable = false, precision = 19, scale = 2)
+    private BigDecimal subTotal;
+    
+    @Column(name = "shipping_fee", precision = 19, scale = 2)
+    private BigDecimal shippingFee;
+    
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal total;
+    
+    @Column(name = "order_type")
+    private String orderType;
+    
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (orderId == null) {
+            orderId = generateOrderId();
+        }
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+    private String generateOrderId() {
+        LocalDateTime now = LocalDateTime.now();
+        return String.format("%02d%02d%02d%04d",
+            now.getDayOfMonth(),
+            now.getMonthValue(),
+            now.getYear() % 100,
+            (int)(Math.random() * 10000));
+    }
+}
+
+
