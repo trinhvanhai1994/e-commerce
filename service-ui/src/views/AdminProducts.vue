@@ -2,9 +2,9 @@
   <AdminLayout>
     <div>
       <h2 class="text-2xl font-bold text-green-700 text-center mb-8">Sản Phẩm</h2>
-      <!-- <div class="mb-4 flex justify-end">
+      <div class="mb-4 flex justify-end">
         <button @click="openAdd" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold">+ Thêm sản phẩm</button>
-      </div> -->
+      </div>
       
       <!-- Loading state -->
       <div v-if="loading" class="text-center py-8">
@@ -121,14 +121,14 @@
               <textarea v-model="form.storage" class="w-full border rounded px-3 py-2" rows="2"></textarea>
             </div>
             <div class="mb-3">
-              <label class="block font-semibold mb-1">Hình ảnh chính</label>
-              <p class="text-xs text-gray-500 mb-2">Hỗ trợ: JPG, PNG, GIF. Tối đa 5MB</p>
+              <label class="block font-semibold mb-1">Hình ảnh chính (Path/URL)</label>
+              <p class="text-xs text-gray-500 mb-2">Nhập đường dẫn ảnh (VD: /images/products/product1.jpg)</p>
               <div class="flex gap-4">
                 <div class="flex-1">
                   <input 
                     v-model="form.image" 
-                    type="url" 
-                    placeholder="URL hình ảnh" 
+                    type="text" 
+                    placeholder="/images/products/product1.jpg" 
                     class="w-full border rounded px-3 py-2 mb-2" 
                   />
                   <div class="flex gap-2">
@@ -144,16 +144,19 @@
                       @click="$refs.fileInput.click()"
                       class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
                     >
-                      Chọn ảnh
+                      Chọn ảnh (tạo path)
                     </button>
                     <button 
                       type="button"
                       @click="clearImage"
                       class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
                     >
-                      Xóa ảnh
+                      Xóa
                     </button>
                   </div>
+                  <p v-if="form.image && !form.image.startsWith('data:')" class="text-xs text-green-600 mt-1">
+                    Path: {{ form.image }}
+                  </p>
                 </div>
                 <div class="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                   <div v-if="imageLoading" class="text-center text-blue-500">
@@ -162,9 +165,9 @@
                   </div>
                   <div v-else-if="form.image" class="w-full h-full">
                     <img 
-                      :src="form.image" 
+                      :src="form.image.startsWith('data:') ? form.image : form.image" 
                       :alt="form.name || 'Preview'" 
-                      class="w-full h-full object-cover rounded-lg"
+                      class="w-full h-full object-cover rounded-lg preview-image"
                       @error="handleImageError"
                     />
                   </div>
@@ -190,6 +193,13 @@
               <label class="flex items-center">
                 <input v-model="form.isNew" type="checkbox" class="mr-2" />
                 <span class="font-semibold">Sản phẩm mới</span>
+              </label>
+            </div>
+            <div class="mb-3">
+              <label class="flex items-center">
+                <input v-model="form.syncToPancake" type="checkbox" class="mr-2" />
+                <span class="font-semibold">Đồng bộ với Pancake POS</span>
+                <span class="ml-2 text-xs text-gray-500">(Tự động tạo/cập nhật sản phẩm trên Pancake POS)</span>
               </label>
             </div>
             <div class="flex justify-end gap-2 mt-4">
@@ -242,7 +252,8 @@ const form = reactive({
   storage: '',
   image: '',
   isNew: false,
-  category: 'me-den'
+  category: 'me-den',
+  syncToPancake: false
 })
 
 // Fetch products from API
@@ -315,7 +326,8 @@ function openAdd() {
     storage: '',
     image: '',
     isNew: false,
-    category: 'ME_DEN'
+    category: 'ME_DEN',
+    syncToPancake: false
   })
   showModal.value = true
 }
@@ -338,13 +350,14 @@ function openEdit(product) {
     usage: product.usage || '',
     manufacturer: product.manufacturer || 'Công ty TNHH Thi Yên',
     ingredients: product.ingredients || '',
-    detailedUsage: product.detailedUsage || '',
+    detailedUsage: product.description || product.detailedUsage || '',
     specifications: product.specifications || '',
     technology: product.technology || '',
     storage: product.storage || '',
-    image: product.image || '',
+    image: product.mainImage || product.image || '',
     isNew: product.isNew || false,
-    category: product.category || 'ME_DEN'
+    category: product.category || 'ME_DEN',
+    syncToPancake: false // Reset to false when editing
   })
   showModal.value = true
 }
@@ -356,36 +369,36 @@ function closeModal() {
 async function submitForm() {
   submitting.value = true
   try {
+    // Chỉ lấy path, không lưu base64
+    let imagePath = form.image
+    // Nếu là base64 data URL, không lưu (chỉ lưu path)
+    if (imagePath && imagePath.startsWith('data:')) {
+      // Nếu user chọn file nhưng chưa có path, yêu cầu nhập path
+      alert('Vui lòng nhập đường dẫn ảnh (path) thay vì chọn file. Ví dụ: /images/products/product1.jpg')
+      submitting.value = false
+      return
+    }
+    
     const productData = {
+      id: form.id, // Include ID for update
       name: form.name,
       price: form.price,
       oldPrice: form.oldPrice,
-      bulkPrice: form.bulkPrice,
       quantity: form.quantity,
-      bulkQuantity: form.bulkQuantity,
       discount: form.discount,
       reviewCount: form.reviewCount,
       shortDesc: form.shortDesc,
+      description: form.detailedUsage || form.shortDesc, // Use detailedUsage or shortDesc as description
+      mainImage: imagePath || null, // Chỉ lưu path, không lưu base64
+      gallery: imagePath ? [imagePath] : [], // Convert single image path to gallery array
+      stock: 100, // Default stock if not provided
+      category: form.category,
       benefits: form.benefits,
-      targetUsers: form.targetUsers,
-      usage: form.usage,
-      manufacturer: form.manufacturer,
       ingredients: form.ingredients,
-      detailedUsage: form.detailedUsage,
       specifications: form.specifications,
       technology: form.technology,
       storage: form.storage,
-      image: form.image,
-      isNew: form.isNew,
-      category: form.category,
-      // Thêm gallery mặc định nếu không có
-      gallery: [
-        { imageUrl: form.image, position: 1 }
-      ],
-      // Thêm variants mặc định
-      variants: [
-        { label: "1 Sản phẩm", value: "1-sp" }
-      ]
+      syncToPancake: form.syncToPancake // Flag đồng bộ với Pancake POS
     }
 
     if (isEdit.value) {
@@ -400,8 +413,12 @@ async function submitForm() {
     await fetchProducts()
     showModal.value = false
     
-    // Show success message (you can add a toast notification here)
-    alert(isEdit.value ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!')
+    // Show success message
+    let message = isEdit.value ? 'Cập nhật sản phẩm thành công!' : 'Thêm sản phẩm thành công!'
+    if (form.syncToPancake) {
+      message += '\nĐã đồng bộ lên Pancake POS thành công!'
+    }
+    alert(message)
   } catch (e) {
     alert('Lỗi: ' + e.message)
   } finally {
@@ -435,7 +452,7 @@ function getCategoryName(categoryCode) {
   return categoryMap[categoryCode] || categoryCode || 'Chưa phân loại'
 }
 
-// Handle file upload
+// Handle file upload - chỉ tạo path từ tên file, không lưu base64
 function handleFileUpload(event) {
   const file = event.target.files[0]
   if (!file) return
@@ -454,10 +471,27 @@ function handleFileUpload(event) {
   
   imageLoading.value = true
   
-  // Create preview URL
+  // Tạo path từ tên file - giả sử file được lưu trong /images/products/
+  const fileName = file.name
+  const timestamp = Date.now()
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const imagePath = `/images/products/${timestamp}_${sanitizedFileName}`
+  
+  // Chỉ lưu path vào form.image, không lưu base64
+  form.image = imagePath
+  
+  // Tạo preview URL tạm thời để hiển thị (chỉ để preview)
   const reader = new FileReader()
   reader.onload = (e) => {
-    form.image = e.target.result
+    // Lưu tạm vào một biến để preview, nhưng form.image vẫn là path
+    const previewDataUrl = e.target.result
+    // Cập nhật preview image nếu có
+    setTimeout(() => {
+      const previewImg = document.querySelector('.preview-image')
+      if (previewImg) {
+        previewImg.src = previewDataUrl
+      }
+    }, 100)
     imageLoading.value = false
   }
   reader.onerror = () => {
@@ -465,6 +499,10 @@ function handleFileUpload(event) {
     imageLoading.value = false
   }
   reader.readAsDataURL(file)
+  
+  // Thông báo cho user
+  console.log('Path sẽ được lưu:', imagePath)
+  console.log('Lưu ý: Bạn cần upload file lên server tại path này trước khi lưu sản phẩm')
 }
 
 // Clear image

@@ -22,7 +22,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String name;
     
     @Column(nullable = false, precision = 19, scale = 2)
@@ -37,7 +37,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "main_image")
+    @Column(name = "main_image", columnDefinition = "TEXT")
     private String mainImage;
     
     @ElementCollection
@@ -48,8 +48,10 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
     
+    @Column(length = 255)
     private String category;
     
+    @Column(length = 255)
     private String quantity;
     
     @Column(columnDefinition = "TEXT")
@@ -79,6 +81,12 @@ public class Product {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @Column(name = "pancake_product_id")
+    private String pancakeProductId;
+    
+    @Column(name = "pancake_synced_at")
+    private LocalDateTime pancakeSyncedAt;
     
     @PrePersist
     protected void onCreate() {

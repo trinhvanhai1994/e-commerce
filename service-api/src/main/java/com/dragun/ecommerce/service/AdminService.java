@@ -1,14 +1,17 @@
 package com.dragun.ecommerce.service;
 
 import com.dragun.ecommerce.exception.UnauthorizedException;
+import com.dragun.ecommerce.integration.pancake.service.PancakeProductSyncService;
 import com.dragun.ecommerce.model.dto.request.LoginRequest;
 import com.dragun.ecommerce.model.dto.request.ProductRequest;
 import com.dragun.ecommerce.model.dto.response.LoginResponse;
 import com.dragun.ecommerce.model.dto.response.ProductResponse;
 import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.model.entity.User;
+import com.dragun.ecommerce.repository.ProductRepository;
 import com.dragun.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,12 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminService {
     
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final ProductService productService;
+    private final ProductRepository productRepository;
+    private final PancakeProductSyncService pancakeProductSyncService;
     
     public LoginResponse login(LoginRequest request) {
         try {
@@ -59,15 +65,35 @@ public class AdminService {
     @Transactional
     public ProductResponse saveProduct(ProductRequest request) {
         Product product = mapToEntity(request);
+        ProductResponse response;
         
         if (request.getId() != null) {
             // Update existing product
             product.setId(request.getId());
-            return productService.updateProduct(request.getId(), product);
+            response = productService.updateProduct(request.getId(), product);
         } else {
             // Create new product
-            return productService.createProduct(product);
+            response = productService.createProduct(product);
         }
+        
+        // Sync to Pancake POS if requested
+        if (Boolean.TRUE.equals(request.getSyncToPancake())) {
+            try {
+                // Get the saved product entity
+                Product savedProduct = productRepository.findById(response.getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found after save"));
+                
+                // Sync to Pancake
+                pancakeProductSyncService.syncProductToPancake(savedProduct);
+                log.info("Product {} synced to Pancake POS successfully", response.getId());
+            } catch (Exception e) {
+                log.error("Failed to sync product {} to Pancake POS: {}", response.getId(), e.getMessage(), e);
+                // Don't throw exception - product is already saved, just log the error
+                // The frontend can check the response for sync status
+            }
+        }
+        
+        return response;
     }
     
     @Transactional

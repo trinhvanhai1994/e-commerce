@@ -30,13 +30,21 @@ public class AdminProductController {
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse product = adminService.saveProduct(request);
-        return ResponseEntity.ok(ApiResponse.success(product, "Tạo sản phẩm thành công"));
+        String message = "Tạo sản phẩm thành công";
+        if (Boolean.TRUE.equals(request.getSyncToPancake())) {
+            message += " và đã đồng bộ lên Pancake POS";
+        }
+        return ResponseEntity.ok(ApiResponse.success(product, message));
     }
     
     @PutMapping
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse product = adminService.saveProduct(request);
-        return ResponseEntity.ok(ApiResponse.success(product, "Cập nhật sản phẩm thành công"));
+        String message = "Cập nhật sản phẩm thành công";
+        if (Boolean.TRUE.equals(request.getSyncToPancake())) {
+            message += " và đã đồng bộ lên Pancake POS";
+        }
+        return ResponseEntity.ok(ApiResponse.success(product, message));
     }
     
     @DeleteMapping("/{id}")

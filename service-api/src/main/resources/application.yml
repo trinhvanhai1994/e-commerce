@@ -52,4 +52,31 @@ logging:
     org.springframework.security: WARN
     org.hibernate.SQL: OFF
 
+pancake:
+  api:
+    # Base URL của Pancake API
+    base-url: ${PANCAKE_API_BASE_URL:https://api.pancake.vn}
+    # Shop ID: Lấy từ URL sau khi đăng nhập Pancake POS (đã có: 1021175491)
+    shop-id: ${PANCAKE_SHOP_ID:1021175491}
+    # API Key: Lấy từ Cấu hình > Nâng cao > Webhook-API trong Pancake POS
+    # Xem hướng dẫn chi tiết trong file PANCAKE_SETUP.md
+    api-key: ${PANCAKE_API_KEY:cfad4efd4c774a5397478c916662b830}
+    # Warehouse ID: Lấy từ Cấu hình > Cửa hàng > Kho hàng trong Pancake POS
+    # Xem hướng dẫn chi tiết trong file PANCAKE_SETUP.md
+    warehouse-id: ${PANCAKE_WAREHOUSE_ID:22def263-b5cd-41e3-91bd-6f1e929353ed}
+    timeout: ${PANCAKE_API_TIMEOUT:30000}
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+  sync:
+    enabled: ${PANCAKE_SYNC_ENABLED:false}
+    direction: ${PANCAKE_SYNC_DIRECTION:BIDIRECTIONAL}
+    schedule:
+      products:
+        enabled: ${PANCAKE_SYNC_PRODUCTS_ENABLED:false}
+        cron: ${PANCAKE_SYNC_PRODUCTS_CRON:0 */30 * * * *}
+      orders:
+        enabled: ${PANCAKE_SYNC_ORDERS_ENABLED:false}
+        cron: ${PANCAKE_SYNC_ORDERS_CRON:0 */15 * * * *}
+
 
