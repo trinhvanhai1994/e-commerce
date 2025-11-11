@@ -181,19 +181,19 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Insert gallery images for Product 52
-DELETE FROM product_images WHERE product_id = 52;
+-- Insert gallery images for Product 5
+DELETE FROM product_images WHERE product_id = 5;
 INSERT INTO product_images (product_id, image_url) VALUES
-(52, '/images/products/details/mix/0.png'),
-(52, '/images/products/details/mix/1.png'),
-(52, '/images/products/details/mix/2.png'),
-(52, '/images/products/details/mix/3.png'),
-(52, '/images/products/details/mix/4.png'),
-(52, '/images/products/details/mix/5.png'),
-(52, '/images/products/details/mix/6.png'),
-(52, '/images/products/details/mix/7.png'),
-(52, '/images/products/details/mix/8.png'),
-(52, '/images/products/details/mix/9.png'),
-(52, '/images/products/details/mix/10.png'),
-(52, '/images/products/details/mix/11.png');
+(5, '/images/products/details/mix/0.png'),
+(5, '/images/products/details/mix/1.png'),
+(5, '/images/products/details/mix/2.png'),
+(5, '/images/products/details/mix/3.png'),
+(5, '/images/products/details/mix/4.png'),
+(5, '/images/products/details/mix/5.png'),
+(5, '/images/products/details/mix/6.png'),
+(5, '/images/products/details/mix/7.png'),
+(5, '/images/products/details/mix/8.png'),
+(5, '/images/products/details/mix/9.png'),
+(5, '/images/products/details/mix/10.png'),
+(5, '/images/products/details/mix/11.png');
 

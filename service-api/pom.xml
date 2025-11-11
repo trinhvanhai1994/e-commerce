@@ -140,6 +140,21 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Flyway Maven Plugin for database migration -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>9.22.3</version>
+                <configuration>
+                    <url>${flyway.url:jdbc:postgresql://localhost:5432/ecommerce}</url>
+                    <user>${flyway.user:postgres}</user>
+                    <password>${flyway.password:123456}</password>
+                    <locations>
+                        <location>classpath:db/migration</location>
+                    </locations>
+                    <baselineOnMigrate>true</baselineOnMigrate>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
