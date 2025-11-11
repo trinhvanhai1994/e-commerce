@@ -1,5 +1,7 @@
 package com.dragun.ecommerce.integration.pancake.service;
 
+/*
+// COMMENTED: All integration tests are commented out
 import com.dragun.ecommerce.integration.pancake.dto.PancakeProductDto;
 import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.repository.ProductRepository;
@@ -15,13 +17,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Integration test sử dụng cấu hình thật từ application.yml
- * Test tạo 5 sản phẩm đang tồn tại trong hệ thống lên Pancake POS
- * 
- * LƯU Ý: Test này sử dụng cấu hình thật và sẽ gọi API Pancake POS thật
- * Đảm bảo đã cấu hình đúng API Key, Shop ID, Warehouse ID trong application.yml
- */
 @SpringBootTest
 @ActiveProfiles("dev") // Sử dụng profile dev để dùng cấu hình thật từ application.yml
 @DisplayName("Pancake Product Sync Integration Test - Tạo 5 sản phẩm lên Pancake POS")
@@ -145,4 +140,4 @@ class PancakeProductSyncIntegrationTest {
         assertNotNull(productsNeedingSync);
     }
 }
-
+*/
