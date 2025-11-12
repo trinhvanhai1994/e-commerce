@@ -52,20 +52,109 @@ Hoặc tạo file `.env` và load nó (xem file `.env.example`).
 
 ### 4. Build project
 
+#### Cách 1: Sử dụng build scripts (Khuyến nghị)
+
+**Windows (PowerShell):**
+```powershell
+# Build cho DEV
+.\build-dev.ps1
+
+# Build cho TEST
+.\build-test.ps1
+
+# Build cho PRODUCTION
+.\build-prod.ps1
+```
+
+**Linux/Mac (Bash):**
 ```bash
-mvn clean install
+# Build cho DEV
+./build-dev.sh
+
+# Build cho TEST
+./build-test.sh
+
+# Build cho PRODUCTION
+./build-prod.sh
+```
+
+#### Cách 2: Sử dụng Maven trực tiếp
+
+```bash
+# Build cho DEV (default)
+mvn clean package -Pdev
+
+# Build cho TEST
+mvn clean package -Ptest
+
+# Build cho PRODUCTION
+mvn clean package -Pprod
 ```
 
 ### 5. Chạy application
 
-```bash
-mvn spring-boot:run
+#### Cách 1: Sử dụng run scripts (Khuyến nghị)
+
+**Windows (PowerShell):**
+```powershell
+# Chạy DEV
+.\run-dev.ps1
+
+# Chạy TEST
+.\run-test.ps1
+
+# Chạy PRODUCTION
+.\run-prod.ps1
 ```
 
-Hoặc chạy với profile cụ thể:
+**Linux/Mac (Bash):**
+```bash
+# Chạy DEV
+./run-dev.sh
+
+# Chạy TEST
+./run-test.sh
+
+# Chạy PRODUCTION
+./run-prod.sh
+```
+
+#### Cách 2: Chạy JAR file đã build
 
 ```bash
+# Chạy với profile DEV
+java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=dev
+
+# Chạy với profile TEST
+java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=test
+
+# Chạy với profile PRODUCTION
+java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=prod
+```
+
+#### Cách 3: Sử dụng Maven Spring Boot plugin
+
+```bash
+# Chạy DEV
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Chạy TEST
+mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+# Chạy PRODUCTION
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+#### Cách 4: Sử dụng biến môi trường
+
+```bash
+# Windows PowerShell
+$env:SPRING_PROFILES_ACTIVE="test"
+mvn spring-boot:run
+
+# Linux/Mac
+export SPRING_PROFILES_ACTIVE=test
+mvn spring-boot:run
 ```
 
 Application sẽ chạy tại: `http://localhost:5678`
@@ -220,19 +309,41 @@ Chạy tests:
 mvn test
 ```
 
-## Build cho Production
+## Build và Deploy cho từng môi trường
 
+### Môi trường DEV
 ```bash
-mvn clean package -Pprod
+# Windows
+.\build-dev.ps1
+
+# Linux/Mac
+./build-dev.sh
 ```
 
-JAR file sẽ được tạo trong `target/ecommerce-api-1.0.0.jar`
-
-Chạy JAR:
-
+### Môi trường TEST
 ```bash
-java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=prod
+# Windows
+.\build-test.ps1
+
+# Linux/Mac
+./build-test.sh
 ```
+
+### Môi trường PRODUCTION
+```bash
+# Windows
+.\build-prod.ps1
+
+# Linux/Mac
+./build-prod.sh
+```
+
+**Lưu ý quan trọng cho PRODUCTION:**
+- Đảm bảo set biến môi trường `JWT_SECRET` trước khi chạy
+- Không commit thông tin nhạy cảm vào code
+- Sử dụng biến môi trường cho tất cả credentials
+
+JAR file sẽ được tạo trong `target/ecommerce-api-1.0.0.jar` cho tất cả các môi trường.
 
 ## Troubleshooting
 

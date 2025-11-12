@@ -1,16 +1,15 @@
 spring:
+  # Database configuration cho môi trường DEV
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ecommerce}
     username: ${SPRING_DATASOURCE_USERNAME:dragun}
     password: ${SPRING_DATASOURCE_PASSWORD:Picachu@123}
   
   jpa:
-    show-sql: false
     hibernate:
       ddl-auto: update
   
   flyway:
-    enabled: true
     validate-on-migrate: false
 
 server:

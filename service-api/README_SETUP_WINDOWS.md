@@ -159,9 +159,9 @@ echo $env:JAVA_HOME
 
 ## Bước 5: Build và chạy project
 
-```powershell
+```Bash
 # Đảm bảo đang dùng JDK 17
-.\setup-java.ps1 -Version 17
+. ./setup-java.sh 17
 
 # Build project
 mvn clean install

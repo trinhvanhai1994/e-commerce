@@ -1,25 +1,24 @@
 spring:
+  # Database configuration cho môi trường TEST
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ecommerce}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
   
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: update
   
   flyway:
-    enabled: false
-  
-  h2:
-    console:
-      enabled: true
+    validate-on-migrate: false
+
+server:
+  port: 5678
 
 logging:
   level:
-    root: WARN
-    com.dragun.ecommerce: INFO
-
+    root: INFO
+    com.dragun.ecommerce: DEBUG
+    org.springframework.security: WARN
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF

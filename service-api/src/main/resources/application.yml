@@ -2,13 +2,19 @@ spring:
   application:
     name: ecommerce-api
   
+  # Active profile sẽ được set khi build/run:
+  # - Maven: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+  # - JAR: java -jar app.jar --spring.profiles.active=dev
+  # - Environment: SPRING_PROFILES_ACTIVE=dev
+  # - Default: dev (nếu không set)
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   
+  # Datasource config được định nghĩa riêng trong từng profile:
+  # - application-dev.yml: database ecommerce_dev
+  # - application-test.yml: database ecommerce_test
+  # - application-prod.yml: database ecommerce_prod
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ecommerce}
-    username: ${SPRING_DATASOURCE_USERNAME:dragun}
-    password: ${SPRING_DATASOURCE_PASSWORD:Picachu@123}
     driver-class-name: org.postgresql.Driver
   
   jpa:
