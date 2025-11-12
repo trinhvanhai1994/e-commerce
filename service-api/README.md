@@ -2,6 +2,16 @@
 
 Spring Boot REST API cho nền tảng thương mại điện tử Thi Yen.
 
+## 📋 Mục lục
+
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Quick Start](#quick-start)
+- [Tài liệu chi tiết](#tài-liệu-chi-tiết)
+- [Cấu trúc Project](#cấu-trúc-project)
+- [API Endpoints](#api-endpoints)
+- [Authentication](#authentication)
+- [Troubleshooting](#troubleshooting)
+
 ## Công nghệ sử dụng
 
 - **Java 17** (LTS)
@@ -13,169 +23,96 @@ Spring Boot REST API cho nền tảng thương mại điện tử Thi Yen.
 - **Flyway** (database migration)
 - **OAuth2 Client** (chuẩn bị cho tích hợp bên thứ 3)
 
-## Yêu cầu hệ thống
+## Quick Start
 
-- JDK 17 hoặc cao hơn
-- Maven 3.6+
-- PostgreSQL 12+ hoặc cao hơn
+### 1. Cài đặt Môi trường
 
-## Cài đặt và chạy
+Xem hướng dẫn chi tiết: [docs/01-setup.md](./docs/01-setup.md)
 
-### 1. Cài đặt PostgreSQL
+**Tóm tắt:**
+```bash
+# Setup JDK 17 (Windows PowerShell)
+. .\scripts\setup\setup-java-current-session.ps1 -Version 17
 
-Đảm bảo PostgreSQL đã được cài đặt và chạy trên máy của bạn.
+# Setup JDK 17 (Linux/Mac/Git Bash)
+source ./scripts/setup/setup-java.sh 17
+```
 
-### 2. Tạo database
+### 2. Setup Database
 
+Xem hướng dẫn chi tiết: [docs/02-database.md](./docs/02-database.md)
+
+**Tóm tắt:**
 ```sql
-CREATE DATABASE ecommerce;
+-- Tạo database
+CREATE DATABASE ecommerce_dev;
+CREATE DATABASE ecommerce_test;
+CREATE DATABASE ecommerce_prod;
 ```
 
-### 3. Cấu hình database
+### 3. Build và Run
 
-Cấu hình database đã được thiết lập sẵn trong `application.yml` và `application-dev.yml`.
-
-**Mặc định:**
-- Database: `ecommerce`
-- Username: `dragun`
-- Password: `Picachu@123`
-
-Bạn có thể override bằng biến môi trường:
-
-```bash
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/ecommerce
-export SPRING_DATASOURCE_USERNAME=dragun
-export SPRING_DATASOURCE_PASSWORD=Picachu@123
-```
-
-Hoặc tạo file `.env` và load nó (xem file `.env.example`).
-
-### 4. Build project
-
-#### Cách 1: Sử dụng build scripts (Khuyến nghị)
+Xem hướng dẫn chi tiết: [docs/03-build-deploy.md](./docs/03-build-deploy.md)
 
 **Windows (PowerShell):**
 ```powershell
-# Build cho DEV
-.\build-dev.ps1
+# Build
+.\scripts\build\build-dev.ps1
 
-# Build cho TEST
-.\build-test.ps1
-
-# Build cho PRODUCTION
-.\build-prod.ps1
+# Run
+.\scripts\run\run-dev.ps1
 ```
 
 **Linux/Mac (Bash):**
 ```bash
-# Build cho DEV
-./build-dev.sh
+# Build
+./scripts/build/build-dev.sh
 
-# Build cho TEST
-./build-test.sh
-
-# Build cho PRODUCTION
-./build-prod.sh
-```
-
-#### Cách 2: Sử dụng Maven trực tiếp
-
-```bash
-# Build cho DEV (default)
-mvn clean package -Pdev
-
-# Build cho TEST
-mvn clean package -Ptest
-
-# Build cho PRODUCTION
-mvn clean package -Pprod
-```
-
-### 5. Chạy application
-
-#### Cách 1: Sử dụng run scripts (Khuyến nghị)
-
-**Windows (PowerShell):**
-```powershell
-# Chạy DEV
-.\run-dev.ps1
-
-# Chạy TEST
-.\run-test.ps1
-
-# Chạy PRODUCTION
-.\run-prod.ps1
-```
-
-**Linux/Mac (Bash):**
-```bash
-# Chạy DEV
-./run-dev.sh
-
-# Chạy TEST
-./run-test.sh
-
-# Chạy PRODUCTION
-./run-prod.sh
-```
-
-#### Cách 2: Chạy JAR file đã build
-
-```bash
-# Chạy với profile DEV
-java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=dev
-
-# Chạy với profile TEST
-java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=test
-
-# Chạy với profile PRODUCTION
-java -jar target/ecommerce-api-1.0.0.jar --spring.profiles.active=prod
-```
-
-#### Cách 3: Sử dụng Maven Spring Boot plugin
-
-```bash
-# Chạy DEV
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-
-# Chạy TEST
-mvn spring-boot:run -Dspring-boot.run.profiles=test
-
-# Chạy PRODUCTION
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
-```
-
-#### Cách 4: Sử dụng biến môi trường
-
-```bash
-# Windows PowerShell
-$env:SPRING_PROFILES_ACTIVE="test"
-mvn spring-boot:run
-
-# Linux/Mac
-export SPRING_PROFILES_ACTIVE=test
-mvn spring-boot:run
+# Run
+./scripts/run/run-dev.sh
 ```
 
 Application sẽ chạy tại: `http://localhost:5678`
+
+## Tài liệu chi tiết
+
+Tất cả tài liệu chi tiết được tổ chức trong thư mục `docs/`:
+
+- **[01-setup.md](./docs/01-setup.md)** - Hướng dẫn cài đặt môi trường (JDK, Maven, PostgreSQL)
+- **[02-database.md](./docs/02-database.md)** - Hướng dẫn setup database và migration
+- **[03-build-deploy.md](./docs/03-build-deploy.md)** - Hướng dẫn build và deploy cho các môi trường
+- **[04-pancake-integration.md](./docs/04-pancake-integration.md)** - Hướng dẫn tích hợp Pancake POS
 
 ## Cấu trúc Project
 
 ```
 service-api/
+├── docs/                    # Tài liệu chi tiết
+│   ├── 01-setup.md
+│   ├── 02-database.md
+│   ├── 03-build-deploy.md
+│   └── 04-pancake-integration.md
+├── scripts/                 # Scripts tiện ích
+│   ├── setup/               # Scripts setup môi trường
+│   ├── build/               # Scripts build
+│   └── run/                 # Scripts run
 ├── src/
 │   ├── main/
-│   │   ├── java/com/thiyen/ecommerce/
+│   │   ├── java/com/dragun/ecommerce/
 │   │   │   ├── config/          # Configuration classes
 │   │   │   ├── controller/      # REST controllers
-│   │   │   ├── service/          # Business logic
-│   │   │   ├── repository/       # Data access layer
-│   │   │   ├── model/            # Entities và DTOs
-│   │   │   ├── security/         # Security components
-│   │   │   ├── exception/        # Exception handling
-│   │   │   └── util/             # Utilities
+│   │   │   ├── service/         # Business logic
+│   │   │   ├── repository/      # Data access layer
+│   │   │   ├── model/           # Entities và DTOs
+│   │   │   ├── security/        # Security components
+│   │   │   ├── exception/       # Exception handling
+│   │   │   ├── integration/     # Third-party integrations
+│   │   │   └── util/            # Utilities
 │   │   └── resources/
 │   │       ├── application.yml
+│   │       ├── application-dev.yml
+│   │       ├── application-test.yml
+│   │       ├── application-prod.yml
 │   │       └── db/migration/    # Flyway migrations
 │   └── test/                     # Test classes
 └── pom.xml
@@ -252,28 +189,23 @@ Authorization: Bearer <your-jwt-token>
 
 **Lưu ý**: Đổi mật khẩu mặc định trong môi trường production!
 
-## Database Migration
+## Cấu hình Môi trường
 
-Project sử dụng Flyway để quản lý database schema. Các migration scripts nằm trong `src/main/resources/db/migration/`.
+### Development (DEV)
+- **Database**: `ecommerce_dev`
+- **Config**: `application-dev.yml`
+- **Mặc định**: Profile này được active mặc định
 
-Flyway sẽ tự động chạy migrations khi application khởi động.
+### Test (TEST)
+- **Database**: `ecommerce_test`
+- **Config**: `application-test.yml`
 
-## Environment Variables
+### Production (PROD)
+- **Database**: `ecommerce_prod`
+- **Config**: `application-prod.yml`
+- **BẮT BUỘC**: Set environment variables cho credentials
 
-### Development
-Sử dụng `application-dev.yml` (mặc định)
-
-### Production
-Sử dụng `application-prod.yml` với các biến môi trường:
-
-```bash
-export DATABASE_URL=jdbc:postgresql://localhost:5432/ecommerce_db
-export DATABASE_USERNAME=postgres
-export DATABASE_PASSWORD=your_password
-export JWT_SECRET=your-secret-key
-export JWT_EXPIRATION=86400000
-export PORT=5678
-```
+Xem chi tiết: [docs/03-build-deploy.md](./docs/03-build-deploy.md)
 
 ## CORS Configuration
 
@@ -283,24 +215,6 @@ API đã được cấu hình CORS để cho phép các origin sau:
 - `https://debase.vn`
 - `https://www.phodem.click`
 
-## OAuth2 Integration
-
-Project đã được chuẩn bị sẵn cho việc tích hợp OAuth2 với các nhà cung cấp bên thứ 3 (Google, Facebook, GitHub, etc.).
-
-Để kích hoạt OAuth2, cấu hình trong `application.yml`:
-
-```yaml
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: openid,profile,email
-```
-
 ## Testing
 
 Chạy tests:
@@ -309,48 +223,19 @@ Chạy tests:
 mvn test
 ```
 
-## Build và Deploy cho từng môi trường
+Chạy tests với profile cụ thể:
 
-### Môi trường DEV
 ```bash
-# Windows
-.\build-dev.ps1
-
-# Linux/Mac
-./build-dev.sh
+mvn test -Dspring.profiles.active=dev
 ```
-
-### Môi trường TEST
-```bash
-# Windows
-.\build-test.ps1
-
-# Linux/Mac
-./build-test.sh
-```
-
-### Môi trường PRODUCTION
-```bash
-# Windows
-.\build-prod.ps1
-
-# Linux/Mac
-./build-prod.sh
-```
-
-**Lưu ý quan trọng cho PRODUCTION:**
-- Đảm bảo set biến môi trường `JWT_SECRET` trước khi chạy
-- Không commit thông tin nhạy cảm vào code
-- Sử dụng biến môi trường cho tất cả credentials
-
-JAR file sẽ được tạo trong `target/ecommerce-api-1.0.0.jar` cho tất cả các môi trường.
 
 ## Troubleshooting
 
 ### Lỗi kết nối database
 - Kiểm tra PostgreSQL đã chạy chưa
-- Kiểm tra thông tin database trong `application-dev.yml`
-- Kiểm tra database `ecommerce` đã được tạo chưa
+- Kiểm tra thông tin database trong file config tương ứng
+- Kiểm tra database đã được tạo chưa
+- Xem chi tiết: [docs/02-database.md](./docs/02-database.md)
 
 ### Lỗi port đã được sử dụng
 Thay đổi port trong `application.yml`:
@@ -367,8 +252,16 @@ export PORT=5679
 ### Lỗi JWT
 Kiểm tra JWT secret key trong `application.yml` hoặc biến môi trường `JWT_SECRET`
 
+### Lỗi "release version 17 not supported"
+- Đảm bảo đã cài JDK 17
+- Chạy script setup Java trước khi build
+- Xem chi tiết: [docs/01-setup.md](./docs/01-setup.md)
+
+### Build failed
+- Kiểm tra JDK 17 đã được cài đặt và cấu hình đúng
+- Kiểm tra Maven version
+- Xem log chi tiết: `mvn clean package -X`
+
 ## License
 
 Private and proprietary.
-
-
