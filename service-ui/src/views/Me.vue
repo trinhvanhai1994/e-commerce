@@ -28,21 +28,21 @@
       </div>
     </section>
 
-    <div class="veyo-page" style="background-color: #fefce8;">
+    <div class="veyo-page dark:bg-gray-900 transition-colors duration-300" style="background-color: #fefce8;">
 
     <!-- Story Section -->
     <section class="story-section py-8">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400 mb-4 transition-colors duration-300">
               CÂU CHUYỆN THI YÊN
             </h2>
-            <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+            <div class="w-24 h-1 bg-green-500 dark:bg-green-400 mx-auto transition-colors duration-300"></div>
           </div>
 
           <div
-            class="mx-auto text-gray-700 leading-relaxed text-base md:text-lg"
+            class="mx-auto text-gray-700 dark:text-gray-300 leading-relaxed text-base md:text-lg transition-colors duration-300"
             data-aos="fade-up"
             data-aos-delay="200"
           >
@@ -61,7 +61,7 @@
               mỗi ngày.
             </div>
 
-            <div class="text-gray-700 mb-4">
+            <div class="text-gray-700 dark:text-gray-300 mb-4 transition-colors duration-300">
               Lấy cảm hứng từ triết lý dưỡng sinh thuần thực vật kết hợp cùng dinh
               dưỡng hiện đại, Thi Yên mang đến những bữa ăn nhỏ, đủ chất, tiện lợi,
               giúp bạn bắt đầu hành trình sống lành từ những điều đơn giản nhất.
@@ -71,7 +71,7 @@
             <div class="flex flex-col md:flex-row items-start gap-6">
               <!-- Nội dung bên trái -->
               <div class="flex-1">
-                <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-4 mb-4">
+                <h4 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mt-4 mb-4 transition-colors duration-300">
                   Trọn vị tự nhiên - Cân bằng dưỡng chất
                 </h4>
                 <div class="text-gray-700 mb-4 text-base md:text-lg">
@@ -102,7 +102,7 @@
             <div class="flex flex-col md:flex-row items-start gap-6">
               <!-- Nội dung bên phải (desktop) / trên (mobile) -->
               <div class="flex-1 order-1 md:order-2">
-                <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-4 mb-4">
+                <h4 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mt-4 mb-4 transition-colors duration-300">
               Khác biệt trong cách làm
                 </h4>
             <div class="mb-6 text-base md:text-lg">

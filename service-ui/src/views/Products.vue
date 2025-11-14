@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 py-8">
       <!-- Page Header -->
       <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Sản phẩm của chúng tôi</h1>
-        <p class="text-gray-600 text-lg">Khám phá sản phẩm</p>
+        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Sản phẩm của chúng tôi</h1>
+        <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Khám phá sản phẩm</p>
       </div>
 
       <!-- Search and Filter Section -->
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-6 mb-8">
+      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-6 mb-8 transition-colors duration-300">
         <div class="flex flex-col md:flex-row gap-4 mb-6">
           <!-- Search Box -->
           <div class="flex-1">
@@ -17,7 +17,7 @@
                 v-model="searchQuery"
                 type="text"
                 placeholder="Tìm kiếm sản phẩm..."
-                class="w-full pl-10 pr-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
+                class="w-full pl-10 pr-4 py-3 border border-green-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600 focus:border-transparent bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
               />
               <svg class="absolute left-3 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -29,7 +29,7 @@
           <div class="md:w-64">
             <select
               v-model="sortBy"
-              class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/70 backdrop-blur-sm"
+              class="w-full px-4 py-3 border border-green-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-600 focus:border-transparent bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm text-gray-900 dark:text-gray-100 transition-colors duration-300"
             >
               <option value="">Sắp xếp theo</option>
               <option value="name-asc">Tên A-Z</option>
@@ -49,7 +49,7 @@
               'px-4 py-2 rounded-full border font-semibold text-sm transition-colors',
               !selectedCat
                 ? 'bg-green-500 text-white border-green-500'
-                : 'bg-white text-green-500 border-green-200 hover:bg-green-50',
+                : 'bg-white dark:bg-gray-800 text-green-500 dark:text-green-400 border-green-200 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-gray-700 transition-colors duration-300',
             ]"
           >
             Tất cả ({{ allProducts.length }})
@@ -62,7 +62,7 @@
               'px-4 py-2 rounded-full border font-semibold text-sm transition-colors',
               selectedCat === cat.key
                 ? 'bg-green-500 text-white border-green-500'
-                : 'bg-white text-green-500 border-green-200 hover:bg-green-50',
+                : 'bg-white dark:bg-gray-800 text-green-500 dark:text-green-400 border-green-200 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-gray-700 transition-colors duration-300',
             ]"
           >
             {{ cat.name }} ({{ getProductCountByCategory(cat.key) }})
@@ -72,11 +72,11 @@
 
       <!-- Results Summary -->
       <div class="flex justify-between items-center mb-6">
-        <div class="text-gray-600">
+        <div class="text-gray-600 dark:text-gray-300 transition-colors duration-300">
           Hiển thị {{ filteredProducts.length }} sản phẩm
           <span v-if="searchQuery"> cho "{{ searchQuery }}"</span>
         </div>
-        <div v-if="selectedCat" class="text-sm text-gray-500">
+        <div v-if="selectedCat" class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
           Danh mục: {{ getCategoryName(selectedCat) }}
         </div>
       </div>
@@ -86,7 +86,7 @@
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
-          class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
+          class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
         >
           <!-- Product Image -->
           <div class="relative cursor-pointer flex-shrink-0" @click="viewProductDetail(product)">
@@ -103,31 +103,31 @@
           <!-- Product Info -->
           <div class="p-6 flex flex-col flex-1">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+              <span class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full transition-colors duration-300">
                 {{ getCategoryName(product.category) }}
               </span>
               <div v-if="product.rating" class="flex items-center">
                 <div class="flex text-yellow-400">
-                  <svg v-for="i in 5" :key="i" class="w-4 h-4" :class="i <= product.rating ? 'fill-current' : 'text-gray-300'" viewBox="0 0 20 20">
+                  <svg v-for="i in 5" :key="i" class="w-4 h-4" :class="i <= product.rating ? 'fill-current' : 'text-gray-300 dark:text-gray-600'" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                   </svg>
                 </div>
-                <span class="text-sm text-gray-600 ml-1">({{ product.rating }})</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400 ml-1 transition-colors duration-300">({{ product.rating }})</span>
               </div>
             </div>
 
-            <h3 class="text-xl font-bold text-gray-800 mb-2">{{ product.name }}</h3>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{{ product.shortDesc }}</p>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 transition-colors duration-300">{{ product.name }}</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3 flex-1 transition-colors duration-300">{{ product.shortDesc }}</p>
 
             <!-- Price and Stock - Fixed at bottom -->
             <div class="mt-auto">
               <!-- Price -->
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl font-bold text-green-600">{{ formatPrice(product.price) }}</span>
-                  <span v-if="product.oldPrice" class="text-sm text-gray-500 line-through">{{ formatPrice(product.oldPrice) }}</span>
+                  <span class="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors duration-300">{{ formatPrice(product.price) }}</span>
+                  <span v-if="product.oldPrice" class="text-sm text-gray-500 dark:text-gray-400 line-through transition-colors duration-300">{{ formatPrice(product.oldPrice) }}</span>
                 </div>
-                <div v-if="product.quantity" class="text-sm text-gray-500">
+                <div v-if="product.quantity" class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {{ product.quantity }}
                 </div>
               </div>
@@ -136,13 +136,13 @@
               <div class="flex gap-2">
                 <button
                   @click="viewProductDetail(product)"
-                  class="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                  class="flex-1 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
                 >
                   Xem chi tiết
                 </button>
                 <button
                   @click="addToCart(product)"
-                  class="bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                  class="bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5.4M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h4"/>
@@ -157,12 +157,12 @@
 
       <!-- No Results -->
       <div v-else class="text-center py-12">
-        <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
-          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-8 transition-colors duration-300">
+          <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.5-.935-6.072-2.456M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
-          <h3 class="text-xl font-semibold text-gray-800 mb-2">Không tìm thấy sản phẩm</h3>
-          <p class="text-gray-600 mb-4">
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2 transition-colors duration-300">Không tìm thấy sản phẩm</h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-4 transition-colors duration-300">
             {{ searchQuery ? `Không có sản phẩm nào phù hợp với "${searchQuery}"` : 'Không có sản phẩm nào trong danh mục này' }}
           </p>
           <button

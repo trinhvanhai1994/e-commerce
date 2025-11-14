@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen" style="background-color: #fefce8;">
+  <div class="min-h-screen dark:bg-gray-900 transition-colors duration-300" style="background-color: #fefce8;">
     <!-- Banner Section: PC, Tablet & Mobile -->
     <section class="hero-section relative w-full overflow-hidden" data-aos="fade-down">
       <!-- Banner mobile & tablet -->
@@ -12,7 +12,7 @@
     <section class="max-w-7xl mx-auto w-full px-4 md:px-4 py-8 grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
       <div class="md:col-span-3 w-full" data-aos="fade-right">
         <h2 class="font-bold text-xl md:text-2xl mb-2 gradient-text-green">GIỮ TRỌN DƯỠNG CHẤT<br />VÀ HƯƠNG VỊ NGUYÊN BẢN</h2>
-        <div class="text-gray-700 mb-4">
+        <div class="text-gray-700 dark:text-gray-300 mb-4 transition-colors duration-300">
           Một bữa ăn nhẹ, nhưng đủ đầy.<br />
           Một cách chăm sóc bản thân, nhưng không cầu kỳ.<br />
           Một thói quen nhỏ, nhưng nuôi dưỡng cơ thể mỗi ngày.<br /><br />

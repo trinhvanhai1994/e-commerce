@@ -3,8 +3,8 @@
     <!-- Header với nút X -->
     <div class="flex justify-between items-center mb-6">
       <div></div>
-      <h1 class="text-2xl font-bold text-center">THANH TOÁN</h1>
-      <button @click="router.push('/products')" class="text-gray-500 hover:text-gray-700">
+      <h1 class="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 transition-colors duration-300">THANH TOÁN</h1>
+      <button @click="router.push('/products')" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -16,10 +16,10 @@
       <div class="space-y-4">
         <!-- Họ và tên -->
         <div>
-          <label class="block text-sm font-medium mb-1">Họ và tên</label>
+          <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300 transition-colors duration-300">Họ và tên</label>
           <input 
             v-model="form.name" 
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-300"
             placeholder="Nhập họ và tên"
           />
           <div v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</div>
@@ -55,7 +55,7 @@
               v-model="form.province" 
               @change="onProvinceChange"
               :disabled="loadingProvinces"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 appearance-none relative z-10 transition-colors duration-300"
             >
               <option value="">{{ loadingProvinces ? 'Đang tải...' : 'Chọn tỉnh/thành phố' }}</option>
               <option v-for="province in provinces" :key="province.code" :value="province.code">
@@ -71,7 +71,7 @@
               v-model="form.district" 
               @change="onDistrictChange"
               :disabled="!form.province || loadingDistricts"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 appearance-none relative z-10 transition-colors duration-300"
             >
               <option value="">{{ loadingDistricts ? 'Đang tải...' : 'Chọn quận/huyện' }}</option>
               <option v-for="district in filteredDistricts" :key="district.code" :value="district.code">
@@ -86,7 +86,7 @@
             <select 
               v-model="form.ward" 
               :disabled="!form.district || loadingWards"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 appearance-none relative z-10 transition-colors duration-300"
             >
               <option value="">{{ loadingWards ? 'Đang tải...' : 'Chọn xã/phường' }}</option>
               <option v-for="ward in filteredWards" :key="ward.code" :value="ward.code">

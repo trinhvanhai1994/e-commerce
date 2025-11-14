@@ -242,74 +242,74 @@ function getFullDeliveryAddress(customerInfo) {
 
       <div v-else class="space-y-6">
         <!-- Validation Error -->
-        <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <div v-if="error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4 transition-colors duration-300">
           <h3 class="text-sm font-semibold text-red-800 mb-2">Lỗi:</h3>
           <p class="text-sm text-red-700">{{ error }}</p>
         </div>
 
         <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 md:p-6 transition-colors duration-300">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+                <svg class="w-6 h-6 text-green-600 dark:text-green-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
               </div>
               <div>
-                <h1 class="text-xl md:text-2xl font-bold text-gray-800">Đặt hàng thành công!</h1>
-                <p class="text-gray-600 text-sm md:text-base">Cảm ơn bạn đã tin tưởng Thi Yên</p>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors duration-300">Đặt hàng thành công!</h1>
+                <p class="text-gray-600 dark:text-gray-300 text-sm md:text-base transition-colors duration-300">Cảm ơn bạn đã tin tưởng Thi Yên</p>
               </div>
             </div>
             <div class="text-left md:text-right">
-              <p class="text-sm text-gray-500">Mã đơn hàng</p>
-              <p class="text-lg font-bold text-green-600 break-all">#{{ orderId }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Mã đơn hàng</p>
+              <p class="text-lg font-bold text-green-600 dark:text-green-400 break-all transition-colors duration-300">#{{ orderId }}</p>
             </div>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-6">
-            <div class="bg-gray-50 rounded-lg p-3 md:p-4">
-              <p class="text-xs md:text-sm text-gray-500 mb-1">Ngày đặt hàng</p>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 transition-colors duration-300">
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-1 transition-colors duration-300">Ngày đặt hàng</p>
               <p class="font-semibold text-sm md:text-base">{{ orderDate }}</p>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3 md:p-4">
-              <p class="text-xs md:text-sm text-gray-500 mb-1">Trạng thái</p>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 transition-colors duration-300">
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-1 transition-colors duration-300">Trạng thái</p>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 transition-colors duration-300">
                 {{ orderStatus }}
               </span>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3 md:p-4">
-              <p class="text-xs md:text-sm text-gray-500 mb-1">Tổng tiền</p>
-              <p class="font-bold text-lg text-green-600">{{ orderTotal }}</p>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 md:p-4 transition-colors duration-300">
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-1 transition-colors duration-300">Tổng tiền</p>
+              <p class="font-bold text-lg text-green-600 dark:text-green-400 transition-colors duration-300">{{ orderTotal }}</p>
             </div>
           </div>
         </div>
 
         <!-- Order Items -->
-        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
-          <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">Chi tiết đơn hàng</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 md:p-6 transition-colors duration-300">
+          <h2 class="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 transition-colors duration-300">Chi tiết đơn hàng</h2>
           <div v-if="hasItems" class="space-y-3 md:space-y-4">
-            <div v-for="item in order.items" :key="item.id" class="flex items-center gap-3 md:gap-4 py-3 md:py-4 border-b border-gray-100 last:border-b-0">
+            <div v-for="item in order.items" :key="item.id" class="flex items-center gap-3 md:gap-4 py-3 md:py-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors duration-300">
               <img :src="getProductImage(item.id)" :alt="item.name" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg flex-shrink-0">
               <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-gray-800 text-sm md:text-base truncate">{{ item.name }}</h3>
-                <p class="text-xs md:text-sm text-gray-600">Số lượng: {{ item.quantity }}</p>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-100 text-sm md:text-base truncate transition-colors duration-300">{{ item.name }}</h3>
+                <p class="text-xs md:text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Số lượng: {{ item.quantity }}</p>
               </div>
               <div class="text-right flex-shrink-0">
-                <p class="font-bold text-gray-800 text-sm md:text-base">{{ formatPrice(item.price * item.quantity) }}</p>
-                <p class="text-xs md:text-sm text-gray-500">{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
+                <p class="font-bold text-gray-800 dark:text-gray-100 text-sm md:text-base transition-colors duration-300">{{ formatPrice(item.price * item.quantity) }}</p>
+                <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
               </div>
             </div>
           </div>
-          <div v-else class="text-center py-8 text-gray-500">
+          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400 transition-colors duration-300">
             <p>Không có sản phẩm nào trong đơn hàng</p>
           </div>
           
           <!-- Order Summary -->
-          <div v-if="order" class="mt-6 pt-4 border-t border-gray-200">
+          <div v-if="order" class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300">
             <div class="space-y-2">
               <div class="flex justify-between">
-                <span class="text-gray-600">Tạm tính:</span>
+                <span class="text-gray-600 dark:text-gray-300 transition-colors duration-300">Tạm tính:</span>
                 <span class="font-semibold">{{ order.subTotal ? formatPrice(order.subTotal) : 'N/A' }}</span>
               </div>
               <div class="flex justify-between">
@@ -327,35 +327,35 @@ function getFullDeliveryAddress(customerInfo) {
         </div>
 
         <!-- Customer Info -->
-        <div v-if="hasCustomerInfo" class="bg-white rounded-xl shadow-lg p-4 md:p-6">
-          <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">Thông tin giao hàng</h2>
+        <div v-if="hasCustomerInfo" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 md:p-6 transition-colors duration-300">
+          <h2 class="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 transition-colors duration-300">Thông tin giao hàng</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
-              <h3 class="font-semibold text-gray-800 mb-2 text-sm md:text-base">Người nhận</h3>
-              <p class="text-gray-600 text-sm md:text-base">{{ order.customerInfo.name || 'N/A' }}</p>
-              <p class="text-gray-600 text-sm md:text-base">{{ order.customerInfo.phone || 'N/A' }}</p>
-              <p v-if="order.customerInfo.email" class="text-gray-600 text-sm md:text-base">{{ order.customerInfo.email }}</p>
+              <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm md:text-base transition-colors duration-300">Người nhận</h3>
+              <p class="text-gray-600 dark:text-gray-300 text-sm md:text-base transition-colors duration-300">{{ order.customerInfo.name || 'N/A' }}</p>
+              <p class="text-gray-600 dark:text-gray-300 text-sm md:text-base transition-colors duration-300">{{ order.customerInfo.phone || 'N/A' }}</p>
+              <p v-if="order.customerInfo.email" class="text-gray-600 dark:text-gray-300 text-sm md:text-base transition-colors duration-300">{{ order.customerInfo.email }}</p>
             </div>
             <div>
-              <h3 class="font-semibold text-gray-800 mb-2 text-sm md:text-base">Địa chỉ giao hàng</h3>
-              <p class="text-gray-600 text-sm md:text-base">{{ getFullDeliveryAddress(order.customerInfo) }}</p>
+              <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm md:text-base transition-colors duration-300">Địa chỉ giao hàng</h3>
+              <p class="text-gray-600 dark:text-gray-300 text-sm md:text-base transition-colors duration-300">{{ getFullDeliveryAddress(order.customerInfo) }}</p>
             </div>
           </div>
           <div v-if="order.customerInfo.notes" class="mt-4">
-            <h3 class="font-semibold text-gray-800 mb-2 text-sm md:text-base">Ghi chú</h3>
-            <p class="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm md:text-base">{{ order.customerInfo.notes }}</p>
+            <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm md:text-base transition-colors duration-300">Ghi chú</h3>
+            <p class="text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-sm md:text-base transition-colors duration-300">{{ order.customerInfo.notes }}</p>
           </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4 md:px-0">
-          <button @click="continueShopping" class="bg-green-500 text-white px-6 md:px-8 py-3 rounded-full font-bold hover:bg-green-600 transition flex items-center justify-center gap-2 text-sm md:text-base">
+          <button @click="continueShopping" class="bg-green-500 dark:bg-green-600 text-white px-6 md:px-8 py-3 rounded-full font-bold hover:bg-green-600 dark:hover:bg-green-700 transition-colors duration-300 flex items-center justify-center gap-2 text-sm md:text-base">
             <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.4 9.4m0 0L17 22"/>
             </svg>
             Tiếp tục mua hàng
           </button>
-          <button @click="goHome" class="bg-gray-500 text-white px-6 md:px-8 py-3 rounded-full font-bold hover:bg-gray-600 transition flex items-center justify-center gap-2 text-sm md:text-base">
+          <button @click="goHome" class="bg-gray-500 dark:bg-gray-600 text-white px-6 md:px-8 py-3 rounded-full font-bold hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors duration-300 flex items-center justify-center gap-2 text-sm md:text-base">
             <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>

@@ -1,26 +1,26 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Content Section -->
     <div class="max-w-4xl mx-auto px-4 py-12">
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
+      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-8 transition-colors duration-300">
         <div class="mb-8">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Chính sách đổi trả</h1>
-          <p class="text-gray-600 text-lg">Thông tin về quy định đổi trả sản phẩm</p>
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Chính sách đổi trả</h1>
+          <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Thông tin về quy định đổi trả sản phẩm</p>
         </div>
         
-        <div class="prose prose-lg max-w-none">
+        <div class="prose prose-lg max-w-none dark:prose-invert">
           <div class="space-y-8">
-            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
-              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+            <div class="p-6 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm rounded-xl border border-green-200/30 dark:border-gray-600/30 shadow-md transition-colors duration-300">
+              <h3 class="text-xl font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2 transition-colors duration-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 1. ĐIỀU KIỆN ĐỔI TRẢ
               </h3>
-              <p class="text-gray-700 mb-4">
+              <p class="text-gray-700 dark:text-gray-300 mb-4 transition-colors duration-300">
                 Thi Yên hỗ trợ đổi trả sản phẩm trong vòng 7 ngày kể từ khi nhận hàng, với các trường hợp sau:
               </p>
-              <ul class="list-disc list-inside space-y-2 text-gray-700 mb-4">
+              <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 mb-4 transition-colors duration-300">
                 <li>Sản phẩm bị hư hỏng do quá trình vận chuyển (rách bao bì, bể vỡ, móp méo…)</li>
                 <li>Giao nhầm sản phẩm hoặc thiếu hàng</li>
                 <li>Sản phẩm bị lỗi kỹ thuật (đóng gói sai, tem nhãn mờ, lỗi từ nhà sản xuất…)</li>
@@ -34,7 +34,7 @@
                 </svg>
                 2. ĐIỀU KIỆN KHÔNG ĐỔI TRẢ
               </h3>
-              <p class="text-gray-700 mb-4">
+              <p class="text-gray-700 dark:text-gray-300 mb-4 transition-colors duration-300">
                 Thi Yên không hỗ trợ đổi trả trong các trường hợp sau:
               </p>
               <ul class="list-disc list-inside space-y-2 text-gray-700">

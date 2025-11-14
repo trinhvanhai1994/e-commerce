@@ -1,23 +1,23 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Content Section -->
     <div class="max-w-4xl mx-auto px-4 py-12">
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
+      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-8 transition-colors duration-300">
         <div class="mb-8">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Chính sách thanh toán</h1>
-          <p class="text-gray-600 text-lg">Thông tin về các hình thức thanh toán</p>
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Chính sách thanh toán</h1>
+          <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Thông tin về các hình thức thanh toán</p>
         </div>
         
-        <div class="prose prose-lg max-w-none">
+        <div class="prose prose-lg max-w-none dark:prose-invert">
           <div class="space-y-8">
-            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
-              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+            <div class="p-6 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm rounded-xl border border-green-200/30 dark:border-gray-600/30 shadow-md transition-colors duration-300">
+              <h3 class="text-xl font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2 transition-colors duration-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                 </svg>
                 1. THANH TOÁN TRỰC TUYẾN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Thanh toán thông qua cổng thanh toán điện tử của ngân hàng. Theo đó, các tiêu chuẩn bảo mật thanh toán đảm bảo tuân thủ theo các tiêu chuẩn bảo mật của mỗi cổng thanh toán. Đã được Ngân hàng nhà nước Việt Nam thẩm định về độ an toàn bảo mật và cấp phép hoạt động chính thức.
               </p>
             </div>
@@ -29,7 +29,7 @@
                 </svg>
                 2. THANH TOÁN SAU KHI NHẬN HÀNG (COD)
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Khách hàng có thể thanh toán khi nhận hàng. Ngay tại thời điểm nhận hàng, khách hàng vui lòng kiểm tra bao bì sản phẩm. Nếu phát hiện lỗi hay khiếm khuyết nào không đúng ý muốn, khách hàng vui lòng trả lại nhân viên vận chuyển.
               </p>
             </div>

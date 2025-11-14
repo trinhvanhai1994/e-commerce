@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-green-50 via-purple-50 to-indigo-50">
+  <div class="min-h-screen bg-gradient-to-br from-green-50 via-purple-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
     <!-- Header Section -->
     <div class="bg-gradient-to-r from-green-500 via-purple-500 to-indigo-500 text-white relative overflow-hidden">
       <div class="absolute inset-0 bg-black bg-opacity-10"></div>
@@ -44,13 +44,13 @@
       <!-- Empty Cart -->
       <div v-if="cartStore.items.length === 0" class="text-center py-20" data-aos="fade-up">
         <div class="max-w-md mx-auto">
-          <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-green-100 to-purple-100 rounded-full flex items-center justify-center">
-            <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-green-100 to-purple-100 dark:from-green-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center transition-colors duration-300">
+            <svg class="w-16 h-16 text-green-400 dark:text-green-300 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h6m-6 0V9"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-gray-800 mb-4">Giỏ hàng trống</h3>
-          <p class="text-gray-600 mb-8 text-lg">Hãy khám phá những sản phẩm tuyệt vời của chúng tôi</p>
+          <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 transition-colors duration-300">Giỏ hàng trống</h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-8 text-lg transition-colors duration-300">Hãy khám phá những sản phẩm tuyệt vời của chúng tôi</p>
           <router-link
             to="/products"
             class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-purple-500 text-white font-bold rounded-full hover:from-green-600 hover:to-purple-600 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -70,7 +70,7 @@
           <!-- Cart Items Table Header -->
           <!-- Desktop Table -->
           <div v-if="cartStore.items.length > 0" class="hidden md:block">
-            <div class="grid grid-cols-12 gap-2 px-6 py-3 bg-gray-50 border-b font-bold text-gray-700 text-sm">
+            <div class="grid grid-cols-12 gap-2 px-6 py-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 font-bold text-gray-700 dark:text-gray-200 text-sm transition-colors duration-300">
               <div class="col-span-1 flex items-center justify-center">
                 <input type="checkbox" :checked="selectedIds.length === cartStore.items.length" @change="toggleSelectAll" />
               </div>
@@ -80,32 +80,32 @@
               <div class="col-span-1 text-center">Thành tiền</div>
               <div class="col-span-1 text-center">Xóa</div>
             </div>
-            <div v-for="item in cartStore.items" :key="item.id" class="grid grid-cols-12 gap-2 items-center px-4 py-3 border-b hover:bg-gray-50 transition md:px-6">
+            <div v-for="item in cartStore.items" :key="item.id" class="grid grid-cols-12 gap-2 items-center px-4 py-3 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-300 md:px-6">
               <div class="col-span-1 flex items-center justify-center">
-                <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" />
+                <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" class="dark:bg-gray-700 dark:border-gray-600" />
               </div>
               <div class="col-span-5 flex items-center gap-3">
-                <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border" />
-                <span class="font-semibold text-base text-gray-900 truncate">{{ item.name }}</span>
+                <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border dark:border-gray-700" />
+                <span class="font-semibold text-base text-gray-900 dark:text-gray-100 truncate transition-colors duration-300">{{ item.name }}</span>
               </div>
               <div class="col-span-2 text-center">
-                <span class="text-lg font-bold text-green-600">{{ formatPrice(item.price) }}</span>
-                <span v-if="item.oldPrice" class="block text-xs text-gray-400 line-through">{{ formatPrice(item.oldPrice) }}</span>
+                <span class="text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-300">{{ formatPrice(item.price) }}</span>
+                <span v-if="item.oldPrice" class="block text-xs text-gray-400 dark:text-gray-500 line-through transition-colors duration-300">{{ formatPrice(item.oldPrice) }}</span>
               </div>
               <div class="col-span-2 flex items-center justify-center gap-2">
-                <button @click="decreaseQuantity(item.id)" :disabled="(Number(item.quantity) || 1) <= 1" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                <button @click="decreaseQuantity(item.id)" :disabled="(Number(item.quantity) || 1) <= 1" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors duration-300">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                 </button>
-                <span class="w-8 text-center font-semibold">{{ Number(item.quantity) || 1 }}</span>
-                <button @click="increaseQuantity(item.id)" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
+                <span class="w-8 text-center font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">{{ Number(item.quantity) || 1 }}</span>
+                <button @click="increaseQuantity(item.id)" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 </button>
               </div>
-              <div class="col-span-1 text-center font-bold text-purple-600">
+              <div class="col-span-1 text-center font-bold text-purple-600 dark:text-purple-400 transition-colors duration-300">
                 {{ formatPrice((Number(item.price) || 0) * (Number(item.quantity) || 1)) }}
               </div>
               <div class="col-span-1 flex items-center justify-center">
-                <button @click="removeItem(item.id)" class="p-2 rounded hover:bg-red-50 text-red-500" title="Xóa sản phẩm">
+                <button @click="removeItem(item.id)" class="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 transition-colors duration-300" title="Xóa sản phẩm">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
               </div>
@@ -113,28 +113,28 @@
           </div>
           <!-- Mobile Card Layout -->
           <div v-if="cartStore.items.length > 0" class="md:hidden space-y-4">
-            <div v-for="item in cartStore.items" :key="item.id" class="flex gap-3 p-3 rounded-xl border bg-white shadow-sm items-center">
-              <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" class="mt-1" />
-              <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
+            <div v-for="item in cartStore.items" :key="item.id" class="flex gap-3 p-3 rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm items-center transition-colors duration-300">
+              <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" class="mt-1 dark:bg-gray-700 dark:border-gray-600" />
+              <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border dark:border-gray-700 flex-shrink-0" />
               <div class="flex-1 min-w-0">
-                <div class="font-semibold text-base text-gray-900 break-words mb-1">{{ item.name }}</div>
+                <div class="font-semibold text-base text-gray-900 dark:text-gray-100 break-words mb-1 transition-colors duration-300">{{ item.name }}</div>
                 <div class="flex items-center gap-2">
-                  <span class="text-lg font-bold text-green-600">{{ formatPrice(item.price) }}</span>
-                  <span v-if="item.oldPrice" class="text-xs text-gray-400 line-through">{{ formatPrice(item.oldPrice) }}</span>
+                  <span class="text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-300">{{ formatPrice(item.price) }}</span>
+                  <span v-if="item.oldPrice" class="text-xs text-gray-400 dark:text-gray-500 line-through transition-colors duration-300">{{ formatPrice(item.oldPrice) }}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
-                  <button @click="decreaseQuantity(item.id)" :disabled="(Number(item.quantity) || 1) <= 1" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                  <button @click="decreaseQuantity(item.id)" :disabled="(Number(item.quantity) || 1) <= 1" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors duration-300">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                   </button>
-                  <span class="w-8 text-center font-semibold">{{ Number(item.quantity) || 1 }}</span>
-                  <button @click="increaseQuantity(item.id)" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
+                  <span class="w-8 text-center font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">{{ Number(item.quantity) || 1 }}</span>
+                  <button @click="increaseQuantity(item.id)" class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                   </button>
-                  <button @click="removeItem(item.id)" class="ml-auto p-2 rounded hover:bg-red-50 text-red-500" title="Xóa sản phẩm">
+                  <button @click="removeItem(item.id)" class="ml-auto p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 transition-colors duration-300" title="Xóa sản phẩm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
-                <div class="text-right font-bold text-purple-600 mt-1">{{ formatPrice((Number(item.price) || 0) * (Number(item.quantity) || 1)) }}</div>
+                <div class="text-right font-bold text-purple-600 dark:text-purple-400 mt-1 transition-colors duration-300">{{ formatPrice((Number(item.price) || 0) * (Number(item.quantity) || 1)) }}</div>
               </div>
             </div>
           </div>
@@ -142,9 +142,9 @@
         <!-- Order Summary Column -->
         <div class="lg:col-span-1" data-aos="fade-left">
           <div class="sticky top-6">
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
-              <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <svg class="w-6 h-6 mr-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20 dark:border-gray-700/50 transition-colors duration-300">
+              <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center transition-colors duration-300">
+                <svg class="w-6 h-6 mr-3 text-purple-500 dark:text-purple-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 Tóm tắt đơn hàng
@@ -158,21 +158,21 @@
                 </div>
                 <div class="order-row">
                   <span class="order-label">Phí vận chuyển</span>
-                  <span v-if="finalShippingFee > 0" class="order-value text-red-600 font-semibold">{{ formatPrice(finalShippingFee) }}</span>
-                  <span v-else class="order-value text-green-600 font-semibold">Miễn phí</span>
+                  <span v-if="finalShippingFee > 0" class="order-value text-red-600 dark:text-red-400 font-semibold transition-colors duration-300">{{ formatPrice(finalShippingFee) }}</span>
+                  <span v-else class="order-value text-green-600 dark:text-green-400 font-semibold transition-colors duration-300">Miễn phí</span>
                 </div>
                 <div v-if="totalDiscount > 0" class="order-row">
                   <span class="order-label">Giảm giá sản phẩm</span>
-                  <span class="order-value text-green-600 font-semibold">-{{ formatPrice(totalDiscount) }}</span>
+                  <span class="order-value text-green-600 dark:text-green-400 font-semibold transition-colors duration-300">-{{ formatPrice(totalDiscount) }}</span>
                 </div>
                 <div v-if="appliedDiscount > 0" class="order-row">
                   <span class="order-label">Mã giảm giá</span>
-                  <span class="order-value text-green-600 font-semibold">-{{ formatPrice(appliedDiscount) }}</span>
+                  <span class="order-value text-green-600 dark:text-green-400 font-semibold transition-colors duration-300">-{{ formatPrice(appliedDiscount) }}</span>
                 </div>
-                <div class="border-t border-gray-200 pt-4">
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-4 transition-colors duration-300">
                   <div class="order-row text-lg font-bold">
-                    <span class="text-gray-800">Tổng cộng</span>
-                    <span class="text-purple-600">{{ formatPrice(total) }}</span>
+                    <span class="text-gray-800 dark:text-gray-100 transition-colors duration-300">Tổng cộng</span>
+                    <span class="text-purple-600 dark:text-purple-400 transition-colors duration-300">{{ formatPrice(total) }}</span>
                   </div>
                 </div>
               </div>
@@ -233,7 +233,7 @@
           <div class="mt-8 text-center" data-aos="fade-up">
             <router-link
               to="/products"
-              class="inline-flex items-center px-6 py-3 text-purple-600 hover:text-purple-700 font-semibold bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300 shadow-md hover:shadow-lg"
+              class="inline-flex items-center px-6 py-3 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -699,9 +699,17 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+.dark .order-label {
+  color: #9ca3af;
+}
+
 .order-value {
   font-weight: 600;
   color: #111827;
+}
+
+.dark .order-value {
+  color: #f3f4f6;
 }
 
 .discount-section {
@@ -716,6 +724,10 @@ onMounted(async () => {
   margin-bottom: 0.75rem;
 }
 
+.dark .discount-label {
+  color: #d1d5db;
+}
+
 .discount-input-container {
   display: flex;
   gap: 0.5rem;
@@ -728,12 +740,25 @@ onMounted(async () => {
   border-radius: 0.75rem;
   font-size: 0.875rem;
   transition: all 0.3s ease;
+  background-color: white;
+  color: #111827;
+}
+
+.dark .discount-input {
+  border-color: #4b5563;
+  background-color: #374151;
+  color: #f3f4f6;
 }
 
 .discount-input:focus {
   outline: none;
   border-color: #ec4899;
   box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+.dark .discount-input:focus {
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
 }
 
 .discount-btn {
@@ -801,6 +826,10 @@ onMounted(async () => {
   color: #6b7280;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.dark .security-badge {
+  color: #9ca3af;
 }
 
 /* Notification Popup */

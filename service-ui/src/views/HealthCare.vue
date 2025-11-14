@@ -28,19 +28,19 @@
       </div>
     </section>
 
-    <div class="healthcare-page" style="background-color: #fefce8;">
+    <div class="healthcare-page dark:bg-gray-900 transition-colors duration-300" style="background-color: #fefce8;">
 
     <!-- Story Section -->
     <section class="story-section py-12">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">TRIẾT LÝ DƯỠNG SINH</h2>
-            <div class="w-24 h-1 bg-green-500 mx-auto"></div>
+            <h2 class="text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400 mb-4 transition-colors duration-300">TRIẾT LÝ DƯỠNG SINH</h2>
+            <div class="w-24 h-1 bg-green-500 dark:bg-green-400 mx-auto transition-colors duration-300"></div>
           </div>
           
-          <div class="mx-auto text-gray-700 leading-relaxed text-base md:text-lg" data-aos="fade-up" data-aos-delay="200">
-            <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-8 mb-4">Dưỡng sinh - lối sống thuận tự nhiên từ ngàn xưa</h4>
+          <div class="mx-auto text-gray-700 dark:text-gray-300 leading-relaxed text-base md:text-lg transition-colors duration-300" data-aos="fade-up" data-aos-delay="200">
+            <h4 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 mt-8 mb-4 transition-colors duration-300">Dưỡng sinh - lối sống thuận tự nhiên từ ngàn xưa</h4>
             
             <div class="mb-6 text-base md:text-lg">
               Từ hơn hai ngàn năm trước, trong nền y học cổ phương Đông, dưỡng sinh đã hình thành như một lối sống thấm đẫm triết lý âm dương, ngũ hành với niềm tin rằng: muốn thân vững, tâm phải yên; muốn sống khỏe phải thuận theo đất trời. Toàn bộ triết lý dưỡng sinh Đông phương cổ đại đều xoay quanh một điều cốt lõi: <strong>sức khỏe không nằm ở thứ tìm bên ngoài, mà ở cách ta sống mỗi ngày.</strong>

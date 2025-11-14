@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Content Section -->
     <div class="max-w-4xl mx-auto px-4 py-12">
       <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Câu hỏi thường gặp</h1>
-        <p class="text-gray-600 text-lg">Giải đáp các thắc mắc phổ biến về sản phẩm và dịch vụ</p>
+        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Câu hỏi thường gặp</h1>
+        <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Giải đáp các thắc mắc phổ biến về sản phẩm và dịch vụ</p>
       </div>
       
       <div class="space-y-6">
@@ -12,15 +12,15 @@
         <div 
           v-for="(faq, index) in faqs" 
           :key="index"
-          class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 overflow-hidden"
+          class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 overflow-hidden transition-colors duration-300"
         >
           <button
             @click="toggleFAQ(index)"
-            class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-green-50/50 transition-colors duration-200"
+            class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-green-50/50 dark:hover:bg-gray-700/50 transition-colors duration-200"
           >
-            <h3 class="text-lg font-semibold text-green-700">{{ faq.question }}</h3>
+            <h3 class="text-lg font-semibold text-green-700 dark:text-green-400 transition-colors duration-300">{{ faq.question }}</h3>
             <svg 
-              :class="['w-6 h-6 text-green-500 transition-transform duration-200', { 'rotate-180': faq.isOpen }]"
+              :class="['w-6 h-6 text-green-500 dark:text-green-400 transition-transform duration-200', { 'rotate-180': faq.isOpen }]"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -30,7 +30,7 @@
           </button>
           <div 
             v-show="faq.isOpen"
-            class="px-6 pb-4 text-gray-700 leading-relaxed bg-white/30 backdrop-blur-sm"
+            class="px-6 pb-4 text-gray-700 dark:text-gray-300 leading-relaxed bg-white/30 dark:bg-gray-700/30 backdrop-blur-sm transition-colors duration-300"
           >
             <div v-html="faq.answer"></div>
           </div>
@@ -38,14 +38,14 @@
       </div>
 
       <!-- Contact Support -->
-      <div class="mt-12 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200 shadow-md">
-        <h3 class="text-lg font-semibold text-green-700 mb-2 flex items-center gap-2">
+      <div class="mt-12 p-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border border-green-200 dark:border-gray-700 shadow-md transition-colors duration-300">
+        <h3 class="text-lg font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2 transition-colors duration-300">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
           </svg>
           Không tìm thấy câu trả lời?
         </h3>
-        <p class="text-green-700 mb-3">
+        <p class="text-green-700 dark:text-green-300 mb-3 transition-colors duration-300">
           Liên hệ với chúng tôi để được hỗ trợ trực tiếp:
         </p>
         <div class="flex flex-col sm:flex-row gap-4">

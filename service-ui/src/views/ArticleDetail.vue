@@ -3,19 +3,19 @@
     <div v-if="article">
       <!-- Mobile Table of Contents - hiển thị ở đầu trang -->
       <div class="lg:hidden mb-6">
-        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
           <button 
             @click="showMobileTOC = !showMobileTOC"
             class="flex items-center justify-between w-full text-left"
           >
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-              <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center transition-colors duration-300">
+              <svg class="w-5 h-5 mr-2 text-green-600 dark:text-green-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
               </svg>
               Mục lục
             </h3>
             <svg 
-              :class="['w-5 h-5 text-gray-500 transition-transform duration-200', showMobileTOC ? 'rotate-180' : '']"
+              :class="['w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-200', showMobileTOC ? 'rotate-180' : '']"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -31,7 +31,7 @@
               @click="scrollToSection(item.index, $event); showMobileTOC = false"
               :class="[
                 'block text-sm transition-colors duration-200 rounded px-3 py-2 font-medium',
-                activeSection === item.index ? 'text-green-600 bg-green-50' : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                activeSection === item.index ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30' : 'text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               ]"
             >
               {{ item.text }}
@@ -45,9 +45,9 @@
         <!-- Table of Contents Sidebar - chỉ hiển thị trên desktop -->
         <div class="hidden lg:block w-64 flex-shrink-0">
           <div class="sticky top-8">
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center transition-colors duration-300">
+                <svg class="w-5 h-5 mr-2 text-green-600 dark:text-green-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                 </svg>
                 Mục lục
@@ -60,7 +60,7 @@
                   @click="scrollToSection(item.index, $event)"
                   :class="[
                     'block text-sm transition-colors duration-200 rounded px-3 py-2 font-medium',
-                    activeSection === item.index ? 'text-green-600 bg-green-50' : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                    activeSection === item.index ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30' : 'text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                   ]"
                 >
                   {{ item.text }}
@@ -73,10 +73,10 @@
         <!-- Main Content -->
         <div class="flex-1 min-w-0">
         <img v-if="article.image" :src="article.image" :alt="article.title" class="w-full h-auto object-contain rounded-lg mb-6" />
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{{ article.title }}</h1>
-        <div class="text-sm text-gray-500 mb-8">{{ article.date }}</div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3 transition-colors duration-300">{{ article.title }}</h1>
+        <div class="text-sm text-gray-500 dark:text-gray-400 mb-8 transition-colors duration-300">{{ article.date }}</div>
 
-        <article class="prose prose-pink max-w-none">
+        <article class="prose prose-pink max-w-none dark:prose-invert">
           <div v-for="(block, idx) in article.content" :key="idx" :id="`section-${idx}`" class="scroll-mt-24">
             <p v-if="block.type === 'p'" :class="block.class">{{ block.text }}</p>
             <h2 v-else-if="block.type === 'h2'" class="scroll-mt-24">{{ block.text }}</h2>
@@ -89,15 +89,15 @@
               <router-link :to="block.to" class="text-green-600 hover:underline font-semibold">{{ block.linkText }}</router-link>
             </p>
             <div v-else-if="block.type === 'table'" class="overflow-x-auto my-6">
-              <table class="w-full border border-gray-300 text-sm">
+              <table class="w-full border border-gray-300 dark:border-gray-600 text-sm transition-colors duration-300">
                 <thead>
                   <tr>
-                    <th v-for="(h, hi) in block.headers" :key="hi" class="border border-gray-300 bg-gray-50 p-2 text-left font-semibold">{{ h }}</th>
+                    <th v-for="(h, hi) in block.headers" :key="hi" class="border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 text-left font-semibold transition-colors duration-300">{{ h }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(row, ri) in block.rows" :key="ri">
-                    <td v-for="(cell, ci) in row" :key="ci" class="border border-gray-300 p-2 align-top">{{ cell }}</td>
+                    <td v-for="(cell, ci) in row" :key="ci" class="border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 p-2 align-top transition-colors duration-300">{{ cell }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -106,9 +106,9 @@
         </article>
 
           <div class="mt-10 flex items-center justify-between">
-            <router-link :to="{ name: 'Blog', query: { ...route.query, page: pageFromQuery } }" class="text-green-600 hover:underline font-medium">← Quay lại danh sách</router-link>
+            <router-link :to="{ name: 'Blog', query: { ...route.query, page: pageFromQuery } }" class="text-green-600 dark:text-green-400 hover:underline font-medium transition-colors duration-300">← Quay lại danh sách</router-link>
             <div class="flex gap-3">
-              <router-link v-for="p in related" :key="p.slug" :to="{ name: 'BlogDetail', params: { slug: p.slug }, query: { ...route.query, page: pageFromQuery } }" class="text-sm text-gray-600 hover:text-green-600">
+              <router-link v-for="p in related" :key="p.slug" :to="{ name: 'BlogDetail', params: { slug: p.slug }, query: { ...route.query, page: pageFromQuery } }" class="text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300">
                 {{ p.title }}
               </router-link>
             </div>

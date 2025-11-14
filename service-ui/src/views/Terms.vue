@@ -1,23 +1,23 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Content Section -->
     <div class="max-w-4xl mx-auto px-4 py-12">
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
+      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-8 transition-colors duration-300">
         <div class="mb-8">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Điều khoản sử dụng</h1>
-          <p class="text-gray-600 text-lg">Quy định và điều khoản khi sử dụng website</p>
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Điều khoản sử dụng</h1>
+          <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Quy định và điều khoản khi sử dụng website</p>
         </div>
         
-        <div class="prose prose-lg max-w-none">
+        <div class="prose prose-lg max-w-none dark:prose-invert">
           <div class="space-y-8">
-            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
-              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+            <div class="p-6 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm rounded-xl border border-green-200/30 dark:border-gray-600/30 shadow-md transition-colors duration-300">
+              <h3 class="text-xl font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2 transition-colors duration-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 1. CHẤP NHẬN ĐIỀU KHOẢN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Bằng việc truy cập và sử dụng website này, bạn đồng ý tuân thủ và bị ràng buộc bởi các điều khoản và điều kiện sử dụng được quy định dưới đây.
               </p>
             </div>
@@ -74,7 +74,7 @@
                 </svg>
                 5. THAY ĐỔI ĐIỀU KHOẢN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Chúng tôi có quyền thay đổi các điều khoản này bất cứ lúc nào. Các thay đổi sẽ có hiệu lực ngay khi được đăng tải trên website.
               </p>
             </div>

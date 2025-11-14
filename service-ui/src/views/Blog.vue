@@ -2,24 +2,24 @@
   <div class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
     <!-- Main Blog Grid -->
     <div class="md:col-span-3">
-      <h1 class="text-2xl md:text-3xl font-bold text-green-600 mb-6 text-center md:text-left uppercase tracking-wide">Blog chăm sóc sức khỏe</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-6 text-center md:text-left uppercase tracking-wide transition-colors duration-300">Blog chăm sóc sức khỏe</h1>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="post in paginatedPosts" :key="post.id" class="bg-white rounded-xl shadow hover:shadow-lg transition p-0 flex flex-col overflow-hidden">
+        <div v-for="post in paginatedPosts" :key="post.id" class="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition-all duration-300 p-0 flex flex-col overflow-hidden">
           <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug }, query: { ...route.query, page: currentPage } }" class="block">
             <img :src="post.image" :alt="post.title" class="w-full h-auto object-contain rounded-t-xl hover:opacity-90 transition-opacity duration-200" />
           </router-link>
           <div class="p-4 flex-1 flex flex-col">
             <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug }, query: { ...route.query, page: currentPage } }" class="block">
-              <h2 class="font-bold text-base md:text-lg text-gray-800 mb-2 line-clamp-2 hover:text-green-600 transition-colors duration-200">{{ post.title }}</h2>
+              <h2 class="font-bold text-base md:text-lg text-gray-800 dark:text-gray-100 mb-2 line-clamp-2 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-200">{{ post.title }}</h2>
             </router-link>
-            <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ post.excerpt }}</p>
-            <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug }, query: { ...route.query, page: currentPage } }" class="mt-auto text-green-500 hover:underline text-sm font-semibold">Đọc tiếp</router-link>
+            <p class="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2 transition-colors duration-300">{{ post.excerpt }}</p>
+            <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug }, query: { ...route.query, page: currentPage } }" class="mt-auto text-green-500 dark:text-green-400 hover:underline text-sm font-semibold transition-colors duration-300">Đọc tiếp</router-link>
           </div>
         </div>
       </div>
       <!-- Pagination -->
       <div class="flex justify-center mt-8 gap-2">
-        <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="['w-8 h-8 rounded-full flex items-center justify-center border', currentPage === page ? 'bg-green-500 text-white border-green-500' : 'bg-white text-green-500 border-green-200 hover:bg-green-50']">
+        <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="['w-8 h-8 rounded-full flex items-center justify-center border transition-colors duration-300', currentPage === page ? 'bg-green-500 text-white border-green-500' : 'bg-white dark:bg-gray-800 text-green-500 dark:text-green-400 border-green-200 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-gray-700']">
           {{ page }}
         </button>
       </div>
@@ -28,23 +28,23 @@
     <aside class="space-y-8">
       <!-- Bài viết xem nhiều -->
       <div>
-        <h3 class="font-bold text-green-600 mb-4 text-base uppercase tracking-wide">Bài viết xem nhiều</h3>
+        <h3 class="font-bold text-green-600 dark:text-green-400 mb-4 text-base uppercase tracking-wide transition-colors duration-300">Bài viết xem nhiều</h3>
         <ul class="space-y-3">
           <li v-for="item in popularPosts" :key="item.id" class="flex gap-3 items-center">
             <img :src="item.image" :alt="item.title" class="w-12 h-12 object-contain rounded" />
-            <router-link :to="`/blog/${item.slug}`" class="text-sm font-semibold text-gray-700 hover:text-green-500 line-clamp-2">{{ item.title }}</router-link>
+            <router-link :to="`/blog/${item.slug}`" class="text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-400 line-clamp-2 transition-colors duration-300">{{ item.title }}</router-link>
           </li>
         </ul>
       </div>
       <!-- Sản phẩm nổi bật -->
       <div>
-        <h3 class="font-bold text-green-600 mb-4 text-base uppercase tracking-wide">Sản phẩm nổi bật</h3>
+        <h3 class="font-bold text-green-600 dark:text-green-400 mb-4 text-base uppercase tracking-wide transition-colors duration-300">Sản phẩm nổi bật</h3>
         <ul class="space-y-3">
           <li v-for="sp in featuredProducts" :key="sp.id" class="flex gap-3 items-center">
             <img :src="sp.image" :alt="sp.name" class="w-12 h-12 object-contain rounded" />
             <div class="flex-1">
-              <div class="text-sm font-semibold text-gray-700 line-clamp-2">{{ sp.name }}</div>
-              <div class="text-xs text-green-500 font-bold">{{ formatPrice(sp.price) }}</div>
+              <div class="text-sm font-semibold text-gray-700 dark:text-gray-300 line-clamp-2 transition-colors duration-300">{{ sp.name }}</div>
+              <div class="text-xs text-green-500 dark:text-green-400 font-bold transition-colors duration-300">{{ formatPrice(sp.price) }}</div>
             </div>
           </li>
         </ul>

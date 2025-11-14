@@ -1,23 +1,23 @@
 <template>
-  <div class="min-h-screen bg-yellow-50">
+  <div class="min-h-screen bg-yellow-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Content Section -->
     <div class="max-w-4xl mx-auto px-4 py-12">
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 p-8">
+      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-green-200/50 dark:border-gray-700/50 p-8 transition-colors duration-300">
         <div class="mb-8">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700">Chính sách bảo mật</h1>
-          <p class="text-gray-600 text-lg">Thông tin về cách chúng tôi thu thập và sử dụng thông tin cá nhân</p>
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 text-green-700 dark:text-green-400 transition-colors duration-300">Chính sách bảo mật</h1>
+          <p class="text-gray-600 dark:text-gray-300 text-lg transition-colors duration-300">Thông tin về cách chúng tôi thu thập và sử dụng thông tin cá nhân</p>
         </div>
         
-        <div class="prose prose-lg max-w-none">
+        <div class="prose prose-lg max-w-none dark:prose-invert">
           <div class="space-y-6">
-            <div class="p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-green-200/30 shadow-md">
-              <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+            <div class="p-6 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm rounded-xl border border-green-200/30 dark:border-gray-600/30 shadow-md transition-colors duration-300">
+              <h3 class="text-xl font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2 transition-colors duration-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
                 THU THẬP THÔNG TIN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Chính sách bảo mật này nhằm giúp Quý khách hiểu về cách website thu thập và sử dụng thông tin cá nhân của mình thông qua việc sử dụng trang web, bao gồm mọi thông tin có thể cung cấp thông qua trang web khi Quý khách đăng ký tài khoản, đăng ký nhận thông tin liên lạc từ chúng tôi, hoặc khi Quý khách mua sản phẩm, dịch vụ, yêu cầu thêm thông tin dịch vụ từ chúng tôi.
               </p>
             </div>
@@ -29,7 +29,7 @@
                 </svg>
                 SỬ DỤNG THÔNG TIN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Chúng tôi sử dụng thông tin cá nhân của Quý khách để liên lạc khi cần thiết liên quan đến việc Quý khách sử dụng website của chúng tôi, để trả lời các câu hỏi hoặc gửi tài liệu và thông tin Quý khách yêu cầu.
               </p>
             </div>
@@ -41,7 +41,7 @@
                 </svg>
                 BẢO MẬT THÔNG TIN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Trang web của chúng tôi coi trọng việc bảo mật thông tin và sử dụng các biện pháp tốt nhất để bảo vệ thông tin cũng như việc thanh toán của khách hàng.
               </p>
             </div>
@@ -53,7 +53,7 @@
                 </svg>
                 CHIA SẺ THÔNG TIN
               </h3>
-              <p class="text-gray-700 leading-relaxed">
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                 Mọi thông tin giao dịch sẽ được bảo mật ngoại trừ trong trường hợp cơ quan pháp luật yêu cầu.
               </p>
             </div>

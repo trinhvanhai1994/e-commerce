@@ -1,16 +1,16 @@
 <template>
-  <div v-if="product" class="min-h-screen bg-gray-50 pb-2">
+  <div v-if="product" class="min-h-screen bg-gray-50 dark:bg-gray-900 pb-2 transition-colors duration-300">
     <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 py-2">
-      <nav class="text-sm text-gray-600">
-        <router-link to="/" class="hover:text-green-600">Trang chủ</router-link>
+      <nav class="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
+        <router-link to="/" class="hover:text-green-600 dark:hover:text-green-400 transition-colors duration-300">Trang chủ</router-link>
         <span class="mx-2">/</span>
-        <span class="text-gray-900">{{ product.name }}</span>
+        <span class="text-gray-900 dark:text-gray-100 transition-colors duration-300">{{ product.name }}</span>
       </nav>
     </div>
     <div class="max-w-7xl mx-auto px-1 py-1 md:px-4 md:py-2">
         <!-- Main Product Section -->
-        <div class="bg-white rounded-none shadow-none md:rounded-lg md:shadow-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-none shadow-none md:rounded-lg md:shadow-lg overflow-hidden transition-colors duration-300">
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-1 md:gap-8 p-1 md:p-6">
                       <!-- Left Column - Product Images -->
             <div class="flex flex-col lg:flex-row gap-1 md:gap-4">
@@ -30,10 +30,10 @@
                   :key="index"
                   @click="selectImage(image, index)"
                   :class="[
-                    'relative aspect-square bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
+                    'relative aspect-square bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
                     currentImageIndex === index
-                      ? 'border-green-500 shadow-lg transform scale-105 ring-2 ring-green-200'
-                      : 'border-gray-200 hover:border-green-300 hover:shadow-md hover:scale-102'
+                      ? 'border-green-500 dark:border-green-400 shadow-lg transform scale-105 ring-2 ring-green-200 dark:ring-green-800'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-500 hover:shadow-md hover:scale-102'
                   ]"
                 >
                   <img
@@ -77,7 +77,7 @@
 
             <!-- Main Image Carousel -->
             <div class="flex-1 relative main-carousel">
-              <div class="relative overflow-hidden rounded-none md:rounded-lg shadow-none md:shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 p-0 md:p-4 group">
+              <div class="relative overflow-hidden rounded-none md:rounded-lg shadow-none md:shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-0 md:p-4 group transition-colors duration-300">
                 <!-- Carousel Container with touch support -->
                 <div 
                   class="relative h-[400px] md:h-64 lg:h-80 overflow-hidden rounded-none md:rounded-lg touch-pan-x aspect-square"
@@ -245,16 +245,16 @@
           <div class="space-y-4 md:space-y-6 lg:pl-4">
             <!-- Product Title and Rating -->
             <div>
-              <h1 class="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+              <h1 class="text-base md:text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">{{ product.name }}</h1>
               <div class="flex items-center gap-2 mb-3">
                 <div class="flex items-center">
-                  <span class="text-base md:text-lg font-bold text-gray-900 mr-2">5</span>
-                  <div class="flex text-yellow-400">
+                  <span class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mr-2 transition-colors duration-300">5</span>
+                  <div class="flex text-yellow-400 dark:text-yellow-500 transition-colors duration-300">
                     <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-current" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </div>
-                  <span class="ml-2 text-xs text-gray-600">5 trên tổng 5 sao (dựa trên {{ product.reviewCount || 32 }} đánh giá)</span>
+                  <span class="ml-2 text-xs text-gray-600 dark:text-gray-400 transition-colors duration-300">5 trên tổng 5 sao (dựa trên {{ product.reviewCount || 32 }} đánh giá)</span>
                 </div>
               </div>
             </div>
@@ -262,8 +262,8 @@
             <!-- Price Section -->
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <span class="text-lg md:text-xl font-bold text-red-500">{{ formatPrice(product.price) }}</span>
-                <span v-if="product.oldPrice > product.price" class="text-sm text-gray-500 line-through">{{ formatPrice(product.oldPrice) }}</span>
+                <span class="text-lg md:text-xl font-bold text-red-500 dark:text-red-400 transition-colors duration-300">{{ formatPrice(product.price) }}</span>
+                <span v-if="product.oldPrice > product.price" class="text-sm text-gray-500 dark:text-gray-400 line-through transition-colors duration-300">{{ formatPrice(product.oldPrice) }}</span>
                 <div v-if="product.discount > 0" class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                   -{{ product.discount }}%
                 </div>
@@ -287,7 +287,7 @@
                       'px-4 py-2 rounded-lg border text-sm transition',
                       selectedProductId === Number(item.id)
                         ? 'bg-green-100 border-green-500 text-green-700 font-bold shadow'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300'
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:border-green-300 dark:hover:border-green-500'
                     ]"
                   >
                     {{ item.name }}
@@ -297,7 +297,7 @@
             </div>
 
             <!-- Product Description -->
-            <div class="text-gray-700 leading-relaxed">
+            <div class="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors duration-300">
               <p class="mb-3 text-xs">{{ product.shortDesc }}</p>
               <p class="mb-3 text-xs">{{ product.benefits }}</p>
             </div>
@@ -311,8 +311,8 @@
                   </svg>
                 </div>
                 <div>
-                  <span class="font-semibold text-gray-900 text-xs md:text-sm">Cam kết:</span>
-                  <span class="text-gray-700 text-xs md:text-sm font-extrabold"> 100% NGUYÊN LIỆU TỰ NHIÊN</span>
+                  <span class="font-semibold text-gray-900 dark:text-gray-100 text-xs md:text-sm transition-colors duration-300">Cam kết:</span>
+                  <span class="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-extrabold transition-colors duration-300"> 100% NGUYÊN LIỆU TỰ NHIÊN</span>
                 </div>
               </div>
 
@@ -323,9 +323,9 @@
                   </svg>
                 </div>
                 <div>
-                  <span class="font-semibold text-gray-900 text-xs md:text-sm">Phí ship:</span>
-                  <span class="text-gray-700 text-xs md:text-sm font-extrabold"> 20.000₫ cho đơn 1 sản phẩm.</span>
-                  <span class="text-gray-700 text-xs md:text-sm font-extrabold"> Miễn phí vận chuyển khi mua 2 sản phẩm</span>
+                  <span class="font-semibold text-gray-900 dark:text-gray-100 text-xs md:text-sm transition-colors duration-300">Phí ship:</span>
+                  <span class="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-extrabold transition-colors duration-300"> 20.000₫ cho đơn 1 sản phẩm.</span>
+                  <span class="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-extrabold transition-colors duration-300"> Miễn phí vận chuyển khi mua 2 sản phẩm</span>
                 </div>
               </div>
 
@@ -336,14 +336,14 @@
                   </svg>
                 </div>
                 <div>
-                  <span class="font-semibold text-gray-900 text-xs md:text-sm">Thời gian giao hàng:</span>
-                  <span class="text-gray-700 text-xs md:text-sm font-extrabold"> Hà Nội, TP.HCM: 1-3 ngày | Các tỉnh khác: 2-4 ngày</span>
+                  <span class="font-semibold text-gray-900 dark:text-gray-100 text-xs md:text-sm transition-colors duration-300">Thời gian giao hàng:</span>
+                  <span class="text-gray-700 dark:text-gray-300 text-xs md:text-sm font-extrabold transition-colors duration-300"> Hà Nội, TP.HCM: 1-3 ngày | Các tỉnh khác: 2-4 ngày</span>
                 </div>
               </div>
             </div>
             
             <!-- Info Bar (di chuyển xuống đây) -->
-            <div class="flex items-center gap-4 bg-yellow-50 rounded-md px-3 py-2 mb-3 text-xs font-medium text-gray-800 shadow-sm">
+            <div class="flex items-center gap-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-md px-3 py-2 mb-3 text-xs font-medium text-gray-800 dark:text-gray-200 shadow-sm transition-colors duration-300">
               <span v-for="(item, idx) in infoItems" :key="item.label" class="flex items-center">
                 <button @click="openInfoPopup(idx)" class="flex items-center gap-1 text-yellow-700 hover:underline focus:outline-none">
                   <span v-if="item.icon === 'payment'">
@@ -384,7 +384,7 @@
             </div>
 
             <!-- Customer Reviews -->
-            <div class="bg-white rounded-lg p-4 mt-2 shadow-md">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mt-2 shadow-md transition-colors duration-300">
               <div class="flex items-center justify-between mb-2">
                 <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ allReviews.length }})</div>
                 <div class="flex gap-2">
