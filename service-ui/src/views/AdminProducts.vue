@@ -529,10 +529,6 @@ function handleFileUpload(event) {
     imageLoading.value = false
   }
   reader.readAsDataURL(file)
-  
-  // Thông báo cho user
-  console.log('Path sẽ được lưu:', imagePath)
-  console.log('Lưu ý: Bạn cần upload file lên server tại path này trước khi lưu sản phẩm')
 }
 
 // Clear image

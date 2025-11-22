@@ -66,14 +66,8 @@ const isLoggedIn = ref(false)
 import adminService from '../services/admin.service.js'
 
 onMounted(() => {
-  console.log('🏠 AdminDashboard mounted')
-  
   // Check authentication status using adminService
   isLoggedIn.value = adminService.isAuthenticated()
-  
-  console.log('🔐 Auth status:', {
-    isLoggedIn: isLoggedIn.value
-  })
   
   // If not authenticated, redirect to login (router guard should handle this, but double check)
   if (!isLoggedIn.value) {
@@ -82,20 +76,14 @@ onMounted(() => {
 })
 
 function navigateToProducts() {
-  console.log('🛍️ Navigating to products...')
-  // Router guard sẽ kiểm tra authentication
   router.push('/admin/products')
 }
 
 function navigateToUsers() {
-  console.log('👥 Navigating to users...')
-  // Router guard sẽ kiểm tra authentication
   router.push('/admin/users')
 }
 
 function navigateToOrders() {
-  console.log('📦 Navigating to orders...')
-  // Router guard sẽ kiểm tra authentication
   router.push('/admin/orders')
 }
 </script>

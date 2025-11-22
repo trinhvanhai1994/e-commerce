@@ -247,48 +247,30 @@ const loadUsers = async () => {
   error.value = "";
 
   try {
-    console.log("Loading users from orders API...");
     const response = await orderAPI.getOrders();
-
-    console.log("API Response received:", response);
-    console.log("Response type:", typeof response);
-    console.log("Response keys:", Object.keys(response || {}));
 
     // Handle different response formats
     let orders = [];
     if (response && response.success && response.orders) {
       orders = response.orders;
-      console.log("Using response.orders:", orders.length);
     } else if (response && Array.isArray(response)) {
       orders = response;
-      console.log("Using response as array:", orders.length);
     } else if (response && response.orders) {
       orders = response.orders;
-      console.log("Using response.orders (no success flag):", orders.length);
     } else {
-      console.log("No valid orders found in response");
       throw new Error("Không tìm thấy dữ liệu đơn hàng trong response");
     }
 
     if (orders.length === 0) {
-      console.log("No orders to process");
       users.value = [];
       return;
     }
 
     // Process orders to extract unique customers
     const customerMap = new Map();
-    console.log("Processing orders:", orders.length);
 
-    orders.forEach((order, index) => {
+    orders.forEach((order) => {
       try {
-        console.log(
-          `Processing order ${index + 1}/${orders.length}:`,
-          order.id,
-          "customerInfo:",
-          order.customerInfo
-        );
-
         // Ưu tiên customerInfo, fallback về các field khác
         let phone =
           order.customerInfo?.phone || order.customerPhone || order.phone || "N/A";
@@ -304,21 +286,9 @@ const loadUsers = async () => {
             .trim();
         }
 
-        console.log(
-          `Order ${order.id}: phone=${phone}, name=${name}, address=${address}`
-        );
-
         // Skip orders without valid phone number
         if (phone === "N/A" || !phone || phone.trim() === "" || phone.length < 3) {
-          console.warn(`Skipping order ${order.id} - no valid phone number:`, phone);
           return;
-        }
-
-        // Log phone numbers that might be short but valid
-        if (phone.length < 8) {
-          console.log(
-            `⚠️ Short phone number detected: ${phone} (length: ${phone.length}) - keeping for processing`
-          );
         }
 
         if (customerMap.has(phone)) {
@@ -326,10 +296,6 @@ const loadUsers = async () => {
           const existingCustomer = customerMap.get(phone);
           existingCustomer.orders += 1;
           existingCustomer.totalValue += order.total || 0;
-
-          console.log(
-            `Merging customer ${phone}: orders=${existingCustomer.orders}, totalValue=${existingCustomer.totalValue}`
-          );
 
           // Update customer info from most recent order
           const orderDate = new Date(order.createdAt || order.created_at || Date.now());
@@ -347,7 +313,6 @@ const loadUsers = async () => {
                 orderDate > lastOrderDate)
             ) {
               existingCustomer.name = name;
-              console.log(`Updated name for ${phone}: ${existingCustomer.name}`);
             }
 
             // Update address if new order has better data
@@ -358,12 +323,10 @@ const loadUsers = async () => {
                 orderDate > lastOrderDate)
             ) {
               existingCustomer.address = address;
-              console.log(`Updated address for ${phone}`);
             }
           }
         } else {
           // Create new customer
-          console.log(`Creating new customer: ${phone}`);
           customerMap.set(phone, {
             name: name,
             phone: phone,
@@ -376,7 +339,6 @@ const loadUsers = async () => {
         }
       } catch (orderError) {
         console.error(`Error processing order ${order.id}:`, orderError);
-        console.error("Order data:", order);
       }
     });
 
@@ -398,24 +360,6 @@ const loadUsers = async () => {
     } catch (sortError) {
       console.warn("Sorting error, using unsorted data:", sortError);
       users.value = customersArray;
-    }
-
-    console.log("Users loaded successfully:", users.value.length);
-    console.log("Processed users data:", users.value);
-
-    // Log merging statistics
-    const totalOrders = users.value.reduce((sum, user) => sum + user.orders, 0);
-    const totalValue = users.value.reduce((sum, user) => sum + user.totalValue, 0);
-    console.log(`📊 MERGING STATISTICS:`);
-    console.log(`- Total unique customers: ${users.value.length}`);
-    console.log(`- Total orders processed: ${totalOrders}`);
-    console.log(`- Total value: ${totalValue.toLocaleString("vi-VN")} ₫`);
-    console.log(
-      `- Average orders per customer: ${(totalOrders / users.value.length).toFixed(2)}`
-    );
-
-    if (users.value.length === 0) {
-      console.warn("No customers found after processing orders");
     }
   } catch (err) {
     console.error("Error loading users:", err);
@@ -451,47 +395,14 @@ const formatDate = (dateString) => {
   }
 };
 
-// Test function để kiểm tra cấu trúc dữ liệu API
-const testApiData = async () => {
-  try {
-    console.log("Testing API data structure...");
-    const response = await orderAPI.getOrders();
-    console.log("Full API Response:", response);
-
-    if (response && response.success && response.orders) {
-      console.log("Orders count:", response.orders.length);
-      response.orders.forEach((order, index) => {
-        console.log(`Order ${index + 1}:`, {
-          id: order.id,
-          customerInfo: order.customerInfo,
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          address: order.address,
-          total: order.total,
-          createdAt: order.createdAt,
-        });
-      });
-    } else {
-      console.log("API Response structure:", response);
-      console.log("Response success:", response?.success);
-      console.log("Response orders:", response?.orders);
-    }
-  } catch (err) {
-    console.error("Error testing API data:", err);
-    console.error("Error details:", err.message);
-    console.error("Error stack:", err.stack);
-  }
-};
 
 // Function để debug tìm kiếm số điện thoại cụ thể
 const debugPhoneNumber = async (phoneToFind = "0123") => {
   try {
-    console.log(`🔍 DEBUGGING: Looking for phone number: ${phoneToFind}`);
     const response = await orderAPI.getOrders();
 
     if (response && (response.success || response.orders)) {
       const orders = response.orders || response;
-      console.log(`📋 Total orders to check: ${orders.length}`);
 
       let foundOrders = [];
       orders.forEach((order, index) => {
@@ -520,30 +431,6 @@ const debugPhoneNumber = async (phoneToFind = "0123") => {
         }
       });
 
-      console.log(`✅ Found ${foundOrders.length} orders with phone ${phoneToFind}:`);
-      foundOrders.forEach((order) => {
-        console.log(`- Order ${order.orderId}:`, order);
-      });
-
-      if (foundOrders.length === 0) {
-        console.log(`❌ No orders found with phone ${phoneToFind}`);
-        console.log("📝 Available phone numbers in orders:");
-        const allPhones = orders
-          .map((order) => {
-            const phone =
-              order.customerInfo?.phone || order.customerPhone || order.phone || "N/A";
-            return phone !== "N/A"
-              ? phone
-                  .toString()
-                  .replace(/[\s\-\(\)]/g, "")
-                  .trim()
-              : "N/A";
-          })
-          .filter((phone) => phone !== "N/A");
-
-        const uniquePhones = [...new Set(allPhones)];
-        console.log("Unique phones:", uniquePhones);
-      }
     }
   } catch (err) {
     console.error("Error debugging phone number:", err);
@@ -553,8 +440,5 @@ const debugPhoneNumber = async (phoneToFind = "0123") => {
 // Load users on component mount
 onMounted(() => {
   loadUsers();
-  // testApiData() - Commented out to avoid duplicate API calls
-  // Uncomment dòng dưới để test API data structure khi cần debug
-  // testApiData();
 });
 </script>

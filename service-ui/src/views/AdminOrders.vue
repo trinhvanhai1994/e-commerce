@@ -1071,12 +1071,8 @@ function confirmUpdateStatus(order, newStatus, orderIndex) {
   // Ensure it matches one of the valid ORDER_STATUS values
   const validStatuses = Object.values(ORDER_STATUS)
   if (!validStatuses.includes(normalizedStatus)) {
-    console.warn(`confirmUpdateStatus: Invalid status "${normalizedStatus}", defaulting to PENDING`)
     normalizedStatus = ORDER_STATUS.ORDER_STATUS_PENDING
   }
-  
-  // Debug log to verify normalization
-  console.log(`confirmUpdateStatus: Order ${getOrderId(order)}, Status="${normalizedStatus}"`)
   
   pendingUpdate.value = {
     orderId: getOrderId(order),

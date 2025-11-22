@@ -1301,18 +1301,9 @@ async function loadData() {
 
 // Xử lý lỗi ảnh
 function handleImageError(event) {
-  console.log('Image load error:', event.target.src)
   // Thay thế ảnh lỗi bằng ảnh placeholder
   event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
   event.target.onerror = null // Tránh loop vô hạn
-}
-
-// Debug function để kiểm tra trạng thái ảnh
-function debugImageStatus() {
-  console.log('Current product:', product.value)
-  console.log('Gallery images:', galleryImages.value)
-  console.log('Related images:', relatedImages.value)
-  console.log('Image reload key:', imageReloadKey.value)
 }
 
 // Single onMounted hook to avoid conflicts

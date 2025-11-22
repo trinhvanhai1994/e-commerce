@@ -464,14 +464,6 @@ async function fetchProduct() {
   try {
     const product = await productManagementAPI.getProductById(productId.value)
     
-    // Debug: Kiểm tra dữ liệu product
-    console.log('=== FETCH PRODUCT ===')
-    console.log('Product:', product)
-    console.log('Product.gallery:', product.gallery)
-    console.log('Product.gallery type:', typeof product.gallery)
-    console.log('Product.gallery is array:', Array.isArray(product.gallery))
-    console.log('Product.mainImage:', product.mainImage)
-    
     // Lấy ảnh chính
     const mainImage = product.mainImage || product.image || ''
     
@@ -516,38 +508,21 @@ async function fetchProduct() {
     
     // Thêm gallery images vào map
     // Nếu gallery có ảnh trùng số với main_image, bỏ qua để tránh duplicate
-    gallery.forEach((path, idx) => {
+    gallery.forEach((path) => {
       // Bỏ qua nếu path trùng với main_image
       if (mainImage && path === mainImage) {
-        console.log(`Gallery[${idx}]: Skipping ${path} (same as main_image)`)
         return
       }
       
       const num = extractImageNumber(path)
-      console.log(`Gallery[${idx}]: ${path} -> extracted number: ${num}`)
       
       if (num !== null && num >= 1 && num <= 11) {
         // Chỉ thêm nếu chưa có số này trong map (để tránh duplicate với main_image)
         if (!imageMap.has(num)) {
           imageMap.set(num, path)
-          console.log(`  -> Added to map: ${num} -> ${path}`)
-        } else {
-          console.log(`  -> Skipped (already in map): ${num}`)
         }
-      } else {
-        console.log(`  -> Skipped (invalid number or out of range): ${num}`)
       }
     })
-    
-    // Debug log để kiểm tra
-    console.log('=== DEBUG GALLERY MAPPING ===')
-    console.log('Product ID:', productId.value)
-    console.log('Main image:', mainImage)
-    console.log('Main image number:', extractImageNumber(mainImage))
-    console.log('Gallery array:', gallery)
-    console.log('Gallery length:', gallery?.length)
-    console.log('Image map (before gallery):', Array.from(imageMap.entries()))
-    console.log('Final image map:', Array.from(imageMap.entries()))
     
     // Khởi tạo galleryImages với 11 slots, map theo số trong tên file
     // Slot index 0 = ảnh số 1, index 1 = ảnh số 2, ...
@@ -566,16 +541,6 @@ async function fetchProduct() {
         loading: false
       }
     })
-    
-    // Debug: Log preview URLs sau khi khởi tạo
-    const previewUrls = galleryImages.map((item, idx) => ({
-      index: idx,
-      path: item.path,
-      preview: item.preview,
-      previewUrl: item.preview || (item.path ? getImageUrlFromApi(item.path) : null)
-    }))
-    console.log('Preview URLs:', previewUrls)
-    console.log('=== END DEBUG ===')
     
     // QUAN TRỌNG: Update cache-busting timestamp khi fetch product để force reload ảnh
     imageCacheBuster.value = Date.now()
@@ -730,9 +695,7 @@ function handleFileUpload(event) {
       showErrorPopup('Có lỗi xảy ra khi đọc file')
       imageLoading.value = false
     }
-  reader.readAsDataURL(file)
-  
-  console.log('Path sẽ được lưu:', imagePath)
+    reader.readAsDataURL(file)
 }
 
 // Clear image
@@ -816,8 +779,6 @@ async function handleGalleryFileUpload(event, index) {
   try {
     // Resize ảnh nếu quá lớn (max 1920x1920, quality 0.9)
     const resizedBlob = await resizeImage(file, 1920, 1920, 0.9)
-    console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
-    console.log(`Resized size: ${(resizedBlob.size / 1024 / 1024).toFixed(2)}MB`)
     
     // Tạo path mới dựa trên category và số ảnh (luôn đổi tên thành số.png)
     // Nếu có path cũ, giữ nguyên folder nhưng đổi tên file thành số.png
@@ -854,9 +815,6 @@ async function handleGalleryFileUpload(event, index) {
     imageItem.loading = false
     imageItem.resizedBlob = resizedBlob // Lưu blob để có thể upload sau
     
-    console.log(`Ảnh ${index + 1} đã được resize và đổi tên thành: ${newFileName}`)
-    console.log(`Path: ${newPath}`)
-    
     // Tự động upload file lên server
     try {
       // Extract relative path (bỏ /images/ ở đầu)
@@ -871,8 +829,6 @@ async function handleGalleryFileUpload(event, index) {
       
       // Upload to server
       const uploadedPath = await productManagementAPI.uploadImage(fileToUpload, relativePath)
-      
-      console.log(`✅ Upload thành công: ${uploadedPath}`)
       
       // Cập nhật path với path từ server
       imageItem.path = uploadedPath
@@ -891,8 +847,6 @@ async function handleGalleryFileUpload(event, index) {
         
         // QUAN TRỌNG: Update cache-busting timestamp để force Vue re-render tất cả ảnh
         imageCacheBuster.value = Date.now()
-        
-        console.log(`🔄 Đã cập nhật path: ${uploadedPath}, cache-buster: ${imageCacheBuster.value}`)
       }, 500) // Đợi 500ms để server xử lý file
       
     } catch (uploadError) {
@@ -931,14 +885,8 @@ function removeGalleryImage(index) {
 
 // Handle gallery image error
 function handleGalleryImageError(event, index) {
-  console.error(`Lỗi khi load ảnh gallery ${index + 1}:`, event.target.src)
   const imageItem = form.galleryImages[index]
   if (imageItem) {
-    // Nếu preview là URL từ API và lỗi, thử lại với path gốc
-    if (imageItem.preview && imageItem.preview.startsWith('http')) {
-      console.log('Retrying with original path:', imageItem.path)
-      // Không làm gì, để browser tự xử lý fallback
-    }
     // Ẩn ảnh lỗi
     event.target.style.display = 'none'
   }

@@ -605,8 +605,6 @@ async function fetchProducts() {
     // Backend đã sort theo priority và limit 4 sản phẩm
     // Lấy tối đa 4 sản phẩm đầu tiên (đã được sort theo priority từ backend)
     bestSellers.value = processedProducts.slice(0, 4)
-    
-    console.log('Products loaded from API:', processedProducts)
   } catch (e) {
     console.error('Error fetching products:', e)
     // Fallback data nếu API fail
@@ -713,11 +711,9 @@ const handleImageError = (event) => {
 // Xử lý URL ảnh từ API
 const getImageUrl = (imagePath) => {
   if (!imagePath) {
-    console.log('No image path provided, using default')
     return getImageUrlFromApi('/images/products/details/black/1.png')
   }
   
-  console.log('Using image URL:', imagePath)
   return imagePath
 }
 

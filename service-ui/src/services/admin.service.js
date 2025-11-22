@@ -75,14 +75,12 @@ export const adminService = {
       
       // No token = not authenticated
       if (!token || typeof token !== 'string' || token.trim() === '') {
-        console.log('🔐 isAuthenticated: No token found')
         return false
       }
       
       // JWT token must have 3 parts separated by dots
       const parts = token.split('.')
       if (parts.length !== 3) {
-        console.warn('🔐 isAuthenticated: Invalid JWT token format (must have 3 parts)')
         this.logout()
         return false
       }
@@ -94,17 +92,14 @@ export const adminService = {
         
         // Check if token is expired
         if (exp && exp * 1000 < Date.now()) {
-          console.warn('🔐 isAuthenticated: JWT token expired')
           this.logout()
           return false
         }
         
         // Token is valid
-        console.log('🔐 isAuthenticated: Token is valid')
         return true
       } catch (e) {
         // If token can't be decoded, it's invalid
-        console.warn('🔐 isAuthenticated: Could not decode JWT token:', e)
         this.logout()
         return false
       }

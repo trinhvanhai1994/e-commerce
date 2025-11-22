@@ -679,7 +679,6 @@ export default {
   },
   methods: {
     handleBannerError(event) {
-      console.log('Banner image failed to load, using fallback background')
       // Hide the image and show fallback background
       event.target.style.display = 'none'
     }
@@ -713,7 +712,6 @@ export default {
   },
   methods: {
     handleBannerError(event) {
-      console.log('Banner image failed to load, using fallback background')
       // Hide the image and show fallback background
       event.target.style.display = 'none'
     },

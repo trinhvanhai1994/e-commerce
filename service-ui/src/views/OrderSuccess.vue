@@ -27,12 +27,10 @@ const hasCustomerInfo = computed(() => !!order.value?.customerInfo)
 onMounted(async () => {
   // Get order details from route params
   const orderId = route.params.orderId
-  console.log('OrderSuccess mounted with orderId:', orderId) // Debug log
   
   if (orderId) {
     await loadOrderDetails(orderId)
   } else {
-    console.error('No orderId provided in route params')
     error.value = 'Không có mã đơn hàng'
   }
   loading.value = false
@@ -41,43 +39,25 @@ onMounted(async () => {
 // Load order details from API
 async function loadOrderDetails(orderId) {
   try {
-    console.log('Loading order details for ID:', orderId) // Debug log
-    
     const response = await orderAPI.getOrderById(orderId)
-    console.log('Order API Response:', response) // Debug log
-    console.log('Response type:', typeof response) // Debug log
-    console.log('Response keys:', Object.keys(response || {})) // Debug log
     
     // Handle different response formats
     let orderData = null
     if (response && response.success && response.order) {
-      // Format: {success: true, order: {...}}
-      console.log('Using response.order format')
       orderData = response.order
     } else if (response && response.data) {
-      // Format: {data: {...}}
-      console.log('Using response.data format')
       orderData = response.data
     } else if (response && response.order) {
-      // Format: {order: {...}}
-      console.log('Using response.order format (no success)')
       orderData = response.order
     } else if (response && (response.id || response.orderId)) {
-      // Format: {...} (direct order object)
-      console.log('Using direct response format')
       orderData = response
     } else {
-      console.error('Unexpected order response format:', response)
-      console.error('Response structure:', JSON.stringify(response, null, 2))
-      
       // Fallback to localStorage if API fails
       const savedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]')
       const foundOrder = savedOrders.find(o => o.id === orderId || o.orderId === orderId)
       if (foundOrder) {
-        console.log('Using fallback from localStorage')
         orderData = foundOrder
       } else {
-        console.error('No order found in localStorage either')
         error.value = 'Không tìm thấy thông tin đơn hàng'
         return
       }
@@ -88,40 +68,23 @@ async function loadOrderDetails(orderId) {
       // If orderId is not set but id is, copy id to orderId
       if (!orderData.orderId && orderData.id) {
         orderData.orderId = orderData.id
-        console.log('Set orderId from id:', orderData.orderId)
       }
       // If id is not set but orderId is, copy orderId to id for backward compatibility
       if (!orderData.id && orderData.orderId) {
         orderData.id = orderData.orderId
-        console.log('Set id from orderId:', orderData.id)
       }
       
       order.value = orderData
     }
     
-    // Debug log final order value
-    console.log('Final order value:', order.value)
-    console.log('Order orderId:', order.value?.orderId)
-    console.log('Order id:', order.value?.id)
-    
     // Validate order data
     if (order.value) {
-      console.log('Order validation:')
-      console.log('- Has id:', !!order.value.id)
-      console.log('- Has orderId:', !!order.value.orderId)
-      console.log('- Has customerInfo:', !!order.value.customerInfo)
-      console.log('- Has items:', !!order.value.items && Array.isArray(order.value.items))
-      console.log('- Has total:', !!order.value.total)
-      console.log('- Has createdAt:', !!order.value.createdAt)
-      
       // Check if order has required fields (id or orderId is acceptable)
       if ((!order.value.id && !order.value.orderId) || !order.value.customerInfo || !order.value.items || !order.value.total) {
-        console.error('Order missing required fields')
         error.value = 'Dữ liệu đơn hàng không đầy đủ'
         order.value = null
       }
     } else {
-      console.error('Order is null after loading')
       error.value = 'Không thể tải thông tin đơn hàng'
     }
     
@@ -133,7 +96,6 @@ async function loadOrderDetails(orderId) {
     const savedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]')
     const foundOrder = savedOrders.find(o => o.id === orderId || o.orderId === orderId)
     if (foundOrder) {
-      console.log('Using fallback from localStorage after error')
       // Ensure orderId is set
       if (!foundOrder.orderId && foundOrder.id) {
         foundOrder.orderId = foundOrder.id

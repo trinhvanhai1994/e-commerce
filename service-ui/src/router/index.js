@@ -172,17 +172,8 @@ router.beforeEach((to, from, next) => {
   // Check authentication status - STRICT CHECK
   const isAuthenticated = adminService.isAuthenticated()
   
-  console.log('🔐 Router guard check:', {
-    path: to.path,
-    isAdminRoute,
-    isLoginPage,
-    isAuthenticated,
-    hasToken: !!localStorage.getItem('authToken')
-  })
-  
   // Nếu đã logged in và cố truy cập login page, redirect về dashboard
   if (isLoginPage && isAuthenticated) {
-    console.log('✅ Already authenticated, redirecting to dashboard')
     next({ path: '/admin/orders' })
     return
   }

@@ -204,7 +204,6 @@ export default {
   methods: {
     getImageUrlFromApi,
     handleBannerError(event) {
-      console.log('Banner image failed to load, using fallback background')
       // Hide the image and show fallback background
       event.target.style.display = 'none'
     }

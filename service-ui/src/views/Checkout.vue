@@ -360,7 +360,6 @@ async function placeOrder() {
   try {
     // Call API to create order
     const response = await orderAPI.createOrder(orderData)
-    console.log('Create Order API Response:', response) // Debug log
     
     // Handle ApiResponse format: {success: true, data: {orderId: "...", message: "..."}}
     // Prefer orderId field, fallback to id for backward compatibility
