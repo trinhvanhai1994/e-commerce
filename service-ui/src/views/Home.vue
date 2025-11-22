@@ -3,9 +3,9 @@
     <!-- Banner Section: PC, Tablet & Mobile -->
     <section class="hero-section relative w-full overflow-hidden" data-aos="fade-down">
       <!-- Banner mobile & tablet -->
-      <img src="/images/banner-mobile.png" alt="Banner mobile" class="w-full object-contain drop-shadow-xl block lg:hidden cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal('/images/banner-mobile.png', 'Banner mobile')" />
+      <img :src="getImageUrlFromApi('/images/banner-mobile.png')" alt="Banner mobile" class="w-full object-contain drop-shadow-xl block lg:hidden cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/banner-mobile.png'), 'Banner mobile')" />
       <!-- Banner desktop (chỉ hiển thị từ lg trở lên) -->
-      <img src="/images/banner.png" alt="Banner PC" class="w-full h-auto object-cover drop-shadow-xl hidden lg:block cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal('/images/banner.png', 'Banner PC')" />
+      <img :src="getImageUrlFromApi('/images/banner.png')" alt="Banner PC" class="w-full h-auto object-cover drop-shadow-xl hidden lg:block cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/banner.png'), 'Banner PC')" />
     </section>
 
     <!-- GIỮ TRỌN DƯỠNG CHẤT & HƯƠNG VỊ NGUYÊN BẢN -->
@@ -22,9 +22,9 @@
         <router-link to="/me" class="inline-block bg-green-500 text-white font-bold rounded-full px-6 py-2 shadow hover:bg-green-600 transition-all duration-300 hover:scale-105">Khám phá câu chuyện Thi Yên</router-link>
       </div>
       <div class="md:col-span-2 flex justify-center w-full" data-aos="fade-left">
-        <img src="/images/baner-second.png" alt="Hướng dẫn sử dụng Mè Đen" 
+        <img :src="getImageUrlFromApi('/images/baner-second.png')" alt="Hướng dẫn sử dụng Mè Đen" 
             class="w-full max-w-lg h-auto object-contain rounded-2xl cursor-pointer hover:opacity-90 transition-opacity duration-300" 
-            @click="openImageModal('/images/baner-second.png', 'Hướng dẫn sử dụng Mè Đen')" />
+            @click="openImageModal(getImageUrlFromApi('/images/baner-second.png'), 'Hướng dẫn sử dụng Mè Đen')" />
       </div>
     </section>
 
@@ -56,14 +56,14 @@
           <!-- Product Image -->
           <div class="relative cursor-pointer flex-shrink-0" @click="openProductDetail(product)">
             <img
-              :src="getProductImage(product.id)"
+              :src="getProductImage(product)"
               :alt="product.name"
               class="w-full h-48 md:h-64 object-cover hover:scale-105 transition-transform duration-300"
               @error="handleImageError"
               loading="lazy"
             />
-            <div v-if="product.discount && product.discount > 0" class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-              -{{ product.discount }}%
+            <div v-if="getProductDiscount(product) > 0" class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+              -{{ getProductDiscount(product) }}%
             </div>
             <!-- Loading placeholder -->
             <div v-if="!product.image" class="w-full h-48 md:h-64 bg-gray-200 flex items-center justify-center">
@@ -130,14 +130,14 @@
       <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">TIÊU CHUẨN CHẤT LƯỢNG</h2>
       <div class="flex flex-col gap-4 md:gap-6">
         <div class="flex flex-row items-center gap-3 md:gap-4 quality-card" data-aos="fade-right">
-          <img src="/images/iso.png" alt="ISO" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal('/images/iso.png', 'TIÊU CHUẨN ISO 22000:2018')" />
+          <img :src="getImageUrlFromApi('/images/iso.png')" alt="ISO" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/iso.png'), 'TIÊU CHUẨN ISO 22000:2018')" />
           <div>
             <div class="font-bold text-sm md:text-base mb-1">TIÊU CHUẨN ISO 22000:2018</div>
             <div class="text-gray-700 text-xs md:text-sm">Nhà máy sản xuất có hệ thống quản lý tốt an toàn vệ sinh thực phẩm và đảm bảo cung cấp các sản phẩm thực phẩm an toàn, chất lượng cho người tiêu dùng.</div>
           </div>
         </div>
         <div class="flex flex-row items-center gap-3 md:gap-4 quality-card" data-aos="fade-left">
-          <img src="/images/gmp.png" alt="GMP" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal('/images/gmp.png', 'CHỨNG NHẬN GMP – Codex')" />
+          <img :src="getImageUrlFromApi('/images/gmp.png')" alt="GMP" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/gmp.png'), 'CHỨNG NHẬN GMP – Codex')" />
           <div>
             <div class="font-bold text-sm md:text-base mb-1">Chứng nhận GMP Codex (TCVN 5603:2023)</div>
             <div class="text-gray-700 text-xs md:text-sm">Do TQC cấp theo lĩnh vực thực phẩm.<br />Nhà máy đảm bảo toàn bộ quy trình sản xuất tuân thủ Thực hành sản xuất tốt (Good Manufacturing Practice - GMP)</div>
@@ -151,10 +151,10 @@
       <!-- Four Home Image -->
       <div class="flex justify-center mb-8" data-aos="fade-up" data-aos-delay="100">
         <img 
-          src="/images/four-home.png" 
+          :src="getImageUrlFromApi('/images/four-home.png')" 
           alt="Four Home" 
           class="w-full max-w-4xl h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity duration-300" 
-          @click="openImageModal('/images/four-home.png', 'Four Home')"
+          @click="openImageModal(getImageUrlFromApi('/images/four-home.png'), 'Four Home')"
         />
       </div>
       
@@ -305,6 +305,8 @@ import ProductCard from '../components/ProductCard.vue'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
+import { getProductDiscount } from '../utils/productUtils.js'
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -329,10 +331,10 @@ const zoomedImageSrc = ref("")
 const zoomedImageAlt = ref("")
 
 const images = [
-  { src: '/images/struct/1.png', alt: 'Thêm mô tả 1' },
-  { src: '/images/struct/2.png', alt: 'Thêm mô tả 2' },
-  { src: '/images/struct/3.png', alt: 'Thêm mô tả 3' },
-  { src: '/images/struct/4.png', alt: 'Thêm mô tả 4' },
+  { src: getImageUrlFromApi('/images/struct/1.png'), alt: 'Thêm mô tả 1' },
+  { src: getImageUrlFromApi('/images/struct/2.png'), alt: 'Thêm mô tả 2' },
+  { src: getImageUrlFromApi('/images/struct/3.png'), alt: 'Thêm mô tả 3' },
+  { src: getImageUrlFromApi('/images/struct/4.png'), alt: 'Thêm mô tả 4' },
 ];
 
 // Computed property để tự động tắt loop nếu không đủ slides
@@ -536,21 +538,21 @@ const blogPosts = ref([
     id: 1,
     title: 'Dinh Dưỡng Đen Nguyên Bản Từ 5 Loại Hạt Trong Bột Ngũ Hắc Mè Đen',
     excerpt: 'Bột ngũ hắc mè đen Thi Yên là bữa ăn thay thế dinh dưỡng từ 5 loại hạt đen nguyên bản, phù hợp với lối sống lành mạnh và hiện đại. Dưỡng sinh dễ dàng cho cơ thể khỏe mạnh.',
-    image: '/images/blogs/blog1/avatar1.png',
+    image: getImageUrlFromApi('/images/blogs/blog1/avatar1.png'),
     slug: 'blog1'
   },
   {
     id: 2,
     title: 'Hiểu Cơ Bản Về Dưỡng Sinh: Cân Bằng Âm Dương & Thuận Tự Nhiên',
     excerpt: 'Khám phá triết lý dưỡng sinh của Thi Yên, kết hợp tinh hoa dưỡng sinh cổ truyền và dinh dưỡng hiện đại. Mỗi sản phẩm là bữa ăn tiện lợi, cân bằng âm dương, thuận theo ngũ hành, nuôi dưỡng cơ thể, giấc ngủ, dưỡng nhan và hỗ trợ sức khỏe toàn diện',
-    image: '/images/blogs/blog2/avatar2.png',
+    image: getImageUrlFromApi('/images/blogs/blog2/avatar2.png'),
     slug: 'blog2'
   },
   {
     id: 3,
     title: 'Dưỡng Sinh Hiện Đại Là Gì? Vì Sao Người Trẻ Nên Nuôi Cơ Thể Từ Gốc Mỗi Ngày?',
     excerpt: 'Khám phá dưỡng sinh hiện đại với Thi Yên: Bột ngũ hắc mè đen và bột ngũ sắc hồng đậu giúp nuôi dưỡng cơ thể từ bên trong, cải thiện giấc ngủ, dưỡng nhan, dinh dưỡng cho tóc. Sản phẩm thuần tự nhiên, tiện lợi, phù hợp cho người trẻ và lối sống lành mạnh.',
-    image: '/images/blogs/blog3/avatar3.png',
+    image: getImageUrlFromApi('/images/blogs/blog3/avatar3.png'),
     slug: 'blog3'
   }
 ])
@@ -560,7 +562,7 @@ const categories = ref([
   {
     id: 1,
     name: 'Thực phẩm bổ dưỡng',
-    icon: '/images/products/me-den.jpg',
+    icon: getImageUrlFromApi('/images/products/me-den.jpg'),
     desc: 'Mè đen và hồng đậu tự nhiên, bổ dưỡng.',
     link: '/products?cat=food'
   }
@@ -568,16 +570,17 @@ const categories = ref([
 
 // Feedback khách hàng (ảnh mẫu)
 const feedbackImages = [
-  '/images/review/koc1.jpg',
-  '/images/review/koc2.jpg',
-  '/images/review/koc3.jpg',
-  '/images/review/koc4.jpg',
+  getImageUrlFromApi('/images/review/koc1.jpg'),
+  getImageUrlFromApi('/images/review/koc2.jpg'),
+  getImageUrlFromApi('/images/review/koc3.jpg'),
+  getImageUrlFromApi('/images/review/koc4.jpg'),
 ]
 
 async function fetchProducts() {
   isLoading.value = true
   try {
-    const data = await productAPI.getProducts()
+    // Get featured products (top 4 by priority) for homepage
+    const data = await productAPI.getFeaturedProducts()
     // Nếu API trả về mảng, lấy luôn, nếu trả về {data: [...]}, lấy data
     const products = Array.isArray(data) ? data : (data.data || [])
     
@@ -589,15 +592,18 @@ async function fetchProducts() {
       name: product.name || 'Sản phẩm',
       price: product.price || 299000,
       oldPrice: product.oldPrice || 390000,
-      image: getProductImage(product.id),
+      // Sử dụng mainImage từ API, fallback về getProductImage
+      image: product.mainImage ? getProductImage(product) : getProductImage(product.id),
       shortDesc: product.shortDesc || 'Mô tả sản phẩm...',
       category: product.category || 'me-den',
       rating: product.rating || 5,
       stock: product.stock || 100,
-      discount: product.discount || Math.floor(((product.oldPrice || 390000) - (product.price || 299000)) / (product.oldPrice || 390000) * 100)
+      discount: product.discount || Math.floor(((product.oldPrice || 390000) - (product.price || 299000)) / (product.oldPrice || 390000) * 100),
+      priority: product.priority || 999
     }))
     
-    // Lọc ra 4 sản phẩm đầu tiên hoặc theo logic best seller nếu có
+    // Backend đã sort theo priority và limit 4 sản phẩm
+    // Lấy tối đa 4 sản phẩm đầu tiên (đã được sort theo priority từ backend)
     bestSellers.value = processedProducts.slice(0, 4)
     
     console.log('Products loaded from API:', processedProducts)
@@ -700,7 +706,7 @@ const formatPrice = (price) => {
 // Xử lý lỗi ảnh
 const handleImageError = (event) => {
   // Thay thế ảnh lỗi bằng ảnh placeholder
-  event.target.src = '/images/products/details/black/1.png'
+  event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
   event.target.onerror = null // Tránh loop vô hạn
 }
 
@@ -708,7 +714,7 @@ const handleImageError = (event) => {
 const getImageUrl = (imagePath) => {
   if (!imagePath) {
     console.log('No image path provided, using default')
-    return '/images/products/details/black/1.png'
+    return getImageUrlFromApi('/images/products/details/black/1.png')
   }
   
   console.log('Using image URL:', imagePath)

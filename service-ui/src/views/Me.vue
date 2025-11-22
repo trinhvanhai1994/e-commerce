@@ -4,7 +4,7 @@
     <section class="hero-section relative w-full overflow-hidden">
       <!-- Background Image -->
       <img 
-        src="/images/me/banner.jpg" 
+        :src="getImageUrlFromApi('/images/me/banner.jpg')" 
         alt="Thi Yên Banner" 
         class="w-full h-auto object-cover"
         @error="handleBannerError"
@@ -15,7 +15,7 @@
         <div class="text-center" data-aos="fade-up">
             <!-- <div class="logo-container mb-3 md:mb-6 lg:mb-8">
               <div class="circle-logo bg-white rounded-full w-10 h-10 sm:w-12 sm:h-12 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto flex items-center justify-center shadow-lg">
-                <img src="/images/logo/logo.png" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain transition-transform hover:scale-105" />
+                <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain transition-transform hover:scale-105" />
             </div>
             </div> -->
           <h3 class="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-4 lg:mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -90,10 +90,10 @@
               <!-- Ảnh bên phải -->
               <div class="w-full md:w-64 shrink-0">
                 <img
-                  src="/images/me/COMBO-MIX.png"
+                  :src="getImageUrlFromApi('/images/me/COMBO-MIX.png')"
                   alt="Hình minh họa"
                   class="rounded-lg shadow-lg w-full cursor-pointer hover:opacity-90 transition-opacity duration-300"
-                  @click="openImageModal('/images/me/COMBO-MIX.png', 'Hình minh họa - Trọn vị tự nhiên')"
+                  @click="openImageModal(getImageUrlFromApi('/images/me/COMBO-MIX.png'), 'Hình minh họa - Trọn vị tự nhiên')"
                 />
               </div>
             </div>
@@ -120,10 +120,10 @@
               <!-- Ảnh bên trái (desktop) / dưới (mobile) -->
               <div class="w-full md:w-64 shrink-0 order-2 md:order-1">
                 <img
-                  src="/images/me/item4.png"
+                  :src="getImageUrlFromApi('/images/me/item4.png')"
                   alt="Sản phẩm Thi Yên"
                   class="rounded-lg shadow-lg w-full cursor-pointer hover:opacity-90 transition-opacity duration-300"
-                  @click="openImageModal('/images/me/item4.png', 'Sản phẩm Thi Yên')"
+                  @click="openImageModal(getImageUrlFromApi('/images/me/item4.png'), 'Sản phẩm Thi Yên')"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@
             <div class="text-center mb-6">
               <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                 <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img src="/images/icons/tu-nhien.png" alt="Thuần tự nhiên" class="w-32 h-32 object-contain relative z-10" />
+                <img :src="getImageUrlFromApi('/images/icons/tu-nhien.png')" alt="Thuần tự nhiên" class="w-32 h-32 object-contain relative z-10" />
                 </div>
               <h3 class="text-xl font-bold text-gray-800 mb-4">Thuần tự nhiên</h3>
               </div>
@@ -209,7 +209,7 @@
             <div class="text-center mb-6">
               <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                 <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img src="/images/icons/can-bang.png" alt="Cân bằng & Bền vững" class="w-32 h-32 object-contain relative z-10" />
+                <img :src="getImageUrlFromApi('/images/icons/can-bang.png')" alt="Cân bằng & Bền vững" class="w-32 h-32 object-contain relative z-10" />
                 </div>
               <h3 class="text-xl font-bold text-gray-800 mb-4">Cân bằng & Bền vững</h3>
               </div>
@@ -223,7 +223,7 @@
             <div class="text-center mb-6">
               <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                 <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img src="/images/icons/tien-loi.png" alt="Tiện lợi & Ngon miệng" class="w-32 h-32 object-contain relative z-10" />
+                <img :src="getImageUrlFromApi('/images/icons/tien-loi.png')" alt="Tiện lợi & Ngon miệng" class="w-32 h-32 object-contain relative z-10" />
                 </div>
               <h3 class="text-xl font-bold text-gray-800 mb-4">Tiện lợi & Ngon miệng</h3>
               </div>
@@ -442,7 +442,7 @@
             <div class="product-card bg-gradient-to-br from-white to-green-50 rounded-3xl p-8 shadow-2xl border border-green-100" data-aos="fade-right">
               <div class="relative overflow-hidden rounded-2xl mb-6">
                 <img
-                  src="/images/me/item1.png"
+                  :src="getImageUrlFromApi('/images/me/item1.png')"
                   alt="Bột Ngũ Hắc Mè Đen"
                   class="w-full h-80 object-contain bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer hover:scale-105"
                   @click="openImageModal('/images/me/item1.png', 'Bột Ngũ Hắc Mè Đen - Sản phẩm dinh dưỡng từ 5 loại hạt đen')"
@@ -472,10 +472,10 @@
             <div class="product-card bg-gradient-to-br from-white to-pink-50 rounded-3xl p-8 shadow-2xl border border-pink-100" data-aos="fade-left">
               <div class="relative overflow-hidden rounded-2xl mb-6">
                 <img
-                  src="/images/me/item2.png"
+                  :src="getImageUrlFromApi('/images/me/item2.png')"
                   alt="Bột Ngũ Sắc Hồng Đậu"
                   class="w-full h-80 object-contain bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer hover:scale-105"
-                  @click="openImageModal('/images/me/item2.png', 'Bột Ngũ Sắc Hồng Đậu - Sản phẩm dinh dưỡng từ 5 loại hạt đỏ')"
+                  @click="openImageModal(getImageUrlFromApi('/images/me/item2.png'), 'Bột Ngũ Sắc Hồng Đậu - Sản phẩm dinh dưỡng từ 5 loại hạt đỏ')"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-end justify-center pb-4">
                   <button 
@@ -612,6 +612,7 @@ import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import { useRouter } from 'vue-router';
 import { navigateToMainDomain, navigateToSubdomain } from '../utils/domainUtils';
+import { getImageUrlFromApi } from '../utils/imageUtils.js';
 
 export default {
   name: 'Me',
@@ -653,7 +654,8 @@ export default {
     return {
       goToProducts,
       goToProductDetail,
-      modules
+      modules,
+      getImageUrlFromApi
     };
   },
   data() {
@@ -667,7 +669,7 @@ export default {
       showImageModal: false,
       zoomedImageSrc: '',
       zoomedImageAlt: '',
-      images: [
+      imagePaths: [
         { src: '/images/struct/1.png', alt: 'Thêm mô tả 1' },
         { src: '/images/struct/2.png', alt: 'Thêm mô tả 2' },
         { src: '/images/struct/3.png', alt: 'Thêm mô tả 3' },
@@ -675,7 +677,21 @@ export default {
       ]
     }
   },
+  methods: {
+    handleBannerError(event) {
+      console.log('Banner image failed to load, using fallback background')
+      // Hide the image and show fallback background
+      event.target.style.display = 'none'
+    }
+  },
   computed: {
+    // Computed property để map images với getImageUrlFromApi
+    images() {
+      return this.imagePaths.map(img => ({
+        ...img,
+        src: this.getImageUrlFromApi(img.src)
+      }))
+    },
     // Computed property để duplicate images nếu cần cho loop
     // Loop cần ít nhất 2 * slidesPerView slides để hoạt động đúng
     loopImages() {

@@ -30,6 +30,8 @@
               <th class="px-3 py-2 text-left font-bold">Quy cách</th>
               <th class="px-3 py-2 text-left font-bold">Giảm giá</th>
               <th class="px-3 py-2 text-left font-bold">Danh mục</th>
+              <th class="px-3 py-2 text-left font-bold">Trạng thái</th>
+              <th class="px-3 py-2 text-left font-bold">Ưu tiên</th>
               <th class="px-3 py-2 text-center font-bold">Thao tác</th>
             </tr>
           </thead>
@@ -42,8 +44,27 @@
               <td class="px-3 py-2">{{ product.quantity }}</td>
               <td class="px-3 py-2">{{ product.discount }}%</td>
               <td class="px-3 py-2">{{ getCategoryName(product.category) }}</td>
+              <td class="px-3 py-2">
+                <span 
+                  :class="{
+                    'px-2 py-1 rounded text-xs font-semibold': true,
+                    'bg-green-100 text-green-800': product.status === 'ACTIVE',
+                    'bg-gray-100 text-gray-800': product.status === 'INACTIVE'
+                  }"
+                >
+                  {{ product.status === 'ACTIVE' ? 'Hiển thị' : 'Ẩn' }}
+                </span>
+              </td>
+              <td class="px-3 py-2">
+                <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                  {{ product.priority || 999 }}
+                </span>
+              </td>
               <td class="px-3 py-2 text-center">
-                <button @click="openEdit(product)" class="text-blue-600 hover:underline mr-2">Sửa</button>
+                <button @click="goToDetail(product.id)" class="text-blue-600 hover:underline mr-2">Sửa</button>
+                <button @click="toggleStatus(product.id)" class="text-yellow-600 hover:underline mr-2">
+                  {{ product.status === 'ACTIVE' ? 'Ẩn' : 'Hiện' }}
+                </button>
                 <button @click="remove(product.id)" class="text-red-600 hover:underline">Xoá</button>
               </td>
             </tr>
@@ -61,12 +82,14 @@
               <input v-model="form.name" required class="w-full border rounded px-3 py-2" />
             </div>
             <div class="mb-3">
-              <label class="block font-semibold mb-1">Giá bán *</label>
+              <label class="block font-semibold mb-1">Giá khuyến mãi (Giá bán) *</label>
               <input v-model.number="form.price" type="number" min="0" required class="w-full border rounded px-3 py-2" />
+              <p class="text-xs text-gray-500 mt-1">Giá hiển thị cho khách hàng</p>
             </div>
             <div class="mb-3">
-              <label class="block font-semibold mb-1">Giá cũ</label>
+              <label class="block font-semibold mb-1">Giá gốc (Giá cũ)</label>
               <input v-model.number="form.oldPrice" type="number" min="0" class="w-full border rounded px-3 py-2" />
+              <p class="text-xs text-gray-500 mt-1">Giá gốc trước khi giảm giá (để hiển thị giá gạch ngang)</p>
             </div>
             <div class="mb-3">
               <label class="block font-semibold mb-1">Số lượng/Quy cách</label>
@@ -82,7 +105,13 @@
             </div>
             <div class="mb-3">
               <label class="block font-semibold mb-1">Mô tả ngắn</label>
-              <textarea v-model="form.shortDesc" class="w-full border rounded px-3 py-2" rows="2"></textarea>
+              <textarea v-model="form.shortDesc" class="w-full border rounded px-3 py-2" rows="3" placeholder="Mô tả ngắn gọn về sản phẩm..."></textarea>
+              <p class="text-xs text-gray-500 mt-1">Mô tả ngắn hiển thị ở danh sách sản phẩm</p>
+            </div>
+            <div class="mb-3">
+              <label class="block font-semibold mb-1">Mô tả chi tiết sản phẩm</label>
+              <textarea v-model="form.detailedUsage" class="w-full border rounded px-3 py-2" rows="4" placeholder="Mô tả chi tiết về sản phẩm..."></textarea>
+              <p class="text-xs text-gray-500 mt-1">Mô tả chi tiết hiển thị ở trang chi tiết sản phẩm</p>
             </div>
             <div class="mb-3">
               <label class="block font-semibold mb-1">Công dụng</label>
@@ -120,62 +149,34 @@
               <label class="block font-semibold mb-1">Bảo quản</label>
               <textarea v-model="form.storage" class="w-full border rounded px-3 py-2" rows="2"></textarea>
             </div>
+            
             <div class="mb-3">
-              <label class="block font-semibold mb-1">Hình ảnh chính (Path/URL)</label>
-              <p class="text-xs text-gray-500 mb-2">Nhập đường dẫn ảnh (VD: /images/products/product1.jpg)</p>
-              <div class="flex gap-4">
-                <div class="flex-1">
-                  <input 
-                    v-model="form.image" 
-                    type="text" 
-                    placeholder="/images/products/product1.jpg" 
-                    class="w-full border rounded px-3 py-2 mb-2" 
-                  />
-                  <div class="flex gap-2">
-                    <input 
-                      type="file" 
-                      ref="fileInput"
-                      @change="handleFileUpload" 
-                      accept="image/*"
-                      class="hidden"
-                    />
-                    <button 
-                      type="button"
-                      @click="$refs.fileInput.click()"
-                      class="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                    >
-                      Chọn ảnh (tạo path)
-                    </button>
-                    <button 
-                      type="button"
-                      @click="clearImage"
-                      class="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                  <p v-if="form.image && !form.image.startsWith('data:')" class="text-xs text-green-600 mt-1">
-                    Path: {{ form.image }}
-                  </p>
-                </div>
-                <div class="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                  <div v-if="imageLoading" class="text-center text-blue-500">
-                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mb-2"></div>
-                    <span class="text-xs">Đang tải...</span>
-                  </div>
-                  <div v-else-if="form.image" class="w-full h-full">
+              <label class="block font-semibold mb-1">Ảnh mô tả (Gallery)</label>
+              <p class="text-xs text-gray-500 mb-2">Nhập các đường dẫn ảnh, mỗi ảnh một dòng</p>
+              <textarea 
+                v-model="form.galleryText" 
+                class="w-full border rounded px-3 py-2" 
+                rows="4" 
+                placeholder="/images/products/product1.jpg&#10;/images/products/product2.jpg&#10;/images/products/product3.jpg"
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-1">Mỗi dòng là một đường dẫn ảnh. Ảnh đầu tiên sẽ là ảnh chính nếu chưa có.</p>
+              <div v-if="form.gallery && form.gallery.length > 0" class="mt-2">
+                <div class="text-xs font-semibold mb-1">Ảnh hiện tại ({{ form.gallery.length }} ảnh):</div>
+                <div class="flex flex-wrap gap-2">
+                  <div v-for="(img, index) in form.gallery" :key="index" class="relative">
                     <img 
-                      :src="form.image.startsWith('data:') ? form.image : form.image" 
-                      :alt="form.name || 'Preview'" 
-                      class="w-full h-full object-cover rounded-lg preview-image"
-                      @error="handleImageError"
+                      :src="img.startsWith('data:') ? img : getImageUrlWithCacheBusting(getImageUrlFromApi(img))" 
+                      :alt="`Gallery ${index + 1}`" 
+                      class="w-16 h-16 object-cover rounded border" 
+                      @error="handleImageError" 
                     />
-                  </div>
-                  <div v-else class="text-center text-gray-400">
-                    <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <span class="text-xs">Preview</span>
+                    <button 
+                      type="button"
+                      @click="removeGalleryImage(index)"
+                      class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
                   </div>
                 </div>
               </div>
@@ -194,6 +195,26 @@
                 <input v-model="form.isNew" type="checkbox" class="mr-2" />
                 <span class="font-semibold">Sản phẩm mới</span>
               </label>
+            </div>
+            <div class="mb-3">
+              <label class="block font-semibold mb-1">Trạng thái</label>
+              <select v-model="form.status" class="w-full border rounded px-3 py-2">
+                <option value="ACTIVE">Hiển thị (ACTIVE)</option>
+                <option value="INACTIVE">Ẩn (INACTIVE)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block font-semibold mb-1">Ưu tiên (Priority)</label>
+              <input 
+                v-model.number="form.priority" 
+                type="number" 
+                min="1" 
+                class="w-full border rounded px-3 py-2" 
+                placeholder="999"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Số nhỏ hơn = ưu tiên cao hơn. Sản phẩm có priority 1-4 sẽ hiển thị ở trang chủ (tối đa 4 sản phẩm).
+              </p>
             </div>
             <div class="mb-3">
               <label class="flex items-center">
@@ -217,9 +238,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
+import { getImageUrlFromApi, getImageUrlWithCacheBusting } from '@/utils/imageUtils.js'
+
+const router = useRouter()
 
 const products = ref([])
 const loading = ref(false)
@@ -251,8 +276,12 @@ const form = reactive({
   technology: '',
   storage: '',
   image: '',
+  gallery: [],
+  galleryText: '',
   isNew: false,
   category: 'me-den',
+  status: 'ACTIVE',
+  priority: 999,
   syncToPancake: false
 })
 
@@ -263,7 +292,9 @@ async function fetchProducts() {
   try {
     const data = await productManagementAPI.getProducts()
     const allProducts = Array.isArray(data) ? data : (data.data || [])
-    // Lọc sản phẩm chưa bị xóa (deleted = false hoặc không có trường deleted)
+    // CHỈ lọc sản phẩm đã bị xóa (soft delete)
+    // KHÔNG lọc theo status - hiển thị cả ACTIVE và INACTIVE trong admin list
+    // Sản phẩm INACTIVE sẽ không hiển thị cho user nhưng vẫn hiển thị cho admin
     products.value = allProducts.filter(product => !product.deleted)
   } catch (e) {
     error.value = e.message || 'Có lỗi xảy ra khi tải dữ liệu'
@@ -325,41 +356,24 @@ function openAdd() {
     technology: '',
     storage: '',
     image: '',
+    gallery: [],
+    galleryText: '',
     isNew: false,
     category: 'ME_DEN',
+    status: 'ACTIVE',
+    priority: 999,
     syncToPancake: false
   })
   showModal.value = true
 }
 
+function goToDetail(id) {
+  router.push(`/admin/products/${id}`)
+}
+
 function openEdit(product) {
-  isEdit.value = true
-  Object.assign(form, {
-    id: product.id,
-    name: product.name || '',
-    price: product.price || 0,
-    oldPrice: product.oldPrice || 0,
-    bulkPrice: product.bulkPrice || null,
-    quantity: product.quantity || '',
-    bulkQuantity: product.bulkQuantity || null,
-    discount: product.discount || 0,
-    reviewCount: product.reviewCount || 0,
-    shortDesc: product.shortDesc || '',
-    benefits: product.benefits || '',
-    targetUsers: product.targetUsers || '',
-    usage: product.usage || '',
-    manufacturer: product.manufacturer || 'Công ty TNHH Thi Yên',
-    ingredients: product.ingredients || '',
-    detailedUsage: product.description || product.detailedUsage || '',
-    specifications: product.specifications || '',
-    technology: product.technology || '',
-    storage: product.storage || '',
-    image: product.mainImage || product.image || '',
-    isNew: product.isNew || false,
-    category: product.category || 'ME_DEN',
-    syncToPancake: false // Reset to false when editing
-  })
-  showModal.value = true
+  // Navigate to detail page instead of opening modal
+  goToDetail(product.id)
 }
 
 function closeModal() {
@@ -369,35 +383,53 @@ function closeModal() {
 async function submitForm() {
   submitting.value = true
   try {
-    // Chỉ lấy path, không lưu base64
+    // Xử lý ảnh chính
     let imagePath = form.image
-    // Nếu là base64 data URL, không lưu (chỉ lưu path)
     if (imagePath && imagePath.startsWith('data:')) {
-      // Nếu user chọn file nhưng chưa có path, yêu cầu nhập path
       alert('Vui lòng nhập đường dẫn ảnh (path) thay vì chọn file. Ví dụ: /images/products/product1.jpg')
       submitting.value = false
       return
+    }
+    
+    // Xử lý gallery từ textarea
+    let galleryImages = []
+    if (form.galleryText && form.galleryText.trim()) {
+      // Tách từng dòng và lọc bỏ dòng trống
+      galleryImages = form.galleryText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('data:')) // Bỏ qua base64 và dòng trống
+    } else if (form.gallery && form.gallery.length > 0) {
+      // Nếu không có text nhưng có gallery array, dùng array
+      galleryImages = form.gallery.filter(img => img && !img.startsWith('data:'))
+    }
+    
+    // Loại bỏ ảnh chính khỏi gallery nếu có (để tránh trùng lặp)
+    if (imagePath) {
+      galleryImages = galleryImages.filter(img => img !== imagePath)
     }
     
     const productData = {
       id: form.id, // Include ID for update
       name: form.name,
       price: form.price,
-      oldPrice: form.oldPrice,
-      quantity: form.quantity,
-      discount: form.discount,
-      reviewCount: form.reviewCount,
-      shortDesc: form.shortDesc,
-      description: form.detailedUsage || form.shortDesc, // Use detailedUsage or shortDesc as description
-      mainImage: imagePath || null, // Chỉ lưu path, không lưu base64
-      gallery: imagePath ? [imagePath] : [], // Convert single image path to gallery array
+      oldPrice: form.oldPrice || null,
+      quantity: form.quantity || '',
+      discount: form.discount || 0,
+      reviewCount: form.reviewCount || 0,
+      shortDesc: form.shortDesc || '',
+      description: form.detailedUsage || form.shortDesc || '', // Mô tả chi tiết
+      mainImage: imagePath || null, // Ảnh chính
+      gallery: galleryImages, // Danh sách ảnh mô tả
       stock: 100, // Default stock if not provided
-      category: form.category,
-      benefits: form.benefits,
-      ingredients: form.ingredients,
-      specifications: form.specifications,
-      technology: form.technology,
-      storage: form.storage,
+      category: form.category || 'ME_DEN',
+      status: form.status || 'ACTIVE',
+      priority: form.priority || 999,
+      benefits: form.benefits || '',
+      ingredients: form.ingredients || '',
+      specifications: form.specifications || '',
+      technology: form.technology || '',
+      storage: form.storage || '',
       syncToPancake: form.syncToPancake // Flag đồng bộ với Pancake POS
     }
 
@@ -435,6 +467,16 @@ async function remove(id) {
     } catch (e) {
       alert('Lỗi: ' + e.message)
     }
+  }
+}
+
+async function toggleStatus(id) {
+  try {
+    await productManagementAPI.toggleProductStatus(id)
+    await fetchProducts() // Refresh the list
+    alert('Thay đổi trạng thái sản phẩm thành công!')
+  } catch (e) {
+    alert('Lỗi: ' + e.message)
   }
 }
 
@@ -510,6 +552,15 @@ function clearImage() {
   form.image = ''
   if (fileInput.value) {
     fileInput.value.value = ''
+  }
+}
+
+// Remove gallery image
+function removeGalleryImage(index) {
+  if (form.gallery && form.gallery.length > index) {
+    form.gallery.splice(index, 1)
+    // Update galleryText
+    form.galleryText = form.gallery.join('\n')
   }
 }
 

@@ -52,6 +52,13 @@ public class AdminProductController {
         adminService.deleteProduct(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Xóa sản phẩm thành công"));
     }
+    
+    @PatchMapping("/{id}/toggle-status")
+    public ResponseEntity<ApiResponse<ProductResponse>> toggleProductStatus(@PathVariable Long id) {
+        ProductResponse product = adminService.toggleProductStatus(id);
+        String status = "ACTIVE".equals(product.getStatus()) ? "kích hoạt" : "ẩn";
+        return ResponseEntity.ok(ApiResponse.success(product, "Đã " + status + " sản phẩm thành công"));
+    }
 }
 
 

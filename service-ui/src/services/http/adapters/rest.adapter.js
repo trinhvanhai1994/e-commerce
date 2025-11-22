@@ -72,6 +72,12 @@ export class RestAdapter extends BaseAdapter {
       },
     }
 
+    // Add authentication token if available
+    const authToken = this.getAuthToken()
+    if (authToken) {
+      requestOptions.headers['Authorization'] = `Bearer ${authToken}`
+    }
+
     // Add body for POST, PUT, PATCH
     if (options.body && ['POST', 'PUT', 'PATCH'].includes(requestOptions.method)) {
       if (typeof options.body === 'string') {
@@ -82,6 +88,15 @@ export class RestAdapter extends BaseAdapter {
     }
 
     return requestOptions
+  }
+
+  /**
+   * Get authentication token
+   * @returns {string|null} Auth token
+   */
+  getAuthToken() {
+    // Get token from localStorage or cookie
+    return localStorage.getItem('authToken') || null
   }
 
   /**

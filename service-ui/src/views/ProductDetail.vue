@@ -161,12 +161,12 @@
                 </div>
 
                 <!-- Original Discount Badge -->
-                <div v-if="product.discount" class="absolute top-16 md:top-20 left-1 md:left-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-1 md:px-4 py-0.5 md:py-2 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                <div v-if="productDiscount > 0" class="absolute top-16 md:top-20 left-1 md:left-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-1 md:px-4 py-0.5 md:py-2 rounded-full text-xs font-bold shadow-lg animate-pulse">
                   <span class="flex items-center gap-1">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    -{{ product.discount }}%
+                    -{{ productDiscount }}%
                   </span>
                 </div>
                 
@@ -264,8 +264,8 @@
               <div class="flex items-center gap-2">
                 <span class="text-lg md:text-xl font-bold text-red-500">{{ formatPrice(product.price) }}</span>
                 <span v-if="product.oldPrice > product.price" class="text-sm text-gray-500 line-through">{{ formatPrice(product.oldPrice) }}</span>
-                <div v-if="product.discount > 0" class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                  -{{ product.discount }}%
+                <div v-if="productDiscount > 0" class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                  -{{ productDiscount }}%
                 </div>
               </div>
               <div class="flex flex-col sm:flex-row sm:items-center gap-1">
@@ -544,6 +544,24 @@
         </div>
       </div>
 
+      <!-- Video giới thiệu sản phẩm (PC only - trước phần mô tả) -->
+      <div class="hidden lg:block mt-4 mb-6">
+        <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h2 class="text-lg md:text-xl font-bold text-green-700 mb-4 text-center">Video giới thiệu sản phẩm</h2>
+          <div class="flex justify-center">
+            <video
+              class="w-full max-w-2xl rounded-lg"
+              controls
+              :poster="getImageUrlFromApi('/images/products/details/black/1.png')"
+              style="max-height: 70vh; object-fit: contain;"
+            >
+              <source src="/video/intro.mp4" type="video/mp4" />
+              Trình duyệt của bạn không hỗ trợ video.
+            </video>
+          </div>
+        </div>
+      </div>
+
               <!-- Product Details Table -->
         <div class="space-y-6">
           <div class="grid grid-cols-1 gap-6">
@@ -638,7 +656,7 @@
        <video
          class="w-full max-w-2xl mx-auto rounded-lg mb-4"
          controls
-         poster="/images/products/details/black/1.png"
+         :poster="getImageUrlFromApi('/images/products/details/black/1.png')"
        >
          <source src="/video/intro.mp4" type="video/mp4" />
          Trình duyệt của bạn không hỗ trợ video.
@@ -757,7 +775,7 @@
           <div class="text-center group">
             <div class="relative mx-auto w-24 h-24 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
               <div class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">1</div>
-              <img src="/images/icons/Step1.png" alt="Step 1" class="w-24 h-24 object-contain" />
+              <img :src="getImageUrlFromApi('/images/icons/Step1.png')" alt="Step 1" class="w-24 h-24 object-contain" />
             </div>
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Cho bột vào cốc</h3>
             <p class="text-gray-600 text-xs">Cho 2-3 thìa bột vào cốc sạch</p>
@@ -767,7 +785,7 @@
           <div class="text-center group">
             <div class="relative mx-auto w-24 h-24 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
               <div class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">2</div>
-              <img src="/images/icons/Step2.png" alt="Step 2" class="w-24 h-24 object-contain" />
+              <img :src="getImageUrlFromApi('/images/icons/Step2.png')" alt="Step 2" class="w-24 h-24 object-contain" />
             </div>
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Pha với nước ấm</h3>
             <p class="text-gray-600 text-xs">Thêm 200ml nước ấm hoặc sữa</p>
@@ -777,7 +795,7 @@
           <div class="text-center group">
             <div class="relative mx-auto w-24 h-24 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
               <div class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold">3</div>
-              <img src="/images/icons/Step3.png" alt="Step 3" class="w-24 h-24 object-contain" />
+              <img :src="getImageUrlFromApi('/images/icons/Step3.png')" alt="Step 3" class="w-24 h-24 object-contain" />
             </div>
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Khuấy đều & thưởng thức</h3>
             <p class="text-gray-600 text-xs">Khuấy đều và thưởng thức ngay</p>
@@ -981,7 +999,7 @@
           <div class="flex items-center gap-3">
             <!-- Logo Thi Yên -->
             <div class="flex items-center gap-2">
-              <img src="/images/logo/logo.png" alt="Thi Yên" class="w-8 h-8 object-contain" />
+              <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Thi Yên" class="w-8 h-8 object-contain" />
             </div>
             <!-- Badges -->
             <div class="flex gap-1">
@@ -1120,6 +1138,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { productAPI, getImageUrlWithCacheBusting } from '@/utils/api.js'
 import { getProductImage, getProductGallery } from '../utils/productImage'
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1202,19 +1221,22 @@ const allProductSwitch = computed(() => {
 // Ảnh liên quan từ product.gallery
 const relatedImages = computed(() => {
   if (!product.value) return []
-  // Sử dụng utility function để lấy gallery
-  return getProductGallery(product.value.id).slice(0, 6) // Lấy tối đa 6 ảnh
+  // Sử dụng gallery từ API (đã được xử lý trong getProductGallery)
+  return getProductGallery(product.value).slice(0, 6) // Lấy tối đa 6 ảnh
 })
 
 // Cập nhật ảnh sản phẩm khi load dữ liệu
 function updateProductImages() {
   if (product.value) {
-    product.value.image = getProductImage(product.value.id)
-    product.value.gallery = getProductGallery(product.value.id)
+    // Sử dụng mainImage từ API
+    product.value.image = getProductImage(product.value)
+    // Sử dụng gallery từ API
+    product.value.gallery = getProductGallery(product.value)
   }
   if (products.value.length > 0) {
     products.value.forEach(p => {
-      p.image = getProductImage(p.id)
+      // Sử dụng mainImage từ API
+      p.image = getProductImage(p)
     })
   }
 }
@@ -1231,7 +1253,7 @@ async function loadData() {
 function handleImageError(event) {
   console.log('Image load error:', event.target.src)
   // Thay thế ảnh lỗi bằng ảnh placeholder
-  event.target.src = '/images/products/details/black/1.png'
+  event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
   event.target.onerror = null // Tránh loop vô hạn
 }
 
@@ -1291,10 +1313,10 @@ function formatFlashSaleTime(sec) {
 
 
 
-// Cải thiện galleryImages computed
+// Cải thiện galleryImages computed - sử dụng gallery từ API
 const galleryImages = computed(() => {
   if (!product.value) return []
-  return getProductGallery(product.value.id)
+  return getProductGallery(product.value)
 })
 
 // Reviews mặc định (5 reviews)
@@ -1305,8 +1327,8 @@ const defaultReviews = [
     rating: 5,
     content: 'Giao hàng nhanh, hàng chính hãng, đóng gói bọc xốp cẩn thận, Vị thơm mùi mè, pha nhanh, dễ pha, hợp với người bận rộn như mình.',
     images: [
-      '/images/review/comment1/5f70f3785c7bd025896a1.jpg',
-      '/images/review/comment1/cba003a9acaa20f479bb2.jpg'
+      getImageUrlFromApi('/images/review/comment1/5f70f3785c7bd025896a1.jpg'),
+      getImageUrlFromApi('/images/review/comment1/cba003a9acaa20f479bb2.jpg')
     ],
     isDefault: true
   },
@@ -1316,8 +1338,8 @@ const defaultReviews = [
     rating: 5,
     content: 'Mẫu mã và chất lượng OK ạ. Shop tư vấn nhiệt tình. Hàng đóng gói cẩn thận. Sẽ ủng hộ Shop lâu dài',
     images: [
-      '/images/review/comment2/55604d6ae2696e3737789.jpg',
-      '/images/review/comment2/c59aea924591c9cf908010.jpg'
+      getImageUrlFromApi('/images/review/comment2/55604d6ae2696e3737789.jpg'),
+      getImageUrlFromApi('/images/review/comment2/c59aea924591c9cf908010.jpg')
     ],
     isDefault: true
   },
@@ -1327,7 +1349,7 @@ const defaultReviews = [
     rating: 5,
     content: 'Shop giao hàng nhanh, đóng gói cẩn thận, bột mè đen mịn, dễ pha, vị mè đen thơm, dễ uống',
     images: [
-      '/images/review/comment3/ee0af18a5f89d3d78a9814.jpg'
+      getImageUrlFromApi('/images/review/comment3/ee0af18a5f89d3d78a9814.jpg')
     ],
     isDefault: true
   },
@@ -1337,7 +1359,7 @@ const defaultReviews = [
     rating: 5,
     content: 'Bột ngũ hắc thơm mùi mè đen, vị ngon béo ngậy. Bé nhà m cũng thích, chiều đi học về cứ làm cốc là ấm bụng.',
     images: [
-      '/images/review/comment4/fbcebb48154b9915c05a13.jpg'
+      getImageUrlFromApi('/images/review/comment4/fbcebb48154b9915c05a13.jpg')
     ],
     isDefault: true
   },
@@ -1347,8 +1369,8 @@ const defaultReviews = [
     rating: 5,
     content: 'cũng dùng thử mấy loại rồi mà chỉ thấy toàn mùi đỗ đen, nay mới thấy loại này ngon và rõ mùi vị của mè đen. Nghe nói tốt lắm, thử dùng xem sao',
     images: [
-      '/images/review/comment5/1f973fb291b11def44a018.jpg',
-      '/images/review/comment5/f19088b626b5aaebf3a417.jpg'
+      getImageUrlFromApi('/images/review/comment5/1f973fb291b11def44a018.jpg'),
+      getImageUrlFromApi('/images/review/comment5/f19088b626b5aaebf3a417.jpg')
     ],
     isDefault: true
   }
@@ -1603,7 +1625,7 @@ const selectedBuyNowProduct = computed(() => {
 
 // Computed properties for selected product details
 const getSelectedProductImage = computed(() => {
-  return selectedBuyNowProduct.value?.image || '/images/products/details/black/1.png'
+  return selectedBuyNowProduct.value?.image || getImageUrlFromApi('/images/products/details/black/1.png')
 })
 
 const getSelectedProductName = computed(() => {
@@ -1626,9 +1648,14 @@ const showSocialProof = ref(false)
 
 const currentImageIndex = ref(0)
 
+// Tính toán discount từ price và oldPrice
+const productDiscount = computed(() => {
+  if (!product.value) return 0
+  return getProductDiscount(product.value)
+})
+
 const flashSaleDiscountPercent = computed(() => {
-  if (!product.value || !product.value.oldPrice || !product.value.price || product.value.oldPrice <= product.value.price) return 0
-  return Math.floor((product.value.oldPrice - product.value.price) / product.value.oldPrice * 100)
+  return productDiscount.value
 })
 
 const flashSaleLeft = ref(0)
@@ -1840,7 +1867,7 @@ const selectedImage = ref('')
 const socialProofData = ref({
   productId: 1,
   productName: 'BỘT NGŨ HẮC MÈ ĐEN',
-  productImage: '/images/products/me-den.jpg',
+  productImage: getImageUrlFromApi('/images/products/me-den.jpg'),
   customerName: 'Nguyễn Thị A',
   location: 'Hà Nội',
   timeAgo: '2 phút trước'

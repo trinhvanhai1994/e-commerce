@@ -128,6 +128,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
 
 const route = useRoute()
 const activeSection = ref(0)
@@ -138,7 +139,7 @@ const articles = {
     slug: 'blog1',
     title: 'Dinh Dưỡng Đen Nguyên Bản Từ 5 Loại Hạt Trong Bột Ngũ Hắc Mè Đen',
     date: '12/03/2025',
-    image: '/images/blogs/blog1/avatar1.png',
+    image: getImageUrlFromApi('/images/blogs/blog1/avatar1.png'),
     content: [
       { type: 'p', text: 'Dinh Dưỡng Đen Nguyên Bản Từ 5 Loại Hạt Trong Bột Ngũ Hắc Mè Đen' },
 
@@ -146,12 +147,12 @@ const articles = {
       { type: 'p', text: 'Bột ngũ hắc mè đen là sự kết hợp từ 5 loại hạt đen nguyên bản: mè đen, gạo lứt đen, đậu đen, quinoa đen và dâu tằm đen. Sản phẩm được phát triển dựa trên công thức dưỡng sinh cổ truyền và kết hợp với nghiên cứu hiện đại, tối ưu hóa giá trị dinh dưỡng tự nhiên.' },
       { type: 'p', text: 'Toàn bộ nguyên liệu được xử lý bằng công nghệ nghiền nano siêu mịn và hấp nhiệt thông minh, giúp giữ trọn hương vị và dưỡng chất. Điều này mang lại hiệu quả bồi bổ toàn diện, nhưng vẫn tiện lợi cho nhịp sống bận rộn.' },
       { type: 'p', text: 'Với sự kết hợp của các loại hạt đen giàu dưỡng chất, dinh dưỡng thực vật thuần khiết được đảm bảo, bột ngũ hắc mè đen là lựa chọn tuyệt vời cho những ai tìm kiếm một chế độ ăn uống lành mạnh, dễ dàng và tiện lợi.' },
-      { type: 'img', src: '/images/blogs/blog1/image1.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog1/image1.jpg') },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên', class: 'text-sm italic text-center' },
       { type: 'p', text: 'Ngoài 5 loại hạt đen, sản phẩm còn kết hợp yến mạch, óc chó và khoai mỡ, giúp cung cấp tinh bột chậm, chất béo tốt và chất xơ tự nhiên lý tưởng cho người theo đuổi lối sống lành mạnh hiện đại.' },
 
       { type: 'h2', text: '2. Lợi ích nổi bật từ 5 thành phần đen chủ đạo' },
-      { type: 'img', src: '/images/blogs/blog1/image2.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog1/image2.jpg') },
       { type: 'p', text: '5 thành phần đen chủ đạo của Bột ngũ hắc mè đen Thi Yên', class: 'text-sm italic text-center' },
       { type: 'ul', items: [
         'Mè đen: Tính bình, vị ngọt. Bổ can thận, dưỡng huyết, nhuận tràng, giúp làm đen tóc, đẹp da.',
@@ -171,7 +172,7 @@ const articles = {
         'Dân văn phòng, học sinh, sinh viên'
       ] },
       { type: 'p', text: 'Sản phẩm không gây nặng bụng, không đường tinh luyện, giúp no lâu nhưng vẫn nhẹ nhàng.' },
-      { type: 'img', src: '/images/blogs/blog1/image3.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog1/image3.jpg') },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên - bữa ăn thay thế dinh dưỡng, ít calo', class: 'text-sm italic text-center' },
 
       { type: 'h2', text: '4. Dưỡng chất từ thực vật giúp tóc khỏe, da đẹp, giấc ngủ ngon' },
@@ -180,7 +181,7 @@ const articles = {
         'Vitamin B & Sắt: Tăng tuần hoàn máu, bổ huyết, giảm rụng tóc',
         'Chất xơ và protein thực vật: Giúp cơ thể nhẹ nhàng, thư giãn tinh thần, hỗ trợ giấc ngủ'
       ] },
-      { type: 'img', src: '/images/blogs/blog1/image4.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog1/image4.jpg') },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên cân bằng 4 nhóm dưỡng chất thiết yếu cho cơ thể', class: 'text-sm italic text-center' },
       { type: 'p', text: '=>  Tất cả từ nguyên liệu trong bột ngũ hắc mè đen đều 100% từ thực vật, không phụ gia, đúng tinh thần dưỡng sinh hiện đại: đơn giản nhưng bền vững.' },
 
@@ -203,7 +204,7 @@ const articles = {
     slug: 'blog2',
     title: 'Hiểu Cơ Bản Về Dưỡng Sinh: Cân Bằng Âm Dương & Thuận Tự Nhiên',
     date: '15/03/2025',
-    image: '/images/blogs/blog2/avatar2.png',
+    image: getImageUrlFromApi('/images/blogs/blog2/avatar2.png'),
     content: [
       { type: 'p', text: 'Hiểu Cơ Bản Về Dưỡng Sinh: Cân Bằng Âm Dương & Thuận Tự Nhiên' },
       { type: 'p', text: 'Dưỡng sinh không phải là triết lý cao siêu, cũng không chỉ dành riêng cho người lớn tuổi. Đó là một lựa chọn sống lành, nhẹ nhàng và bền vững ai cũng có thể bắt đầu từ những điều rất giản dị: ăn một bữa sáng đủ đầy, uống một cốc nước ấm, hạn chế đường, ưu tiên thực phẩm nguyên bản, không chế biến quá đà.' },
@@ -213,7 +214,7 @@ const articles = {
       { type: 'p', text: 'Âm và Dương là hai mặt đối lập nhưng luôn vận hành cùng nhau, chuyển hóa không ngừng. Khi hai yếu tố này mất cân bằng, cơ thể dễ sinh bệnh, tâm trí dễ rối loạn.' },
       { type: 'p', text: 'Trong cơ thể: Âm đại diện cho sự mát mẻ, lắng dịu, bên trong (máu, dịch); Dương đại diện cho sự vận động, ấm nóng, bên ngoài (nhiệt, khí).' },
       { type: 'p', text: 'Trong ăn uống: Mỗi thực phẩm đều mang tính Âm (mát, lạnh) hoặc Dương (ấm, nóng). Một bữa ăn hài hòa thường kết hợp cả hai để cơ thể được điều hòa, ví dụ món chiên xào (Dương) đi cùng rau củ (Âm).' },
-      { type: 'img', src: '/images/blogs/blog2/image1.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog2/image1.jpg') },
       { type: 'p', text: 'Dưỡng sinh trong ăn uống', class: 'text-sm italic text-center' },
       { type: 'p', text: 'Trong sinh hoạt: Cần xen kẽ giữa làm việc (Dương) và nghỉ ngơi (Âm) để phục hồi năng lượng và tinh thần.' },
       { type: 'p', text: 'Tại Thi Yên, các công thức luôn được thiết kế để không mất đi sự hài hòa, nhẹ nhàng, tự nhiên và phù hợp với nhiều thể trạng, từ người trẻ, người ăn chay, đến phụ nữ sau sinh hay người lớn tuổi.' },
@@ -232,7 +233,7 @@ const articles = {
 
       { type: 'p', text: 'Bột ngũ hắc mè đen' },
       { type: 'p', text: 'Gồm 5 loại hạt đen: mè đen, đậu đen, gạo lứt đen, quinoa đen, dâu tằm đen thuộc hành Thủy, bổ dưỡng cho Thận – cơ quan giữ “tinh khí gốc” của cơ thể.' },
-      { type: 'img', src: '/images/blogs/blog2/image2.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog2/image2.jpg') },
       { type: 'p', text: 'Công thức này vừa là bữa ăn thay thế dinh dưỡng, tiện lợi, ít calo, vừa là nguồn dinh dưỡng hỗ trợ tóc chắc khỏe, giấc ngủ sâu, nhất là với người làm việc căng thẳng, suy nhược, hoặc độ tuổi trung niên.' },
       { type: 'cta', bold: '-> Tìm hiểu chi tiết và đặt mua tại: ', linkText: 'Bột ngũ hắc mè đen', to: { name: 'ProductDetail', params: { id: 1 } } },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên', class: 'text-sm italic text-center' },
@@ -240,7 +241,7 @@ const articles = {
       { type: 'p', text: 'Bột ngũ sắc hồng đậu' },
       { type: 'p', text: 'Gồm 5 nguyên liệu đỏ: táo đỏ, hạt sen đỏ, củ dền, quinoa đỏ, đậu đỏ thuộc hành Hỏa, nuôi dưỡng Tâm và Huyết.' },
       { type: 'p', text: 'Công thức này hỗ trợ dưỡng nhan, điều hòa chu kỳ sinh học, đặc biệt phù hợp với phụ nữ trong thời kỳ thay đổi nội tiết.' },
-      { type: 'img', src: '/images/blogs/blog2/image3.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog2/image3.jpg') },
       { type: 'p', text: 'Bột ngũ sắc hồng đậu Thi Yên', class: 'text-sm italic text-center' },
       { type: 'cta', bold: '> Tìm hiểu chi tiết và đặt mua tại: ', linkText: 'Bột ngũ sắc hồng đậu', to: { name: 'ProductDetail', params: { id: 3 } } },
 
@@ -260,7 +261,7 @@ const articles = {
     slug: 'blog3',
     title: 'Dưỡng Sinh Hiện Đại Là Gì? Vì Sao Người Trẻ Nên Nuôi Cơ Thể Từ Gốc?',
     date: '18/03/2025',
-    image: '/images/blogs/blog3/avatar3.png',
+    image: getImageUrlFromApi('/images/blogs/blog3/avatar3.png'),
     content: [
       { type: 'p', text: 'Dưỡng Sinh Hiện Đại Là Gì? Vì Sao Người Trẻ Nên Nuôi Cơ Thể Từ Gốc Mỗi Ngày?' },
       { type: 'p', text: 'Trong nhịp sống hiện đại đầy gấp gáp, nhiều người trẻ thường cuốn vào vòng xoáy công việc, học tập và những mục tiêu mà quên mất việc chăm sóc bản thân. Bữa ăn đơn giản chỉ để no, giấc ngủ chập chờn giữa những mối bận tâm. Cơ thể vẫn vận hành, nhưng năng lượng và sự an yên dần cạn kiệt.' },
@@ -294,13 +295,13 @@ const articles = {
       { type: 'h2', text: '2 sản phẩm nổi bật của Thi Yến: Dưỡng sinh tiện lợi, phù hợp mọi lối sống' },
       { type: 'p', text: 'Bột Ngũ Hắc Mè Đen: Bữa ăn thay thế dinh dưỡng, tiện lợi, dinh dưỡng đen nguyên bản cho tóc, hỗ trợ bổ huyết, thư giãn tinh thần' },
       { type: 'p', text: 'Thành phần chính: Mè đen, đậu đen, gạo lứt đen, dâu tằm đen, quinoa đen, yến mạch, óc chó…' },
-      { type: 'img', src: '/images/blogs/blog3/image1.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog3/image1.jpg') },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên', class: 'text-sm italic text-center' },
       { type: 'cta', bold: '-> Xem thêm: ', linkText: 'Bột Ngũ hắc mè đen Thi Yên', to: { name: 'ProductDetail', params: { id: 1 } } },
 
       { type: 'p', text: 'Bột Ngũ Sắc Hồng Đậu: Bữa ăn thay thế dinh dưỡng, tiện lợi, dưỡng khí huyết, dưỡng nhan thuần thực vật, hỗ trợ ngủ ngon' },
       { type: 'p', text: 'Thành phần chính: Đậu đỏ nhỏ, táo đỏ khô, củ dền, hạt sen đỏ, quinoa đỏ, yến mạch…' },
-      { type: 'img', src: '/images/blogs/blog1/image3.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog1/image3.jpg') },
       { type: 'p', text: 'Bột ngũ sắc hồng đậu Thi Yên', class: 'text-sm italic text-center' },
       { type: 'cta', bold: '-> Xem thêm: ', linkText: 'Bột Ngũ sắc hồng đậu Thi Yên', to: { name: 'ProductDetail', params: { id: 3 } } },
 
@@ -315,12 +316,12 @@ const articles = {
     slug: 'blog4',
     title: 'Bột Ngũ Sắc Hồng Đậu Thi Yên: Bí Quyết Dưỡng Huyết, Dưỡng Nhan Từ 5 Nguyên Liệu Đỏ Nguyên Bản',
     date: '21/03/2025',
-    image: '/images/blogs/blog4/avatar4.png',
+    image: getImageUrlFromApi('/images/blogs/blog4/avatar4.png'),
     content: [
       { type: 'p', text: 'Bột Ngũ Sắc Hồng Đậu Thi Yên: Bí Quyết Dưỡng Huyết, Dưỡng Nhan Từ 5 Nguyên Liệu Đỏ Nguyên Bản' },
       { type: 'p', text: 'Trong dưỡng sinh cổ truyền, sắc đỏ tượng trưng cho huyết khí, sức sống và sự lưu thông. Thực phẩm tự nhiên mang màu đỏ là nguồn bổ dưỡng quý giá, hỗ trợ bổ máu, làm ấm tạng phủ, dưỡng da và tăng cường sức đề kháng.' },
       { type: 'p', text: 'Từ cảm hứng ấy, Thi Yên đã chọn lọc năm loại hạt, đậu và củ đỏ thuần thực vật – những nguyên liệu vừa quen thuộc, vừa giàu dược tính – để tạo nên Bột ngũ sắc hồng đậu. Sản phẩm là sự hòa quyện giữa triết lý dưỡng sinh cổ truyền và nghiên cứu hiện đại, mang đến một bữa ăn thay thế nhẹ nhàng nhưng đủ đầy dưỡng chất, lý tưởng để hỗ trợ bổ huyết, dưỡng nhan tự nhiên, đồng thời cân bằng nội tiết, làm ấm cơ thể và cải thiện chất lượng giấc ngủ.' },
-      { type: 'img', src: '/images/blogs/blog4/image1.png' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog4/image1.png') },
       { type: 'p', text: 'Bột ngũ sắc hồng đậu Thi Yên', class: 'text-sm italic text-center' },
       { type: 'p', text: 'Toàn bộ nguyên liệu của Bột ngũ sắc hồng đậu đều được xử lý bằng công nghệ nghiền Nano siêu mịn và hấp nhiệt thông minh, giữ trọn hương vị và dinh dưỡng tự nhiên.' },
 
@@ -333,7 +334,7 @@ const articles = {
         'Táo đỏ (đại táo): Tính ấm, vị ngọt; bổ khí, dưỡng huyết, an thần. Giàu vitamin C – hỗ trợ nội tiết, miễn dịch, dưỡng da.',
         'Quinoa đỏ (diêm mạch đỏ): Tính bình; bổ tỳ vị. Cung cấp 9 acid amin thiết yếu và chất xơ hòa tan – ổn định đường huyết, bền năng lượng.'
       ] },
-      { type: 'img', src: '/images/blogs/blog4/image2.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog4/image2.jpg') },
       { type: 'p', text: '5 nguyên liệu đỏ giàu dưỡng chất trong Bột ngũ sắc hồng đậu Thi Yên', class: 'text-sm italic text-center' },
       { type: 'p', text: 'Công thức được cân chỉnh theo nguyên lý cân bằng Âm - Dương, kết hợp hài hòa giữa tính ấm và tính mát của từng nguyên liệu, giúp bồi bổ khí huyết mà không gây nóng trong, phù hợp dùng hàng ngày.' },
 
@@ -357,7 +358,7 @@ const articles = {
 
       { type: 'h2', text: '4. Lối sống dưỡng sinh hiện đại cùng Thi Yên' },
       { type: 'p', text: 'Bột ngũ sắc hồng đậu không chỉ là một sản phẩm dinh dưỡng, mà là một phần trong lối sống dưỡng sinh bền vững, nuôi dưỡng thân, tâm và khí huyết một cách tự nhiên.' },
-      { type: 'img', src: '/images/blogs/blog4/image3.png' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog4/image3.png') },
       { type: 'h2', text: 'Cam kết 4 Không từ Thi Yên trong Bột ngũ sắc hồng đậu' },
       { type: 'ul', items: [
         'Không chất bảo quản.',
@@ -379,7 +380,7 @@ const articles = {
     slug: 'blog5',
     title: 'Ngũ Hắc Mè Đen & Ngũ Sắc Hồng Đậu: Bộ Đôi Ngũ Cốc Dưỡng Sinh Thuần Thực Vật Cho Bữa Sáng Lành Mạnh',
     date: '25/03/2025',
-    image: '/images/blogs/blog5/avatar5.png',
+    image: getImageUrlFromApi('/images/blogs/blog5/avatar5.png'),
     content: [
       { type: 'p', text: 'Ngũ Hắc Mè Đen & Ngũ Sắc Hồng Đậu: Bộ Đôi Ngũ Cốc Dưỡng Sinh Thuần Thực Vật Cho Bữa Sáng Lành Mạnh' },
 
@@ -391,13 +392,13 @@ const articles = {
 
       { type: 'p', text: 'Bột ngũ sắc hồng đậu (sắc đỏ): bữa sáng dưỡng huyết & dưỡng nhan' },
       { type: 'p', text: 'Là một bữa sáng tiện lợi và giàu dưỡng chất, ngũ sắc hồng đậu tập trung vào việc bổ sung năng lượng, hỗ trợ bổ huyết, dưỡng nhan với 5 nguyên liệu đỏ giàu sắt tự nhiên: đậu đỏ, táo đỏ, củ dền, hạt sen đỏ, diêm mạch đỏ.' },
-      { type: 'img', src: '/images/blogs/blog5/image1.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog5/image1.jpg') },
       { type: 'p', text: 'Bột ngũ sắc hồng đậu Thi Yên', class: 'text-sm italic text-center' },
       { type: 'cta', bold: '-> Tìm hiểu chi tiết về từng nguyên liệu và lợi ích trong ngũ sắc hồng đậu tại: ', linkText: 'Bài blog Bột ngũ sắc hồng đậu', to: { name: 'BlogDetail', params: { slug: 'blog4' } } },
 
       { type: 'p', text: 'Bột ngũ hắc mè đen (sắc đen): bữa sáng thay thế, dinh dưỡng cho tóc và giấc ngủ' },
       { type: 'p', text: 'Bột Ngũ Hắc Mè Đen là giải pháp bữa sáng thay thế và bữa phụ lý tưởng, mang đến dinh dưỡng trọn vẹn từ thiên nhiên. Sản phẩm là sự kết hợp tinh túy của 5 loại hạt đen giàu dưỡng chất: mè đen, gạo lứt đen, đậu đen, quinoa đen và dâu tằm đen – thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo; dinh dưỡng nuôi dưỡng tóc chắc khỏe, bổ huyết, bồi bổ sức khỏe, hỗ trợ cải thiện chất lượng giấc ngủ.' },
-      { type: 'img', src: '/images/blogs/blog5/image2.jpg' },
+      { type: 'img', src: getImageUrlFromApi('/images/blogs/blog5/image2.jpg') },
       { type: 'p', text: 'Bột ngũ hắc mè đen Thi Yên', class: 'text-sm italic text-center' },
       { type: 'cta', bold: '-> Khám phá thêm về ngũ hắc mè đen và công dụng của từng loại hạt tại đây: ', linkText: 'Bài blog Bột ngũ hắc mè đen', to: { name: 'BlogDetail', params: { slug: 'blog1' } } },
 

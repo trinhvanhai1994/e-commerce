@@ -44,6 +44,10 @@ public class ProductRequest {
     private Double rating;
     private Integer reviewCount;
     
+    private String status;
+    
+    private Integer priority;
+    
     // Flag to sync product to Pancake POS
     private Boolean syncToPancake = false;
 }

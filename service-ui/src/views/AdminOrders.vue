@@ -132,8 +132,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(order, index) in pagedOrders" :key="getOrderId(order)" class="border-b hover:bg-green-50 cursor-pointer transition-colors duration-200" @click="showOrderDetail(order)">
-                <td class="px-3 py-2 text-green-700 font-semibold cursor-pointer">{{ getOrderId(order) }}</td>
+              <tr v-for="(order, index) in pagedOrders" :key="getOrderId(order)" class="border-b hover:bg-green-50 cursor-pointer" @click="showOrderDetail(order)">
+                <td class="px-3 py-2 text-green-700 font-semibold">{{ getOrderId(order) }}</td>
                 <td class="px-3 py-2">
                   <div class="space-y-1">
                     <div class="font-semibold text-gray-900">
@@ -718,28 +718,31 @@ function getCustomerNotes(order) {
   return order.notes || null
 }
 
-// Product image helper functions
+// Product image helper functions - sử dụng utility từ productImage.js
+import { getProductImage as getProductImageUtil } from '../utils/productImage'
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
+
 function getProductImage(item) {
+  // Nếu item có mainImage hoặc image, sử dụng utility function
+  if (item.mainImage || item.image) {
+    return getProductImageUtil(item)
+  }
+  
   // Nếu có imageUrl từ API và hợp lệ
   if (item.imageUrl && item.imageUrl.trim() !== '') {
     return item.imageUrl
   }
   
-  // Nếu có image từ mock data
-  if (item.image && item.image.trim() !== '') {
-    return item.image
-  }
-  
-  // Fallback: sử dụng ảnh mặc định theo ID (thử cả id và productId)
+  // Fallback: sử dụng utility function với ID
   const productId = item.id || item.productId
-  return getDefaultProductImage(productId)
+  return getProductImageUtil(productId)
 }
 
 function getDefaultProductImage(productId) {
   // Đảm bảo productId là number
   const numericProductId = Number(productId)
   const product = defaultProducts.find(p => p.id === numericProductId)
-  return product ? product.image : '/images/products/Combo-mix.png' // Ảnh mặc định chung
+  return product ? product.image : getImageUrlFromApi('/images/products/Combo-mix.png') // Ảnh mặc định chung
 }
 
 function handleImageError(event, item) {
@@ -801,7 +804,7 @@ const defaultProducts = [
     id: 1, 
     name: 'BỘT NGŨ HẮC MÈ ĐEN', 
     description: 'Bột Ngũ Hắc Mè Đen là bữa ăn thay thế tiện lợi, bổ dưỡng từ 5 loại hạt đen nguyên bản', 
-    image: '/images/products/me-den.jpg',
+    image: getImageUrlFromApi('/images/products/me-den.jpg'),
     category: 'me-den',
     price: 299000,
     oldPrice: 390000
@@ -810,7 +813,7 @@ const defaultProducts = [
     id: 2, 
     name: 'COMBO 2 LON BỘT NGŨ HẮC MÈ ĐEN', 
     description: 'Combo tiết kiệm cho gia đình với 2 lon bột ngũ hắc mè đen', 
-    image: '/images/products/combo-black.png',
+    image: getImageUrlFromApi('/images/products/combo-black.png'),
     category: 'combo',
     price: 499000,
     oldPrice: 780000
@@ -819,7 +822,7 @@ const defaultProducts = [
     id: 3, 
     name: 'BỘT NGŨ SẮC HỒNG ĐẬU', 
     description: 'Bột Ngũ Sắc Hồng Đậu là bữa ăn thay thế tiện lợi, bổ dưỡng từ 5 loại hạt hồng đậu', 
-    image: '/images/products/hong-dau.jpg',
+    image: getImageUrlFromApi('/images/products/hong-dau.jpg'),
     category: 'hong-dau',
     price: 299000,
     oldPrice: 390000
@@ -828,7 +831,7 @@ const defaultProducts = [
     id: 4, 
     name: 'COMBO 2 LON BỘT NGŨ SẮC HỒNG ĐẬU', 
     description: 'Combo tiết kiệm cho gia đình với 2 lon bột ngũ sắc hồng đậu', 
-    image: '/images/products/combo-pink.png',
+    image: getImageUrlFromApi('/images/products/combo-pink.png'),
     category: 'combo',
     price: 499000,
     oldPrice: 780000
@@ -837,7 +840,7 @@ const defaultProducts = [
     id: 5, 
     name: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)', 
     description: 'Combo tiết kiệm cho gia đình với 1 lon mè đen và 1 lon hồng đậu', 
-    image: '/images/products/Combo-mix.png',
+    image: getImageUrlFromApi('/images/products/Combo-mix.png'),
     category: 'combo',
     price: 499000,
     oldPrice: 780000

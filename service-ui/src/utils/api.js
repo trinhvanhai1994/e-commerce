@@ -21,6 +21,7 @@ import productManagementService from '../services/product-management.service.js'
 // Product API functions (backward compatibility)
 export const productAPI = {
   getProducts: () => productService.getProducts(),
+  getFeaturedProducts: () => productService.getFeaturedProducts(),
   getProduct: (id) => productService.getProduct(id),
   getProductDetails: (id) => productService.getProductDetails(id),
 }
@@ -45,9 +46,12 @@ export const adminAPI = {
 // Product management API functions (backward compatibility)
 export const productManagementAPI = {
   getProducts: () => productManagementService.getProducts(),
+  getProductById: (id) => productManagementService.getProductById(id),
   createProduct: (productData) => productManagementService.createProduct(productData),
   updateProduct: (id, productData) => productManagementService.updateProduct(id, productData),
   deleteProduct: (id) => productManagementService.deleteProduct(id),
+  toggleProductStatus: (id) => productManagementService.toggleProductStatus(id),
+  uploadImage: (file, path) => productManagementService.uploadImage(file, path),
 }
 
 // Legacy apiCall function - now uses new HTTP client

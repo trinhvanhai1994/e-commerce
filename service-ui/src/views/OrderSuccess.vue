@@ -290,7 +290,7 @@ function getFullDeliveryAddress(customerInfo) {
           <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">Chi tiết đơn hàng</h2>
           <div v-if="hasItems" class="space-y-3 md:space-y-4">
             <div v-for="item in order.items" :key="item.id" class="flex items-center gap-3 md:gap-4 py-3 md:py-4 border-b border-gray-100 last:border-b-0">
-              <img :src="getProductImage(item.id)" :alt="item.name" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg flex-shrink-0">
+              <img :src="getProductImage(item)" :alt="item.name" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg flex-shrink-0">
               <div class="flex-1 min-w-0">
                 <h3 class="font-semibold text-gray-800 text-sm md:text-base truncate">{{ item.name }}</h3>
                 <p class="text-xs md:text-sm text-gray-600">Số lượng: {{ item.quantity }}</p>

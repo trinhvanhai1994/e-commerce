@@ -4,7 +4,7 @@
     <section class="hero-section relative w-full overflow-hidden">
       <!-- Background Image -->
       <img 
-        src="/images/me/banner.jpg" 
+        :src="getImageUrlFromApi('/images/me/banner.jpg')" 
         alt="HealthCare Banner" 
         class="w-full h-auto object-cover"
         @error="handleBannerError"
@@ -15,7 +15,7 @@
         <div class="text-center" data-aos="fade-up">
           <!-- <div class="logo-container mb-3 md:mb-6 lg:mb-8">
             <div class="circle-logo bg-white rounded-full w-10 h-10 sm:w-12 sm:h-12 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto flex items-center justify-center shadow-lg">
-              <img src="/images/logo/logo.png" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain transition-transform hover:scale-105" />
+              <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain transition-transform hover:scale-105" />
             </div>
           </div> -->
           <h3 class="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-4 lg:mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -96,7 +96,7 @@
               <div class="text-center mb-6">
                 <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                   <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                  <img src="/images/icons/tu-nhien.png" alt="Thuận tự nhiên" class="w-32 h-32 object-contain relative z-10" />
+                  <img :src="getImageUrlFromApi('/images/icons/tu-nhien.png')" alt="Thuận tự nhiên" class="w-32 h-32 object-contain relative z-10" />
                 </div>
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Thuận tự nhiên</h3>
               </div>
@@ -110,7 +110,7 @@
               <div class="text-center mb-6">
                 <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                   <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                  <img src="/images/icons/can-bang.png" alt="Điều hòa âm dương" class="w-32 h-32 object-contain relative z-10" />
+                  <img :src="getImageUrlFromApi('/images/icons/can-bang.png')" alt="Điều hòa âm dương" class="w-32 h-32 object-contain relative z-10" />
                 </div>
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Điều hòa âm dương</h3>
               </div>
@@ -124,7 +124,7 @@
             <div class="text-center mb-6">
               <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                 <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img src="/images/icons/tien-loi.png" alt="Giản dị bền vững" class="w-32 h-32 object-contain relative z-10" />
+                <img :src="getImageUrlFromApi('/images/icons/tien-loi.png')" alt="Giản dị bền vững" class="w-32 h-32 object-contain relative z-10" />
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-4">Giản dị bền vững</h3>
             </div>
@@ -197,9 +197,12 @@
 </template>
 
 <script>
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
+
 export default {
   name: 'HealthCare',
   methods: {
+    getImageUrlFromApi,
     handleBannerError(event) {
       console.log('Banner image failed to load, using fallback background')
       // Hide the image and show fallback background

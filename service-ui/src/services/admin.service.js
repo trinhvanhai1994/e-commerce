@@ -48,6 +48,80 @@ export const adminService = {
   async deleteProduct(productId) {
     return await httpClient.delete(`/api/dragun/admin/products/${productId}`)
   },
+
+  /**
+   * Logout - Clear authentication data
+   * Note: This is a client-side logout. Server-side token invalidation
+   * would require a logout endpoint on the server.
+   */
+  logout() {
+    // Clear all authentication data
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('adminUser')
+    localStorage.removeItem('isAdmin')
+  },
+
+  /**
+   * Check if user is authenticated
+   * Validates JWT token by checking:
+   * 1. Token exists in localStorage
+   * 2. Token has valid JWT format (3 parts separated by dots)
+   * 3. Token is not expired (if can be decoded)
+   * @returns {boolean} True if authenticated
+   */
+  isAuthenticated() {
+    try {
+      const token = localStorage.getItem('authToken')
+      
+      // No token = not authenticated
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        console.log('🔐 isAuthenticated: No token found')
+        return false
+      }
+      
+      // JWT token must have 3 parts separated by dots
+      const parts = token.split('.')
+      if (parts.length !== 3) {
+        console.warn('🔐 isAuthenticated: Invalid JWT token format (must have 3 parts)')
+        this.logout()
+        return false
+      }
+      
+      // Try to decode JWT and check expiry
+      try {
+        const payload = JSON.parse(atob(parts[1]))
+        const exp = payload.exp
+        
+        // Check if token is expired
+        if (exp && exp * 1000 < Date.now()) {
+          console.warn('🔐 isAuthenticated: JWT token expired')
+          this.logout()
+          return false
+        }
+        
+        // Token is valid
+        console.log('🔐 isAuthenticated: Token is valid')
+        return true
+      } catch (e) {
+        // If token can't be decoded, it's invalid
+        console.warn('🔐 isAuthenticated: Could not decode JWT token:', e)
+        this.logout()
+        return false
+      }
+    } catch (error) {
+      console.error('🔐 isAuthenticated: Error checking authentication:', error)
+      return false
+    }
+  },
+
+  /**
+   * Get current admin user info
+   * @returns {Object|null} User info or null
+   */
+  getCurrentUser() {
+    const userStr = localStorage.getItem('adminUser')
+    return userStr ? JSON.parse(userStr) : null
+  },
 }
 
 export default adminService

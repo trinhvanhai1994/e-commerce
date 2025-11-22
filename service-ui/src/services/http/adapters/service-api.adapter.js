@@ -118,6 +118,18 @@ export class ServiceApiAdapter extends BaseAdapter {
       // Prepare request options
       let requestOptions = this.prepareRequestOptions(options)
       
+      // Debug: Log token status (only in development)
+      if (apiConfig.enableLogging) {
+        const token = this.getAuthToken()
+        console.log('[API Request Debug]', {
+          url,
+          method: requestOptions.method,
+          hasToken: !!token,
+          tokenLength: token ? token.length : 0,
+          authorizationHeader: requestOptions.headers['Authorization'] ? 'Present' : 'Missing'
+        })
+      }
+      
       // Apply request interceptors
       requestOptions = await applyRequestInterceptors({
         url,
@@ -136,10 +148,33 @@ export class ServiceApiAdapter extends BaseAdapter {
 
       // Check if response is ok
       if (!modifiedResponse.ok) {
-        const errorData = await modifiedResponse.json().catch(() => ({}))
-        throw new Error(
-          errorData.message || `HTTP error! status: ${modifiedResponse.status}`
-        )
+        let errorData = {}
+        try {
+          const text = await modifiedResponse.text()
+          if (text) {
+            errorData = JSON.parse(text)
+          }
+        } catch (e) {
+          // Response is not JSON, use status text
+          errorData = { message: modifiedResponse.statusText }
+        }
+        
+        // Create more descriptive error message
+        let errorMessage = errorData.message || errorData.error || `HTTP error! status: ${modifiedResponse.status}`
+        
+        // Add specific messages for common status codes
+        if (modifiedResponse.status === 403) {
+          errorMessage = errorData.message || 'Không có quyền truy cập. Vui lòng đăng nhập lại với quyền ADMIN.'
+        } else if (modifiedResponse.status === 401) {
+          errorMessage = errorData.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+        } else if (modifiedResponse.status === 404) {
+          errorMessage = errorData.message || 'Không tìm thấy tài nguyên.'
+        }
+        
+        const error = new Error(errorMessage)
+        error.status = modifiedResponse.status
+        error.data = errorData
+        throw error
       }
 
       // Parse JSON response

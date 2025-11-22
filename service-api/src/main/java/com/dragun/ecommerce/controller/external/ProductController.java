@@ -18,19 +18,29 @@ public class ProductController {
     
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
-        List<ProductResponse> products = productService.getAllProducts();
+        // Return all ACTIVE products for users (no limit - for products listing page)
+        List<ProductResponse> products = productService.getAllActiveProducts();
+        return ResponseEntity.ok(ApiResponse.success(products));
+    }
+    
+    @GetMapping("/featured")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getFeaturedProducts() {
+        // Return top 4 ACTIVE products for homepage (sorted by priority)
+        List<ProductResponse> products = productService.getActiveProducts();
         return ResponseEntity.ok(ApiResponse.success(products));
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable Long id) {
-        ProductResponse product = productService.getProductById(id);
+        // Only return ACTIVE products for users
+        ProductResponse product = productService.getActiveProductById(id);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
     
     @GetMapping("/{id}/details")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductDetails(@PathVariable Long id) {
-        ProductResponse product = productService.getProductDetails(id);
+        // Only return ACTIVE products for users
+        ProductResponse product = productService.getActiveProductById(id);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
 }

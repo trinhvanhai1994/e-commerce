@@ -117,7 +117,7 @@
         <div class="bg-gray-50 rounded-lg p-4 space-y-3">
           <div v-for="item in cartItems" :key="item.id" class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <img :src="getProductImage(item.id)" :alt="item.name" class="w-12 h-12 object-cover rounded" />
+              <img :src="getProductImage(item)" :alt="item.name" class="w-12 h-12 object-cover rounded" />
               <div>
                 <div class="font-medium text-sm">{{ item.name }}</div>
                 <!-- Thay đổi số lượng -->

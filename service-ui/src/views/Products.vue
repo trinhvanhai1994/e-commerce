@@ -91,12 +91,12 @@
           <!-- Product Image -->
           <div class="relative cursor-pointer flex-shrink-0" @click="viewProductDetail(product)">
             <img
-              :src="getProductImage(product.id)"
+              :src="getProductImage(product)"
               :alt="product.name"
               class="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
             />
-            <div v-if="product.discount" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-              -{{ product.discount }}%
+            <div v-if="getProductDiscount(product) > 0" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+              -{{ getProductDiscount(product) }}%
             </div>
           </div>
 
@@ -231,6 +231,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
+import { getProductDiscount } from '../utils/productUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -260,8 +261,9 @@ async function fetchProducts() {
   try {
     const data = await productAPI.getProducts()
     const products = Array.isArray(data) ? data : (data.data || [])
-    // Lọc sản phẩm chưa bị xóa (deleted = false hoặc không có trường deleted)
-    allProducts.value = products.filter(product => !product.deleted)
+    // Backend đã lọc: chỉ trả về ACTIVE và không bị xóa (deleted = false)
+    // Không cần filter thêm ở frontend
+    allProducts.value = products
   } catch (e) {
     console.error('Không thể tải danh sách sản phẩm:', e)
     allProducts.value = []

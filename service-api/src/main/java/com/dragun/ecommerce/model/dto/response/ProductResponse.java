@@ -32,6 +32,9 @@ public class ProductResponse {
     private Integer discount;
     private Double rating;
     private Integer reviewCount;
+    private Boolean deleted;
+    private String status;
+    private Integer priority;
 }
 
 

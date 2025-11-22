@@ -101,8 +101,13 @@ public class AdminService {
         productService.deleteProduct(id);
     }
     
+    @Transactional
+    public ProductResponse toggleProductStatus(Long id) {
+        return productService.toggleStatus(id);
+    }
+    
     private Product mapToEntity(ProductRequest request) {
-        return Product.builder()
+        Product.ProductBuilder builder = Product.builder()
             .name(request.getName())
             .price(request.getPrice())
             .oldPrice(request.getOldPrice())
@@ -120,8 +125,23 @@ public class AdminService {
             .storage(request.getStorage())
             .discount(request.getDiscount())
             .rating(request.getRating())
-            .reviewCount(request.getReviewCount())
-            .build();
+            .reviewCount(request.getReviewCount());
+        
+        // Set status if provided, otherwise default to ACTIVE
+        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+            builder.status(request.getStatus());
+        } else {
+            builder.status("ACTIVE");
+        }
+        
+        // Set priority if provided, otherwise default to 999
+        if (request.getPriority() != null) {
+            builder.priority(request.getPriority());
+        } else {
+            builder.priority(999);
+        }
+        
+        return builder.build();
     }
 }
 

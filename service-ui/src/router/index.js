@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// Import admin service for authentication check (must be before router creation)
+import adminService from '../services/admin.service.js'
 
 const routes = [
   {
@@ -90,7 +92,14 @@ const routes = [
   {
     path: '/admin',
     name: 'AdminDashboard',
-    component: () => import('../views/AdminDashboard.vue')
+    component: () => import('../views/AdminDashboard.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/admin/login',
@@ -100,17 +109,50 @@ const routes = [
   {
     path: '/admin/orders',
     name: 'AdminOrders',
-    component: () => import('../views/AdminOrders.vue')
+    component: () => import('../views/AdminOrders.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/admin/products',
     name: 'AdminProducts',
-    component: () => import('../views/AdminProducts.vue')
+    component: () => import('../views/AdminProducts.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/products/:id',
+    name: 'AdminProductDetail',
+    component: () => import('../views/AdminProductDetail.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/admin/users',
     name: 'AdminUsers',
-    component: () => import('../views/AdminUsers.vue')
+    component: () => import('../views/AdminUsers.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
   },
 ]
 
@@ -122,23 +164,38 @@ const router = createRouter({
   }
 })
 
-// Simple router guard
+// Router guard for authentication - BẮT BUỘC LOGIN CHO TẤT CẢ ADMIN ROUTES
 router.beforeEach((to, from, next) => {
-  console.log('🔄 Router navigation:', {
-    from: from.path,
-    to: to.path,
-    name: to.name
+  const isAdminRoute = to.path.startsWith('/admin')
+  const isLoginPage = to.path === '/admin/login'
+  
+  // Check authentication status - STRICT CHECK
+  const isAuthenticated = adminService.isAuthenticated()
+  
+  console.log('🔐 Router guard check:', {
+    path: to.path,
+    isAdminRoute,
+    isLoginPage,
+    isAuthenticated,
+    hasToken: !!localStorage.getItem('authToken')
   })
   
+  // Nếu đã logged in và cố truy cập login page, redirect về dashboard
+  if (isLoginPage && isAuthenticated) {
+    console.log('✅ Already authenticated, redirecting to dashboard')
+    next({ path: '/admin/orders' })
+    return
+  }
+  
+  // Cho phép truy cập login page nếu chưa authenticated
+  if (isLoginPage && !isAuthenticated) {
+    next()
+    return
+  }
+  
+  // Cho phép truy cập các route khác (không phải admin)
+  // Admin routes sẽ được bảo vệ bởi beforeEnter guard
   next()
-})
-
-router.afterEach((to, from) => {
-  console.log('✅ Router navigation completed:', {
-    from: from.path,
-    to: to.path,
-    name: to.name
-  })
 })
 
 export default router 

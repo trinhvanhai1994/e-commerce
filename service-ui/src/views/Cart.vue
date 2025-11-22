@@ -85,7 +85,7 @@
                 <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" />
               </div>
               <div class="col-span-5 flex items-center gap-3">
-                <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border" />
+                <img :src="getProductImage(item)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border" />
                 <span class="font-semibold text-base text-gray-900 truncate">{{ item.name }}</span>
               </div>
               <div class="col-span-2 text-center">
@@ -115,7 +115,7 @@
           <div v-if="cartStore.items.length > 0" class="md:hidden space-y-4">
             <div v-for="item in cartStore.items" :key="item.id" class="flex gap-3 p-3 rounded-xl border bg-white shadow-sm items-center">
               <input type="checkbox" :checked="selectedIds.includes(item.id)" @change="toggleSelect(item.id)" class="mt-1" />
-              <img :src="getProductImage(item.id)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
+              <img :src="getProductImage(item)" :alt="item.name" class="w-16 h-16 object-cover rounded-lg border flex-shrink-0" />
               <div class="flex-1 min-w-0">
                 <div class="font-semibold text-base text-gray-900 break-words mb-1">{{ item.name }}</div>
                 <div class="flex items-center gap-2">

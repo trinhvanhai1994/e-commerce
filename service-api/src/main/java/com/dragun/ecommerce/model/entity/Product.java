@@ -88,10 +88,31 @@ public class Product {
     @Column(name = "pancake_synced_at")
     private LocalDateTime pancakeSyncedAt;
     
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
+    
+    @Column(length = 20, nullable = false)
+    @Builder.Default
+    private String status = "ACTIVE";
+    
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer priority = 999;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (deleted == null) {
+            deleted = false;
+        }
+        if (status == null || status.isEmpty()) {
+            status = "ACTIVE";
+        }
+        if (priority == null) {
+            priority = 999;
+        }
     }
     
     @PreUpdate

@@ -8,7 +8,9 @@ Thư mục này chứa các scripts tiện ích để build, run và setup môi 
 scripts/
 ├── setup/          # Scripts setup môi trường (JDK)
 ├── build/          # Scripts build cho các môi trường
-└── run/            # Scripts run cho các môi trường
+├── run/            # Scripts run cho các môi trường
+├── copy-images.ps1 # Script copy ảnh từ service-ui sang service-api (Windows)
+└── copy-images.sh  # Script copy ảnh từ service-ui sang service-api (Linux/Mac)
 ```
 
 ## 🔧 Setup Scripts
@@ -99,12 +101,32 @@ source ./scripts/setup/setup-java.sh 17
 ./scripts/run/run-prod.sh
 ```
 
+## 📸 Copy Images Script
+
+Script này copy ảnh từ `service-ui/public/images/products` sang `service-api/src/main/resources/public/images/products` để server có thể đọc/ghi ảnh.
+
+### Windows (PowerShell)
+
+```powershell
+.\scripts\copy-images.ps1
+```
+
+### Linux/Mac (Bash)
+
+```bash
+chmod +x ./scripts/copy-images.sh
+./scripts/copy-images.sh
+```
+
+**Lưu ý**: Chạy script này sau khi thêm/sửa ảnh trong service-ui để đảm bảo server có ảnh mới nhất.
+
 ## 📝 Lưu ý
 
 - Tất cả scripts đều hỗ trợ cả Windows và Linux/Mac
 - Scripts build sẽ tạo JAR file trong `target/ecommerce-api-1.0.0.jar`
 - Scripts run sử dụng Maven Spring Boot plugin
 - Đảm bảo đã setup JDK 17 trước khi build/run
+- Chạy `copy-images.ps1` hoặc `copy-images.sh` sau khi thêm/sửa ảnh trong service-ui
 
 ## 🔗 Liên kết
 

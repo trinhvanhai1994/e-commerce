@@ -12,12 +12,6 @@
               Logged in: {{ isLoggedIn ? '✅ Yes' : '❌ No' }}
             </p>
           </div>
-          <button 
-            @click="setAuth" 
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-          >
-            Set Auth
-          </button>
         </div>
       </div>
       
@@ -69,50 +63,39 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const isLoggedIn = ref(false)
 
+import adminService from '../services/admin.service.js'
+
 onMounted(() => {
   console.log('🏠 AdminDashboard mounted')
   
-  // Check authentication status
-  const authStatus = localStorage.getItem('adminLoggedIn')
-  isLoggedIn.value = authStatus === 'true'
+  // Check authentication status using adminService
+  isLoggedIn.value = adminService.isAuthenticated()
   
   console.log('🔐 Auth status:', {
-    isLoggedIn: isLoggedIn.value,
-    adminLoggedIn: authStatus
+    isLoggedIn: isLoggedIn.value
   })
+  
+  // If not authenticated, redirect to login (router guard should handle this, but double check)
+  if (!isLoggedIn.value) {
+    router.push('/admin/login')
+  }
 })
-
-function setAuth() {
-  console.log('🔧 Setting admin authentication...')
-  
-  localStorage.setItem('adminLoggedIn', 'true')
-  localStorage.setItem('adminUser', JSON.stringify({
-    id: 1,
-    name: 'Admin User',
-    email: 'admin@example.com',
-    role: 'admin'
-  }))
-  
-  isLoggedIn.value = true
-  
-  console.log('✅ Admin authentication set')
-}
 
 function navigateToProducts() {
   console.log('🛍️ Navigating to products...')
-  setAuth()
+  // Router guard sẽ kiểm tra authentication
   router.push('/admin/products')
 }
 
 function navigateToUsers() {
   console.log('👥 Navigating to users...')
-  setAuth()
+  // Router guard sẽ kiểm tra authentication
   router.push('/admin/users')
 }
 
 function navigateToOrders() {
   console.log('📦 Navigating to orders...')
-  setAuth()
+  // Router guard sẽ kiểm tra authentication
   router.push('/admin/orders')
 }
 </script>

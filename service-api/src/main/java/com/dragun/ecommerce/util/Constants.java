@@ -9,7 +9,8 @@ public class Constants {
         "/api/extend/orders/**",
         "/provinces",
         "/districts/**",
-        "/wards/**"
+        "/wards/**",
+        "/images/**"  // Allow public access to images
     };
     
     public static final String[] ADMIN_ENDPOINTS = {

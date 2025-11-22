@@ -19,6 +19,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT p FROM Product p WHERE p.pancakeSyncedAt IS NULL OR p.updatedAt > :updatedAt")
     List<Product> findProductsNeedingSync(@Param("updatedAt") LocalDateTime updatedAt);
+    
+    // Find all products that are not deleted
+    List<Product> findByDeletedFalse();
+    
+    // Find all products that are not deleted and have specific status
+    List<Product> findByDeletedFalseAndStatus(String status);
 }
 
 

@@ -5,12 +5,12 @@
     <!-- Product Image -->
     <div class="relative cursor-pointer flex-shrink-0" @click="handleViewDetail(product)">
       <img
-        :src="getProductImage(product.id)"
+        :src="getProductImage(product)"
         :alt="product.name"
         class="w-full h-48 md:h-64 object-cover hover:scale-105 transition-transform duration-300"
       />
-      <div v-if="product.discount" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-        -{{ product.discount }}%
+      <div v-if="productDiscount > 0" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+        -{{ productDiscount }}%
       </div>
     </div>
 
@@ -70,8 +70,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { getProductImage } from '../utils/productImage'
 import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
+import { getProductDiscount } from '../utils/productUtils'
 
 const props = defineProps({
   product: {
@@ -81,6 +83,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['view-detail', 'add-to-cart'])
+
+// Tính toán discount từ price và oldPrice
+const productDiscount = computed(() => getProductDiscount(props.product))
 
 function handleViewDetail(product) {
   const path = `/products/${product.id}`
