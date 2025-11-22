@@ -277,6 +277,7 @@
               <div class="mt-2">
                 <div class="font-bold text-sm mb-2">Sản Phẩm:
                   <span class="font-normal">{{ product.name }}</span>
+                  <span class="font-normal"> ({{ product.quantity }})</span>
                 </div>
                 <div class="flex gap-2 flex-wrap">
                   <button
@@ -299,7 +300,7 @@
             <!-- Product Description -->
             <div class="text-gray-700 leading-relaxed">
               <p class="mb-3 text-xs">{{ product.shortDesc }}</p>
-              <p class="mb-3 text-xs">{{ product.benefits }}</p>
+              <p class="mb-3 text-xs">{{ product.description }}</p>
             </div>
 
             <!-- Shipping Info -->
@@ -889,7 +890,7 @@
     
     <!-- Success Popup -->
     <div
-      v-if="showPopup"
+      v-if="showPopup && popupType === 'success'"
       class="fixed top-6 right-6 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce max-w-sm"
     >
       <div class="flex items-center">
@@ -897,6 +898,54 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
         {{ popupMessage }}
+      </div>
+    </div>
+
+    <!-- Error Popup -->
+    <div
+      v-if="showPopup && popupType === 'error'"
+      class="fixed top-6 right-6 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce max-w-sm"
+    >
+      <div class="flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        {{ popupMessage }}
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div
+      v-if="showConfirmDialog"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="closeConfirmDialog"
+    >
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+        <div class="p-6">
+          <div class="flex items-center mb-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Xác nhận</h3>
+          </div>
+          <p class="text-gray-700 mb-6">{{ confirmMessage }}</p>
+          <div class="flex justify-end gap-3">
+            <button
+              @click="closeConfirmDialog"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            >
+              Hủy
+            </button>
+            <button
+              @click="confirmAction"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+            >
+              Xác nhận
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1139,6 +1188,7 @@ import { useCartStore } from '../stores/cart'
 import { productAPI, getImageUrlWithCacheBusting } from '@/utils/api.js'
 import { getProductImage, getProductGallery } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
+import { getProductDiscount } from '../utils/productUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1445,14 +1495,10 @@ function deleteReview(reviewId) {
 
 // Xác nhận trước khi xóa review
 function confirmDeleteReview(reviewId) {
-  if (confirm('Bạn có chắc muốn xóa đánh giá này?')) {
+  showConfirm('Bạn có chắc muốn xóa đánh giá này?', () => {
     deleteReview(reviewId)
-    popupMessage.value = 'Đã xóa đánh giá thành công!'
-    showPopup.value = true
-    setTimeout(() => {
-      showPopup.value = false
-    }, 2000)
-  }
+    showSuccessPopup('Đã xóa đánh giá thành công!')
+  })
 }
 
 // Load reviews sẽ được gọi trong onMounted
@@ -1480,13 +1526,13 @@ function handleImageUpload(event) {
   filesToProcess.forEach(file => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file ảnh hợp lệ')
+      showErrorPopup('Vui lòng chọn file ảnh hợp lệ')
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert(`File ${file.name} không được lớn hơn 5MB`)
+      showErrorPopup(`File ${file.name} không được lớn hơn 5MB`)
       return
     }
 
@@ -1496,7 +1542,7 @@ function handleImageUpload(event) {
       newReviewForm.value.imagePreviews.push(e.target.result)
     }
     reader.onerror = () => {
-      alert('Có lỗi xảy ra khi đọc file')
+      showErrorPopup('Có lỗi xảy ra khi đọc file')
     }
     reader.readAsDataURL(file)
   })
@@ -1530,7 +1576,7 @@ function closeAddReviewForm() {
 // Submit review
 function submitReview() {
   if (!newReviewForm.value.author || !newReviewForm.value.content) {
-    alert('Vui lòng điền đầy đủ thông tin')
+    showErrorPopup('Vui lòng điền đầy đủ thông tin')
     return
   }
 
@@ -1549,17 +1595,13 @@ function submitReview() {
     addReview(review)
 
     // Hiển thị thông báo thành công
-    popupMessage.value = 'Đánh giá của bạn đã được gửi thành công!'
-    showPopup.value = true
-    setTimeout(() => {
-      showPopup.value = false
-    }, 3000)
+    showSuccessPopup('Đánh giá của bạn đã được gửi thành công!')
 
     // Đóng form
     closeAddReviewForm()
   } catch (error) {
     console.error('Error submitting review:', error)
-    alert('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
+    showErrorPopup('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
   } finally {
     submittingReview.value = false
   }
@@ -1569,15 +1611,59 @@ function submitReview() {
 // Popup state
 const showPopup = ref(false)
 const popupMessage = ref('')
+const popupType = ref('success') // 'success' or 'error'
+
+// Confirmation dialog state
+const showConfirmDialog = ref(false)
+const confirmMessage = ref('')
+const confirmCallback = ref(null)
+
+// Show success popup
+function showSuccessPopup(message) {
+  popupType.value = 'success'
+  popupMessage.value = message
+  showPopup.value = true
+  setTimeout(() => {
+    showPopup.value = false
+  }, 3000)
+}
+
+// Show error popup
+function showErrorPopup(message) {
+  popupType.value = 'error'
+  popupMessage.value = message
+  showPopup.value = true
+  setTimeout(() => {
+    showPopup.value = false
+  }, 3000)
+}
+
+// Show confirmation dialog
+function showConfirm(message, callback) {
+  confirmMessage.value = message
+  confirmCallback.value = callback
+  showConfirmDialog.value = true
+}
+
+// Close confirmation dialog
+function closeConfirmDialog() {
+  showConfirmDialog.value = false
+  confirmMessage.value = ''
+  confirmCallback.value = null
+}
+
+// Confirm action
+function confirmAction() {
+  if (confirmCallback.value) {
+    confirmCallback.value()
+  }
+  closeConfirmDialog()
+}
 
 function addToCart() {
   if (product.value) {
     cartStore.addToCart(product.value, 1)
-    popupMessage.value = `Đã thêm "${product.value?.name || 'sản phẩm'}" vào giỏ hàng!`
-    showPopup.value = true
-    setTimeout(() => {
-      showPopup.value = false
-    }, 3000)
+    showSuccessPopup(`Đã thêm "${product.value?.name || 'sản phẩm'}" vào giỏ hàng!`)
   }
 }
 

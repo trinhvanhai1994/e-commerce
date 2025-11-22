@@ -5,7 +5,6 @@
       <div class="mb-6 flex items-center justify-between">
         <div>
           <h2 class="text-2xl font-bold text-green-700">Chi tiết sản phẩm</h2>
-          <p class="text-sm text-gray-600 mt-1" v-if="productId">ID: {{ productId }}</p>
         </div>
         <button 
           @click="goBack" 
@@ -141,16 +140,6 @@
                 </select>
               </div>
 
-              <div class="flex items-center pt-8">
-                <label class="flex items-center cursor-pointer">
-                  <input 
-                    v-model="form.isNew" 
-                    type="checkbox" 
-                    class="w-5 h-5 text-green-600 rounded focus:ring-green-500" 
-                  />
-                  <span class="ml-2 font-semibold text-gray-700">Sản phẩm mới</span>
-                </label>
-              </div>
             </div>
           </div>
 
@@ -275,20 +264,6 @@
             </div>
           </div>
 
-          <!-- Sync Options -->
-          <div class="mb-8">
-            <h3 class="text-xl font-bold text-green-700 mb-4 pb-2 border-b">Tùy chọn</h3>
-            <label class="flex items-center cursor-pointer">
-              <input 
-                v-model="form.syncToPancake" 
-                type="checkbox" 
-                class="w-5 h-5 text-green-600 rounded focus:ring-green-500" 
-              />
-              <span class="ml-2 font-semibold text-gray-700">Đồng bộ với Pancake POS</span>
-              <span class="ml-2 text-sm text-gray-500">(Tự động tạo/cập nhật sản phẩm trên Pancake POS)</span>
-            </label>
-          </div>
-
           <!-- Action Buttons -->
           <div class="flex justify-end gap-4 pt-6 border-t">
             <button 
@@ -307,6 +282,72 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Custom Popup Modal -->
+    <div
+      v-if="showPopup"
+      class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="closePopup"
+    >
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all">
+        <div class="p-6">
+          <!-- Icon và Message -->
+          <div class="flex items-start mb-4">
+            <div 
+              :class="[
+                'flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4',
+                popupType === 'success' ? 'bg-green-100' : 'bg-red-100'
+              ]"
+            >
+              <svg 
+                v-if="popupType === 'success'"
+                class="w-6 h-6 text-green-600" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <svg 
+                v-else
+                class="w-6 h-6 text-red-600" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 
+                :class="[
+                  'text-lg font-bold mb-2',
+                  popupType === 'success' ? 'text-green-700' : 'text-red-700'
+                ]"
+              >
+                {{ popupType === 'success' ? 'Thành công' : 'Lỗi' }}
+              </h3>
+              <p class="text-gray-700 whitespace-pre-line">{{ popupMessage }}</p>
+            </div>
+          </div>
+          
+          <!-- Button -->
+          <div class="flex justify-end">
+            <button
+              @click="closePopup"
+              :class="[
+                'px-6 py-2 rounded-lg font-medium transition-colors',
+                popupType === 'success' 
+                  ? 'bg-green-500 text-white hover:bg-green-600' 
+                  : 'bg-red-500 text-white hover:bg-red-600'
+              ]"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </AdminLayout>
@@ -333,6 +374,30 @@ const imageLoading = ref(false)
 const galleryFileInputs = ref([])
 // Cache-busting timestamp - update mỗi khi cần force reload ảnh
 const imageCacheBuster = ref(Date.now())
+
+// Popup state
+const showPopup = ref(false)
+const popupMessage = ref('')
+const popupType = ref('success') // 'success' or 'error'
+
+// Show popup
+function showSuccessPopup(message) {
+  popupType.value = 'success'
+  popupMessage.value = message
+  showPopup.value = true
+}
+
+function showErrorPopup(message) {
+  popupType.value = 'error'
+  popupMessage.value = message
+  showPopup.value = true
+}
+
+// Close popup
+function closePopup() {
+  showPopup.value = false
+  popupMessage.value = ''
+}
 
 const form = reactive({
   id: null,
@@ -559,7 +624,7 @@ async function submitForm() {
     // Xử lý ảnh chính
     let imagePath = form.image
     if (imagePath && imagePath.startsWith('data:')) {
-      alert('Vui lòng nhập đường dẫn ảnh (path) thay vì chọn file. Ví dụ: /images/products/product1.jpg')
+      showErrorPopup('Vui lòng nhập đường dẫn ảnh (path) thay vì chọn file. Ví dụ: /images/products/product1.jpg')
       submitting.value = false
       return
     }
@@ -605,7 +670,7 @@ async function submitForm() {
     if (form.syncToPancake) {
       message += '\nĐã đồng bộ lên Pancake POS thành công!'
     }
-    alert(message)
+    showSuccessPopup(message)
     
     // QUAN TRỌNG: Refresh lại data từ API để hiển thị thông tin mới nhất
     // Điều này đảm bảo tất cả ảnh và dữ liệu được load lại từ server với cache-busting
@@ -614,10 +679,13 @@ async function submitForm() {
     // QUAN TRỌNG: Update cache-busting timestamp để force reload tất cả ảnh sau khi update
     imageCacheBuster.value = Date.now()
     
-    // Go back to products list
-    router.push('/admin/products')
+    // Đợi một chút để user thấy popup, rồi mới redirect
+    setTimeout(() => {
+      closePopup()
+      router.push('/admin/products')
+    }, 2000)
   } catch (e) {
-    alert('Lỗi: ' + e.message)
+    showErrorPopup('Lỗi: ' + e.message)
   } finally {
     submitting.value = false
   }
@@ -629,12 +697,12 @@ function handleFileUpload(event) {
   if (!file) return
   
   if (!file.type.startsWith('image/')) {
-    alert('Vui lòng chọn file ảnh hợp lệ')
+    showErrorPopup('Vui lòng chọn file ảnh hợp lệ')
     return
   }
   
   if (file.size > 5 * 1024 * 1024) {
-    alert('File ảnh không được lớn hơn 5MB')
+    showErrorPopup('File ảnh không được lớn hơn 5MB')
     return
   }
   
@@ -658,10 +726,10 @@ function handleFileUpload(event) {
     }, 100)
     imageLoading.value = false
   }
-  reader.onerror = () => {
-    alert('Có lỗi xảy ra khi đọc file')
-    imageLoading.value = false
-  }
+    reader.onerror = () => {
+      showErrorPopup('Có lỗi xảy ra khi đọc file')
+      imageLoading.value = false
+    }
   reader.readAsDataURL(file)
   
   console.log('Path sẽ được lưu:', imagePath)
@@ -736,7 +804,7 @@ async function handleGalleryFileUpload(event, index) {
   if (!file) return
   
   if (!file.type.startsWith('image/')) {
-    alert('Vui lòng chọn file ảnh hợp lệ')
+    showErrorPopup('Vui lòng chọn file ảnh hợp lệ')
     return
   }
   
@@ -830,12 +898,12 @@ async function handleGalleryFileUpload(event, index) {
     } catch (uploadError) {
       console.error(`❌ Lỗi khi upload ảnh ${index + 1}:`, uploadError)
       // Vẫn giữ preview và path, nhưng hiển thị cảnh báo
-      alert(`Lưu ý: Ảnh ${index + 1} đã được resize nhưng chưa upload lên server. Vui lòng thử lại hoặc upload thủ công.\nLỗi: ${uploadError.message}`)
+      showErrorPopup(`Lưu ý: Ảnh ${index + 1} đã được resize nhưng chưa upload lên server. Vui lòng thử lại hoặc upload thủ công.\nLỗi: ${uploadError.message}`)
     }
     
   } catch (error) {
     console.error('Error processing image:', error)
-    alert('Có lỗi xảy ra khi xử lý ảnh: ' + error.message)
+    showErrorPopup('Có lỗi xảy ra khi xử lý ảnh: ' + error.message)
     imageItem.loading = false
   }
   

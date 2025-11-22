@@ -553,7 +553,8 @@ const debugPhoneNumber = async (phoneToFind = "0123") => {
 // Load users on component mount
 onMounted(() => {
   loadUsers();
-  // Uncomment dòng dưới để test API data structure
-  testApiData();
+  // testApiData() - Commented out to avoid duplicate API calls
+  // Uncomment dòng dưới để test API data structure khi cần debug
+  // testApiData();
 });
 </script>

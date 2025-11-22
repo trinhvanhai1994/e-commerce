@@ -190,12 +190,7 @@
                 <option value="COMBO">Combo</option>
               </select>
             </div>
-            <div class="mb-3">
-              <label class="flex items-center">
-                <input v-model="form.isNew" type="checkbox" class="mr-2" />
-                <span class="font-semibold">Sản phẩm mới</span>
-              </label>
-            </div>
+            
             <div class="mb-3">
               <label class="block font-semibold mb-1">Trạng thái</label>
               <select v-model="form.status" class="w-full border rounded px-3 py-2">
@@ -215,13 +210,6 @@
               <p class="text-xs text-gray-500 mt-1">
                 Số nhỏ hơn = ưu tiên cao hơn. Sản phẩm có priority 1-4 sẽ hiển thị ở trang chủ (tối đa 4 sản phẩm).
               </p>
-            </div>
-            <div class="mb-3">
-              <label class="flex items-center">
-                <input v-model="form.syncToPancake" type="checkbox" class="mr-2" />
-                <span class="font-semibold">Đồng bộ với Pancake POS</span>
-                <span class="ml-2 text-xs text-gray-500">(Tự động tạo/cập nhật sản phẩm trên Pancake POS)</span>
-              </label>
             </div>
             <div class="flex justify-end gap-2 mt-4">
               <button type="button" @click="closeModal" class="px-4 py-2 rounded border">Huỷ</button>

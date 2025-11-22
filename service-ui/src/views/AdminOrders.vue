@@ -377,6 +377,72 @@
       >
     </div>
   </div>
+
+  <!-- Custom Popup Modal -->
+  <div
+    v-if="showPopup"
+    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    @click.self="closePopup"
+  >
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all">
+      <div class="p-6">
+        <!-- Icon và Message -->
+        <div class="flex items-start mb-4">
+          <div 
+            :class="[
+              'flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4',
+              popupType === 'success' ? 'bg-green-100' : 'bg-red-100'
+            ]"
+          >
+            <svg 
+              v-if="popupType === 'success'"
+              class="w-6 h-6 text-green-600" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <svg 
+              v-else
+              class="w-6 h-6 text-red-600" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 
+              :class="[
+                'text-lg font-bold mb-2',
+                popupType === 'success' ? 'text-green-700' : 'text-red-700'
+              ]"
+            >
+              {{ popupType === 'success' ? 'Thành công' : 'Lỗi' }}
+            </h3>
+            <p class="text-gray-700 whitespace-pre-line">{{ popupMessage }}</p>
+          </div>
+        </div>
+        
+        <!-- Button -->
+        <div class="flex justify-end">
+          <button
+            @click="closePopup"
+            :class="[
+              'px-6 py-2 rounded-lg font-medium transition-colors',
+              popupType === 'success' 
+                ? 'bg-green-500 text-white hover:bg-green-600' 
+                : 'bg-red-500 text-white hover:bg-red-600'
+            ]"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -416,6 +482,49 @@ const selectedOrder = ref(null)
 const showImageModal = ref(false)
 const zoomedImageSrc = ref('')
 const zoomedImageAlt = ref('')
+
+// Popup state
+const showPopup = ref(false)
+const popupMessage = ref('')
+const popupType = ref('success') // 'success' or 'error'
+
+// Popup timeout reference
+let popupTimeout = null
+
+// Show popup
+function showSuccessPopup(message) {
+  popupType.value = 'success'
+  popupMessage.value = message
+  showPopup.value = true
+  
+  // Auto close after 3 seconds
+  if (popupTimeout) clearTimeout(popupTimeout)
+  popupTimeout = setTimeout(() => {
+    closePopup()
+  }, 3000)
+}
+
+function showErrorPopup(message) {
+  popupType.value = 'error'
+  popupMessage.value = message
+  showPopup.value = true
+  
+  // Auto close after 4 seconds (errors need more time to read)
+  if (popupTimeout) clearTimeout(popupTimeout)
+  popupTimeout = setTimeout(() => {
+    closePopup()
+  }, 4000)
+}
+
+// Close popup
+function closePopup() {
+  if (popupTimeout) {
+    clearTimeout(popupTimeout)
+    popupTimeout = null
+  }
+  showPopup.value = false
+  popupMessage.value = ''
+}
 
 // Load orders from API
 async function loadOrders() {
@@ -1072,15 +1181,15 @@ async function confirmUpdateStatusAction() {
         }
       }
       
-      alert('Cập nhật trạng thái đơn hàng thành công!')
+      showSuccessPopup('Cập nhật trạng thái đơn hàng thành công!')
       // Reload orders to reflect the change from server
       await loadOrders()
     } else {
-      alert('Cập nhật trạng thái đơn hàng thất bại: ' + (response && response.message || 'Lỗi không xác định'))
+      showErrorPopup('Cập nhật trạng thái đơn hàng thất bại: ' + (response && response.message || 'Lỗi không xác định'))
     }
   } catch (err) {
     console.error('Error updating order status:', err)
-    alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng: ' + err.message)
+    showErrorPopup('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng: ' + err.message)
   } finally {
     showConfirmModal.value = false
   }
@@ -1216,6 +1325,12 @@ onMounted(() => {
 onUnmounted(() => {
   // Remove keyboard event listener
   document.removeEventListener('keydown', handleKeydown)
+  
+  // Cleanup popup timeout
+  if (popupTimeout) {
+    clearTimeout(popupTimeout)
+    popupTimeout = null
+  }
 })
 </script>
 
