@@ -41,7 +41,7 @@
                     :alt="`${product.name} ${index + 1}`"
                     class="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
                     @error="handleImageError"
-                    :key="`thumb-${index}-${imageReloadKey}`"
+                    :key="`thumb-${index}-${image}`"
                   />
                   
                   <!-- Overlay -->
@@ -86,12 +86,13 @@
                   @touchend="handleTouchEnd"
                 >
                   <div 
+                    v-if="galleryImages.length > 0"
                     class="flex transition-transform duration-500 ease-in-out h-full"
-                    :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+                    :style="{ transform: `translateX(-${Math.min(currentImageIndex, galleryImages.length - 1) * 100}%)` }"
                   >
                     <div
                       v-for="(image, index) in galleryImages"
-                      :key="index"
+                      :key="`gallery-${index}-${image}`"
                       class="w-full flex-shrink-0 relative"
                     >
                       <img
@@ -99,8 +100,16 @@
                         :alt="`${product.name} ${index + 1}`"
                         class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         @error="handleImageError"
-                        :key="`main-${index}-${imageReloadKey}`"
                       />
+                    </div>
+                  </div>
+                  <!-- Fallback khi không có ảnh -->
+                  <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div class="text-center text-gray-400">
+                      <svg class="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                      <p class="text-sm">Không có ảnh</p>
                     </div>
                   </div>
                 </div>
@@ -737,7 +746,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-100 object-cover rounded-lg border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-m-${idx}-${imageReloadKey}`"
+             :key="`related-m-${idx}-${img}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
          </div>
@@ -761,7 +770,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-40 object-cover rounded-xl border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-${idx}-${imageReloadKey}`"
+             :key="`related-${idx}-${img}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
          </div>
@@ -1257,7 +1266,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
-import { productAPI, getImageUrlWithCacheBusting } from '@/utils/api.js'
+import { productAPI } from '@/utils/api.js'
 import { getProductImage, getProductGallery } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
@@ -1275,6 +1284,9 @@ const product = ref(null)
 const loading = ref(false)
 const error = ref('')
 const isComponentMounted = ref(false)
+
+// Image gallery state - PHẢI định nghĩa trước galleryImages computed
+const currentImageIndex = ref(0)
 
 // Lấy tất cả sản phẩm
 async function fetchProducts() {
@@ -1303,6 +1315,7 @@ async function fetchProductById(id) {
     const data = await productAPI.getProduct(id)
     if (isComponentMounted.value) {
       product.value = data.data || data
+      // Không cần cache-busting - BE trả về path đúng
     }
   } catch (e) {
     if (isComponentMounted.value) {
@@ -1340,11 +1353,17 @@ const allProductSwitch = computed(() => {
   return products.value.filter(p => p.id !== product.value.id)
 })
 
-// Ảnh liên quan từ product.gallery
+// Ảnh liên quan từ product.gallery (không cache-busting)
 const relatedImages = computed(() => {
   if (!product.value) return []
   // Sử dụng gallery từ API (đã được xử lý trong getProductGallery)
-  return getProductGallery(product.value).slice(0, 6) // Lấy tối đa 6 ảnh
+  const gallery = getProductGallery(product.value)
+  // Filter null/empty và lấy tối đa 6 ảnh hợp lệ
+  // Không cần cache-busting - BE trả về path đúng và tự xử lý cache
+  return gallery
+    .filter(path => path && path.trim() !== '') // Filter null/empty
+    .slice(0, 6) // Lấy tối đa 6 ảnh
+    .map(path => getImageUrlFromApi(path)) // Chỉ convert path thành full URL
 })
 
 // Cập nhật ảnh sản phẩm khi load dữ liệu
@@ -1369,6 +1388,7 @@ async function loadData() {
   const id = parseInt(route.params.id) || (products.value[0]?.id || 1)
   await fetchProductById(id)
   updateProductImages()
+  // Không cần cache-busting - BE trả về path đúng
 }
 
 // Xử lý lỗi ảnh
@@ -1408,6 +1428,8 @@ onUnmounted(() => {
 watch(() => route.params.id, async () => {
   await fetchProductById(route.params.id)
   updateProductImages()
+  // Reset currentImageIndex khi chuyển product
+  currentImageIndex.value = 0
 })
 
 // ... Giữ lại các logic khác, thay productData thành products.value hoặc product.value tương ứng
@@ -1426,11 +1448,28 @@ function formatFlashSaleTime(sec) {
 
 
 
-// Cải thiện galleryImages computed - sử dụng gallery từ API
+// galleryImages computed - sử dụng gallery từ API, không cache-busting
+// LƯU Ý: Không thay đổi currentImageIndex trong computed (tránh side effect)
+// Việc reset currentImageIndex sẽ được xử lý bởi watch bên dưới
 const galleryImages = computed(() => {
   if (!product.value) return []
-  return getProductGallery(product.value)
+  const gallery = getProductGallery(product.value)
+  // Filter null/empty để không hiển thị ảnh khi API trả về null
+  // Không cần cache-busting - BE trả về path đúng và tự xử lý cache
+  return gallery
+    .filter(path => path && path.trim() !== '') // Filter null/empty
+    .map(path => getImageUrlFromApi(path)) // Chỉ convert path thành full URL
 })
+
+// Watch galleryImages để reset currentImageIndex nếu vượt quá bounds
+// PHẢI đặt sau khi galleryImages được định nghĩa
+watch(galleryImages, (newGallery) => {
+  if (newGallery.length === 0) {
+    currentImageIndex.value = 0
+  } else if (currentImageIndex.value >= newGallery.length) {
+    currentImageIndex.value = 0
+  }
+}, { immediate: true })
 
 // Reviews mặc định (5 reviews)
 const defaultReviews = [
@@ -1795,8 +1834,6 @@ const getSelectedProductStock = computed(() => {
 
 const showSocialProof = ref(false)
 
-const currentImageIndex = ref(0)
-
 // Tính toán discount từ price và oldPrice
 const productDiscount = computed(() => {
   if (!product.value) return 0
@@ -1889,11 +1926,15 @@ function startFlashSaleCountdown() {
 
 // Image gallery functions
 function selectImage(image, index) {
-  selectedImage.value = image
-  currentImageIndex.value = index
+  // Đảm bảo index hợp lệ
+  if (index >= 0 && index < galleryImages.value.length) {
+    selectedImage.value = image
+    currentImageIndex.value = index
+  }
 }
 
 function nextImage() {
+  if (galleryImages.value.length === 0) return
   if (currentImageIndex.value < galleryImages.value.length - 1) {
     currentImageIndex.value++
   } else {
@@ -1902,6 +1943,7 @@ function nextImage() {
 }
 
 function previousImage() {
+  if (galleryImages.value.length === 0) return
   if (currentImageIndex.value > 0) {
     currentImageIndex.value--
   } else {
@@ -2023,34 +2065,15 @@ const socialProofData = ref({
 })
 
 
-
-// Thêm ref để force reload ảnh
-const imageReloadKey = ref(Date.now())
-
-// Thêm function để reload ảnh khi cần
-function reloadImages() {
-  // Check if component is still mounted before updating state
-  if (!isComponentMounted.value) return
-  
-  // Force reload bằng cách thay đổi key
-  const currentTime = Date.now()
-  // Trigger reactivity bằng cách thay đổi một ref
-  imageReloadKey.value = currentTime
-}
+// Không cần reload images - BE trả về path đúng và tự xử lý cache
 
 // Named functions for event listeners to enable proper cleanup
 function handleWindowFocus() {
-  setTimeout(() => {
-    reloadImages()
-  }, 100)
+  // Không cần reload images
 }
 
 function handleVisibilityChange() {
-  if (!document.hidden) {
-    setTimeout(() => {
-      reloadImages()
-    }, 100)
-  }
+  // Không cần reload images
 }
 </script>
 

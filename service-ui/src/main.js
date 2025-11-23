@@ -5,6 +5,10 @@ import router from './router'
 import './style.css'
 import 'leaflet/dist/leaflet.css';
 
+// Swiper components
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import 'swiper/css'
+
 // AOS Animation Library
 import AOS from 'aos'
 import 'aos/dist/aos.css'
@@ -33,4 +37,7 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.component('font-awesome-icon', FontAwesomeIcon)
+// Đăng ký Swiper components globally để tránh lỗi ref context
+app.component('Swiper', Swiper)
+app.component('SwiperSlide', SwiperSlide)
 app.mount('#app')

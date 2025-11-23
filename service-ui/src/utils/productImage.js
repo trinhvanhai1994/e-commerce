@@ -31,84 +31,36 @@ export function getProductImage(productOrId) {
 
 /**
  * Lấy ảnh gallery cho sản phẩm từ API hoặc fallback
- * @param {Object} product - Product object từ API (có gallery array)
- * @returns {string[]} - Mảng đường dẫn ảnh gallery từ API server
+ * QUAN TRỌNG: Giữ nguyên thứ tự từ API, KHÔNG sort lại
+ * @param {Object} product - Product object từ API (có gallery array đã được sort theo display_order)
+ * @returns {string[]} - Mảng đường dẫn ảnh gallery từ API server (giữ nguyên thứ tự)
  */
 export function getProductGallery(product) {
-  // Nếu product có gallery từ API, sử dụng gallery đó
+  // Nếu product có gallery từ API, sử dụng gallery đó (giữ nguyên thứ tự từ backend)
+  // Backend đã sort theo display_order, không cần sort lại ở frontend
+  // QUAN TRỌNG: Filter null/empty để không hiển thị ảnh mặc định sai
   if (product && product.gallery && Array.isArray(product.gallery) && product.gallery.length > 0) {
-    return product.gallery.map(path => getImageUrlFromApi(path))
+    // Filter null, undefined, và empty string, chỉ giữ lại paths hợp lệ
+    const validPaths = product.gallery.filter(path => path && path.trim() !== '')
+    if (validPaths.length > 0) {
+      return validPaths.map(path => getImageUrlFromApi(path))
+    }
+    // Nếu tất cả đều null/empty, return empty array (không dùng fallback)
+    return []
   }
   
   // Nếu có mainImage, thêm vào đầu gallery
   if (product && product.mainImage) {
     const gallery = [getImageUrlFromApi(product.mainImage)]
     if (product.gallery && Array.isArray(product.gallery)) {
-      gallery.push(...product.gallery.map(path => getImageUrlFromApi(path)))
+      // Filter null/empty từ gallery
+      const validPaths = product.gallery.filter(path => path && path.trim() !== '')
+      gallery.push(...validPaths.map(path => getImageUrlFromApi(path)))
     }
     return gallery
   }
   
-  // Fallback: dùng ID để tìm ảnh mặc định (từ backend)
-  const id = product?.id || Number(product)
-  const fallbackGalleries = {
-    1: [
-      '/images/products/details/black/1.png',
-      '/images/products/details/black/2.png',
-      '/images/products/details/black/3.png',
-      '/images/products/details/black/4.png',
-      '/images/products/details/black/5.png',
-      '/images/products/details/black/6.png',
-      '/images/products/details/black/7.png',
-      '/images/products/details/black/8.png'
-    ],
-    2: [
-      '/images/products/details/black/1.png',
-      '/images/products/details/black/2.png',
-      '/images/products/details/black/3.png',
-      '/images/products/details/black/4.png',
-      '/images/products/details/black/5.png',
-      '/images/products/details/black/6.png',
-      '/images/products/details/black/7.png',
-      '/images/products/details/black/8.png'
-    ],
-    3: [
-      '/images/products/details/pink/1.png',
-      '/images/products/details/pink/2.png',
-      '/images/products/details/pink/3.png',
-      '/images/products/details/pink/4.png',
-      '/images/products/details/pink/5.png',
-      '/images/products/details/pink/6.png',
-      '/images/products/details/pink/7.png',
-      '/images/products/details/pink/8.png',
-      '/images/products/details/pink/9.png'
-    ],
-    4: [
-      '/images/products/details/pink/1.png',
-      '/images/products/details/pink/2.png',
-      '/images/products/details/pink/3.png',
-      '/images/products/details/pink/4.png',
-      '/images/products/details/pink/5.png',
-      '/images/products/details/pink/6.png',
-      '/images/products/details/pink/7.png',
-      '/images/products/details/pink/8.png',
-      '/images/products/details/pink/9.png'
-    ],
-    5: [
-      '/images/products/details/mix/0.png',
-      '/images/products/details/mix/1.png',
-      '/images/products/details/mix/2.png',
-      '/images/products/details/mix/3.png',
-      '/images/products/details/mix/4.png',
-      '/images/products/details/mix/5.png',
-      '/images/products/details/mix/6.png',
-      '/images/products/details/mix/7.png',
-      '/images/products/details/mix/8.png',
-      '/images/products/details/mix/9.png',
-      '/images/products/details/mix/10.png',
-      '/images/products/details/mix/11.png',   
-    ]
-  }
-  const fallbackGallery = fallbackGalleries[id] || ['/images/products/me-den.jpg']
-  return fallbackGallery.map(path => getImageUrlFromApi(path))
+  // Nếu không có gallery từ API hoặc gallery rỗng/null, return empty array
+  // KHÔNG dùng fallback để tránh hiển thị ảnh mặc định sai khi API trả về null
+  return []
 } 

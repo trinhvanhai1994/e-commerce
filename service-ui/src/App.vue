@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from './stores/cart'
 import { navigateToMainDomain, navigateToSubdomain, shouldStayOnSubdomain, shouldChangeDomain } from './utils/domainUtils'
+import { getImageUrlFromApi } from './utils/imageUtils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -263,7 +264,7 @@ function removeFromCart(item) {
               <div class="flex items-center min-h-[42px] py-0">
                 <!-- Logo + Brand: luôn sát trái -->
                 <a href="#" @click="handleLogoClick" class="flex items-center justify-center header-brand select-none cursor-pointer flex-shrink-0 no-underline" style="text-decoration: none;">
-                  <img src="/images/logo/logo.png" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
+                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
                 </a>
                 <!-- Menu PC only: căn giữa, flex-1 để menu chiếm không gian giữa, ẩn trên mobile -->
                 <nav class="header-menu hidden md:flex gap-6 items-center flex-1 justify-center">
@@ -454,7 +455,7 @@ function removeFromCart(item) {
               <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <!-- Logo + Info -->
                 <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <img src="/images/logo/logo.png" alt="Logo" class="h-20 w-auto mb-4 object-contain mx-auto drop-shadow-md" />
+                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="h-20 w-auto mb-4 object-contain mx-auto drop-shadow-md" />
                   <div class="space-y-3 text-gray-700">
                     <div class="flex items-center justify-center gap-2">
                       <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

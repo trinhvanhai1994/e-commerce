@@ -110,7 +110,23 @@ public class ProductService {
         existingProduct.setShortDesc(product.getShortDesc());
         existingProduct.setDescription(product.getDescription());
         existingProduct.setMainImage(product.getMainImage());
-        existingProduct.setGallery(product.getGallery());
+        
+        // QUAN TRỌNG: Xóa gallery cũ trước khi set gallery mới
+        // JPA @ElementCollection cần clear và set lại để đảm bảo records cũ được xóa
+        // và display_order được set đúng theo index (0, 1, 2, ...)
+        if (existingProduct.getGallery() != null) {
+            existingProduct.getGallery().clear();
+        }
+        // Flush để đảm bảo DELETE được thực thi trước khi INSERT
+        productRepository.flush();
+        // Set gallery mới - JPA @OrderColumn sẽ tự động set display_order = index (0, 1, 2, ...)
+        // Tạo ArrayList mới để đảm bảo JPA nhận diện đây là collection mới
+        if (product.getGallery() != null && !product.getGallery().isEmpty()) {
+            existingProduct.setGallery(new java.util.ArrayList<>(product.getGallery()));
+        } else {
+            existingProduct.setGallery(new java.util.ArrayList<>());
+        }
+        
         existingProduct.setStock(product.getStock());
         existingProduct.setCategory(product.getCategory());
         existingProduct.setQuantity(product.getQuantity());
@@ -161,6 +177,16 @@ public class ProductService {
     }
     
     private ProductResponse mapToResponse(Product product) {
+        // Gallery đã được JPA @OrderColumn tự động sort theo display_order khi load từ database
+        // Không cần sort lại ở đây, giữ nguyên thứ tự từ entity
+        // QUAN TRỌNG: Filter null/empty để không trả về null trong gallery
+        List<String> gallery = product.getGallery();
+        if (gallery != null) {
+            gallery = gallery.stream()
+                .filter(path -> path != null && !path.trim().isEmpty())
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
         return ProductResponse.builder()
             .id(product.getId())
             .name(product.getName())
@@ -169,7 +195,7 @@ public class ProductService {
             .shortDesc(product.getShortDesc())
             .description(product.getDescription())
             .mainImage(product.getMainImage())
-            .gallery(product.getGallery())
+            .gallery(gallery) // Thứ tự đã được đảm bảo bởi @OrderColumn, đã filter null/empty
             .stock(product.getStock())
             .category(product.getCategory())
             .quantity(product.getQuantity())

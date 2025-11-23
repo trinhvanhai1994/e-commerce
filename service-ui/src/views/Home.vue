@@ -172,11 +172,11 @@
       </div>
 
       <!-- Mobile: swiper slider, ẩn trên desktop -->
-      <div class="md:hidden">
-        <swiper
-          :modules="swiperModules"
+      <div class="md:hidden" v-if="images && images.length > 0">
+        <ImageSwiper
+          :images="images"
           :slides-per-view="2.5"
-          space-between="12"
+          :space-between="12"
           :loop="shouldLoop"
           :autoplay="{
             delay: 3000,
@@ -196,16 +196,8 @@
               spaceBetween: 12
             }
           }"
-        >
-          <swiper-slide v-for="(img, index) in images" :key="'m' + index">
-            <img
-              :src="img.src"
-              :alt="img.alt"
-              class="w-full h-40 object-contain rounded-xl shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:opacity-90 transition-opacity duration-300"
-              @click="openImageModal(img.src, img.alt)"
-            />
-          </swiper-slide>
-        </swiper>
+          @image-click="openImageModal"
+        />
       </div>
     </section>
 
@@ -302,20 +294,15 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
+import ImageSwiper from '../components/ImageSwiper.vue'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Autoplay } from 'swiper/modules';
-import 'swiper/css';
 
 const router = useRouter()
 const cartStore = useCartStore()
-
-// Swiper modules
-const swiperModules = [Autoplay]
 
 const showQuantityPopup = ref(false)
 const selectedBundle = ref(null)

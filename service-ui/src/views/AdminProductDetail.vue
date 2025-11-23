@@ -201,11 +201,11 @@
                       v-else-if="imageItem.preview || imageItem.path" 
                       :src="imageItem.preview && imageItem.preview.startsWith('data:') 
                         ? imageItem.preview 
-                        : getImageUrlWithCacheBusting(getImageUrlFromApi(imageItem.path), imageCacheBuster)" 
+                        : getImageUrlFromApi(imageItem.path)" 
                       :alt="`Gallery ${index + 1}`" 
                       class="w-full h-full object-cover"
                       @error="(e) => handleGalleryImageError(e, index)"
-                      :key="`gallery-${index}-${imageItem.path || ''}-${imageCacheBuster}`"
+                      :key="`gallery-${index}-${imageItem.path || ''}`"
                     />
                     <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
                       <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,11 +354,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
-import { getImageUrlFromApi, getImageUrlWithCacheBusting } from '@/utils/imageUtils.js'
+import { getImageUrlFromApi } from '@/utils/imageUtils.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
 
@@ -372,8 +372,7 @@ const submitting = ref(false)
 const fileInput = ref(null)
 const imageLoading = ref(false)
 const galleryFileInputs = ref([])
-// Cache-busting timestamp - update mỗi khi cần force reload ảnh
-const imageCacheBuster = ref(Date.now())
+// Không cần cache-busting - BE sẽ xử lý và trả về path đúng
 
 // Popup state
 const showPopup = ref(false)
@@ -467,69 +466,31 @@ async function fetchProduct() {
     // Lấy ảnh chính
     const mainImage = product.mainImage || product.image || ''
     
-    // Lấy gallery - đảm bảo là array
+    // Lấy gallery - đảm bảo là array và loại bỏ duplicate
     let gallery = []
     if (product.gallery) {
       if (Array.isArray(product.gallery)) {
-        gallery = product.gallery
+        // Loại bỏ duplicate paths trong gallery
+        gallery = [...new Set(product.gallery)].filter(path => path && path.trim() !== '')
       } else {
         console.warn('Product.gallery is not an array:', product.gallery)
         gallery = []
       }
     }
     
-    // Hàm extract số từ tên file (ví dụ: /images/products/details/black/1.png -> 1)
-    // Hỗ trợ cả format: 1.png, 0.png, 10.png, 11.png
-    const extractImageNumber = (path) => {
-      if (!path) return null
-      // Match số ở cuối path trước extension (ví dụ: .../1.png, .../10.png)
-      const match = path.match(/\/(\d+)\.(png|jpg|jpeg|jpeg)$/i)
-      if (match) {
-        const num = parseInt(match[1], 10)
-        // Chỉ chấp nhận số từ 0-11 (vì có thể có 0.png trong mix folder)
-        if (num >= 0 && num <= 11) {
-          // Map 0 -> 1 (vì slot bắt đầu từ 1)
-          return num === 0 ? 1 : num
-        }
-      }
-      return null
-    }
+    // QUAN TRỌNG: Backend đã trả về gallery đã được sort theo display_order (0, 1, 2, ...)
+    // Không cần extract số từ tên file, chỉ cần map trực tiếp theo thứ tự từ API
+    // Loại bỏ mainImage khỏi gallery nếu có (để tránh duplicate)
+    const galleryWithoutMain = gallery.filter(path => !mainImage || path !== mainImage)
     
-    // Tạo map từ số ảnh -> path để mapping chính xác
-    const imageMap = new Map()
-    
-    // Thêm main_image vào map nếu có số trong tên file
-    if (mainImage) {
-      const mainImageNum = extractImageNumber(mainImage)
-      if (mainImageNum !== null && mainImageNum >= 1 && mainImageNum <= 11) {
-        imageMap.set(mainImageNum, mainImage)
-      }
-    }
-    
-    // Thêm gallery images vào map
-    // Nếu gallery có ảnh trùng số với main_image, bỏ qua để tránh duplicate
-    gallery.forEach((path) => {
-      // Bỏ qua nếu path trùng với main_image
-      if (mainImage && path === mainImage) {
-        return
-      }
-      
-      const num = extractImageNumber(path)
-      
-      if (num !== null && num >= 1 && num <= 11) {
-        // Chỉ thêm nếu chưa có số này trong map (để tránh duplicate với main_image)
-        if (!imageMap.has(num)) {
-          imageMap.set(num, path)
-        }
-      }
-    })
-    
-    // Khởi tạo galleryImages với 11 slots, map theo số trong tên file
-    // Slot index 0 = ảnh số 1, index 1 = ảnh số 2, ...
+    // Khởi tạo galleryImages với 11 slots, map trực tiếp theo thứ tự từ API
+    // Slot index 0 = gallery[0] (display_order = 0)
+    // Slot index 1 = gallery[1] (display_order = 1)
+    // ...
+    // Slot index 10 = gallery[10] (display_order = 10)
     const galleryImages = Array(11).fill(null).map((_, index) => {
-      // Số ảnh = index + 1 (vì ảnh bắt đầu từ 1, không phải 0)
-      const imageNumber = index + 1
-      const existingPath = imageMap.get(imageNumber) || null
+      // Map trực tiếp theo index: slot index = display_order
+      const existingPath = index < galleryWithoutMain.length ? galleryWithoutMain[index] : null
       
       // Extract tên file từ path
       const fileName = existingPath ? existingPath.split('/').pop() : null
@@ -542,8 +503,7 @@ async function fetchProduct() {
       }
     })
     
-    // QUAN TRỌNG: Update cache-busting timestamp khi fetch product để force reload ảnh
-    imageCacheBuster.value = Date.now()
+    // Không cần cache-busting - BE trả về path đúng
     
     Object.assign(form, {
       id: product.id,
@@ -595,14 +555,77 @@ async function submitForm() {
     }
     
     // Xử lý gallery từ galleryImages array (11 ảnh)
-    let galleryImagePaths = form.galleryImages
-      .map(item => item.path || null)
-      .filter(path => path && !path.startsWith('data:'))
+    // QUAN TRỌNG: Giữ nguyên thứ tự từ form.galleryImages (theo index 0-10)
+    // Backend sẽ lưu display_order = index trong array này (0, 1, 2, ..., 10)
     
-    // Loại bỏ ảnh chính khỏi gallery nếu có
+    // Debug: Log toàn bộ galleryImages trước khi xử lý
+    console.log('🔍 form.galleryImages TRƯỚC KHI SUBMIT:', 
+      form.galleryImages.map((item, idx) => ({
+        index: idx,
+        path: item?.path,
+        fileName: item?.fileName,
+        hasPreview: !!item?.preview,
+        loading: item?.loading
+      }))
+    )
+    
+    // QUAN TRỌNG: Lấy paths từ form.galleryImages, đảm bảo lấy đúng paths mới nhất
+    // Tạo snapshot để tránh reference issues và đảm bảo lấy đúng giá trị hiện tại
+    const galleryImagesSnapshot = form.galleryImages.map(item => ({ ...item }))
+    
+    console.log('📸 Snapshot của galleryImages (deep copy):', 
+      galleryImagesSnapshot.map((item, idx) => ({
+        index: idx,
+        path: item?.path,
+        fileName: item?.fileName,
+        hasPreview: !!item?.preview
+      }))
+    )
+    
+    let galleryImagePaths = galleryImagesSnapshot
+      .map((item, idx) => {
+        // Lấy path từ item, đảm bảo là string hợp lệ
+        const path = item?.path
+        if (!path || typeof path !== 'string') {
+          console.log(`   ⚠️ Index ${idx}: Không có path`, path)
+          return null
+        }
+        // Loại bỏ paths không hợp lệ (data:, empty, null)
+        if (path.trim() === '' || path.startsWith('data:')) {
+          console.log(`   ⚠️ Index ${idx}: Path không hợp lệ`, path)
+          return null
+        }
+        const cleanPath = path.trim()
+        console.log(`   ✅ Index ${idx}: Path hợp lệ: ${cleanPath}`)
+        return cleanPath
+      })
+      // Filter null/empty nhưng vẫn giữ thứ tự
+      .filter(path => path !== null && path !== '')
+    
+    console.log('📋 Gallery paths SAU KHI MAP VÀ FILTER (sẽ gửi lên BE):', galleryImagePaths)
+    console.log('📋 Tổng số paths hợp lệ:', galleryImagePaths.length)
+    
+    // Loại bỏ duplicate paths trong gallery nhưng vẫn giữ thứ tự (Set giữ insertion order)
+    const seen = new Set()
+    galleryImagePaths = galleryImagePaths.filter(path => {
+      if (seen.has(path)) {
+        console.log('⚠️ Bỏ qua duplicate path:', path)
+        return false // Duplicate, bỏ qua
+      }
+      seen.add(path)
+      return true
+    })
+    
+    // Loại bỏ ảnh chính khỏi gallery nếu có (giữ nguyên thứ tự các ảnh còn lại)
     if (imagePath) {
+      const beforeFilter = galleryImagePaths.length
       galleryImagePaths = galleryImagePaths.filter(img => img !== imagePath)
+      if (beforeFilter !== galleryImagePaths.length) {
+        console.log('⚠️ Đã loại bỏ mainImage khỏi gallery:', imagePath)
+      }
     }
+    
+    console.log('📤 Gallery paths cuối cùng gửi lên BE:', galleryImagePaths)
     
     const productData = {
       id: form.id,
@@ -628,7 +651,14 @@ async function submitForm() {
       syncToPancake: form.syncToPancake
     }
 
-    await productManagementAPI.updateProduct(form.id, productData)
+    // Update product và nhận response từ BE
+    const response = await productManagementAPI.updateProduct(form.id, productData)
+    
+    // Response có thể là { success: true, data: {...}, message: "..." }
+    // hoặc trực tiếp là product object
+    const updatedProduct = response?.data || response
+    
+    console.log('📥 Response từ updateProduct:', updatedProduct)
     
     // Show success message
     let message = 'Cập nhật sản phẩm thành công!'
@@ -637,12 +667,11 @@ async function submitForm() {
     }
     showSuccessPopup(message)
     
-    // QUAN TRỌNG: Refresh lại data từ API để hiển thị thông tin mới nhất
-    // Điều này đảm bảo tất cả ảnh và dữ liệu được load lại từ server với cache-busting
-    await fetchProduct()
-    
-    // QUAN TRỌNG: Update cache-busting timestamp để force reload tất cả ảnh sau khi update
-    imageCacheBuster.value = Date.now()
+    // QUAN TRỌNG: KHÔNG gọi fetchProduct() vì sẽ ghi đè lại paths mới
+    // Thay vào đó, giữ nguyên form.galleryImages hiện tại (đã có paths mới từ upload)
+    // Vì BE đã nhận và lưu gallery paths mới rồi, không cần fetch lại
+    console.log('✅ Giữ nguyên form.galleryImages sau submit (không fetch lại):', 
+      form.galleryImages.map((item, idx) => ({ index: idx, path: item?.path })))
     
     // Đợi một chút để user thấy popup, rồi mới redirect
     setTimeout(() => {
@@ -780,85 +809,113 @@ async function handleGalleryFileUpload(event, index) {
     // Resize ảnh nếu quá lớn (max 1920x1920, quality 0.9)
     const resizedBlob = await resizeImage(file, 1920, 1920, 0.9)
     
-    // Tạo path mới dựa trên category và số ảnh (luôn đổi tên thành số.png)
-    // Nếu có path cũ, giữ nguyên folder nhưng đổi tên file thành số.png
-    // Nếu không có path cũ, tạo path mới dựa trên category
-    const imageNumber = index + 1
-    let newPath = imageItem.path
+    // QUAN TRỌNG: Luôn tạo path MỚI mỗi lần upload ảnh mới
+    // KHÔNG giữ path cũ vì user đã chọn ảnh mới, cần upload với path mới
+    const categoryMap = {
+      'ME_DEN': 'black',
+      'HONG_DAU': 'pink',
+      'COMBO': 'mix'
+    }
+    const categoryFolder = categoryMap[form.category] || 'mix'
+    const productId = form.id || 'new'
+    const timestamp = Date.now()
     
-    if (newPath) {
-      // Có path cũ: giữ nguyên folder, chỉ đổi tên file thành số.png
-      const pathParts = newPath.split('/')
-      pathParts[pathParts.length - 1] = `${imageNumber}.png` // Đổi tên file cuối cùng
-      newPath = pathParts.join('/')
-    } else {
-      // Không có path cũ: tạo path mới dựa trên category
-      const categoryMap = {
-        'ME_DEN': 'black',
-        'HONG_DAU': 'pink',
-        'COMBO': 'mix'
+    // Lấy extension từ file name, mặc định là jpg
+    let fileExtension = 'jpg'
+    const fileNameParts = file.name.split('.')
+    if (fileNameParts.length > 1) {
+      const ext = fileNameParts.pop().toLowerCase()
+      // Chỉ chấp nhận các extension hợp lệ
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        fileExtension = ext === 'jpeg' ? 'jpg' : ext
       }
-      const categoryFolder = categoryMap[form.category] || 'mix'
-      newPath = `/images/products/details/${categoryFolder}/${imageNumber}.png`
     }
     
-    const newFileName = `${imageNumber}.png`
+    // Tạo path MỚI với format: products/details/{category}/{productId}_{index}_{timestamp}.{ext}
+    // Luôn tạo path mới để đảm bảo upload ảnh mới, không dùng path cũ
+    const relativePath = `products/details/${categoryFolder}/${productId}_${index}_${timestamp}.${fileExtension}`
+    
+    console.log(`📤 Upload ảnh MỚI ${index + 1} với path MỚI:`, relativePath)
+    if (imageItem.path) {
+      console.log(`   ⚠️ Path cũ sẽ bị thay thế: ${imageItem.path}`)
+    }
     
     // Tạo preview tạm thời từ blob đã resize (để hiển thị ngay trước khi upload)
     const previewDataUrl = await blobToDataURL(resizedBlob)
     
-    // Cập nhật imageItem tạm thời với preview từ blob (base64)
-    // Sau khi upload thành công, preview sẽ được clear để load từ server
+    // Cập nhật preview tạm thời
     imageItem.preview = previewDataUrl
-    imageItem.path = newPath
-    imageItem.fileName = newFileName
-    imageItem.loading = false
-    imageItem.resizedBlob = resizedBlob // Lưu blob để có thể upload sau
     
     // Tự động upload file lên server
     try {
-      // Extract relative path (bỏ /images/ ở đầu)
-      const relativePath = newPath.startsWith('/images/') 
-        ? newPath.substring(8) // Bỏ "/images/"
-        : newPath.startsWith('images/')
-          ? newPath.substring(7) // Bỏ "images/"
-          : newPath
-      
       // Convert blob to File for upload
-      const fileToUpload = new File([resizedBlob], newFileName, { type: 'image/jpeg' })
+      // Sử dụng tên file đơn giản để tránh ký tự đặc biệt
+      const sanitizedFileName = `image_${index}_${Date.now()}.jpg`
+      const fileToUpload = new File([resizedBlob], sanitizedFileName, { type: 'image/jpeg' })
       
-      // Upload to server
+      // Upload to server - BE sẽ trả về path đúng
       const uploadedPath = await productManagementAPI.uploadImage(fileToUpload, relativePath)
       
-      // Cập nhật path với path từ server
-      imageItem.path = uploadedPath
+      // Cập nhật path với path từ BE (đảm bảo path đúng)
+      // Đảm bảo uploadedPath là string hợp lệ
+      if (!uploadedPath || typeof uploadedPath !== 'string') {
+        throw new Error('Path từ BE không hợp lệ: ' + uploadedPath)
+      }
       
-      // QUAN TRỌNG: Clear preview và force reload từ server với cache-busting mới
-      // Đợi một chút để server xử lý file xong, rồi mới cập nhật
-      setTimeout(() => {
-        // Force Vue reactivity update bằng cách tạo object mới
-        // Clear preview để template sẽ generate URL mới với cache-busting timestamp mới
-        const updatedItem = {
-          ...imageItem,
-          preview: null, // Clear preview để force reload từ server với cache-busting mới mỗi lần render
-          path: uploadedPath
-        }
-        form.galleryImages[index] = updatedItem
+      const cleanPath = uploadedPath.trim()
+      if (cleanPath === '') {
+        throw new Error('Path từ BE rỗng')
+      }
+      
+      // QUAN TRỌNG: Cập nhật path đúng cách để đảm bảo Vue reactivity
+      // Sử dụng cách cập nhật trực tiếp vào object để trigger reactivity
+      const currentItem = form.galleryImages[index]
+      if (currentItem) {
+        // Cập nhật từng property để đảm bảo reactivity
+        // QUAN TRỌNG: Gán trực tiếp để trigger Vue reactivity
+        currentItem.path = cleanPath
+        currentItem.fileName = cleanPath.split('/').pop()
+        currentItem.preview = null // Clear preview để load từ server
+        currentItem.loading = false
         
-        // QUAN TRỌNG: Update cache-busting timestamp để force Vue re-render tất cả ảnh
-        imageCacheBuster.value = Date.now()
-      }, 500) // Đợi 500ms để server xử lý file
+        // Force Vue reactivity bằng cách trigger change
+        // Tạo một reference mới cho array để đảm bảo Vue detect change
+        form.galleryImages = [...form.galleryImages]
+      } else {
+        // Nếu item không tồn tại, tạo mới
+        form.galleryImages[index] = {
+          path: cleanPath,
+          fileName: cleanPath.split('/').pop(),
+          preview: null,
+          loading: false
+        }
+      }
+      
+      // Đợi Vue cập nhật reactivity
+      await nextTick()
+      
+      console.log(`✅ Upload thành công ảnh ${index + 1}:`, cleanPath)
+      console.log(`   - Path mới trong form: ${form.galleryImages[index]?.path}`)
+      console.log(`   - FileName: ${form.galleryImages[index]?.fileName}`)
+      console.log(`   - Toàn bộ galleryImages sau upload:`, 
+        form.galleryImages.map((item, idx) => ({ 
+          index: idx, 
+          path: item?.path,
+          fileName: item?.fileName 
+        }))
+      )
       
     } catch (uploadError) {
       console.error(`❌ Lỗi khi upload ảnh ${index + 1}:`, uploadError)
-      // Vẫn giữ preview và path, nhưng hiển thị cảnh báo
-      showErrorPopup(`Lưu ý: Ảnh ${index + 1} đã được resize nhưng chưa upload lên server. Vui lòng thử lại hoặc upload thủ công.\nLỗi: ${uploadError.message}`)
+      imageItem.loading = false
+      showErrorPopup(`Lỗi khi upload ảnh ${index + 1}: ${uploadError.message}`)
+      // Giữ preview để user có thể thấy ảnh đã chọn
     }
     
   } catch (error) {
     console.error('Error processing image:', error)
-    showErrorPopup('Có lỗi xảy ra khi xử lý ảnh: ' + error.message)
     imageItem.loading = false
+    showErrorPopup('Có lỗi xảy ra khi xử lý ảnh: ' + error.message)
   }
   
   // Reset file input để có thể chọn lại file cùng một vị trí

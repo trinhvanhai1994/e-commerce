@@ -40,9 +40,11 @@ public class Product {
     @Column(name = "main_image", columnDefinition = "TEXT")
     private String mainImage;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
+    @OrderColumn(name = "display_order")
+    @org.hibernate.annotations.Cascade({org.hibernate.annotations.CascadeType.ALL})
     private List<String> gallery;
     
     @Column(nullable = false)

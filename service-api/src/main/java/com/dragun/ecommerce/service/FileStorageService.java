@@ -7,16 +7,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 @Service
 @Slf4j
 public class FileStorageService {
     
-    @Value("${file.upload-dir:src/main/resources/public/images}")
+    @Value("${file.upload-dir:/var/www/html/images/thiyen}")
     private String uploadDir;
     
     /**
@@ -29,6 +31,10 @@ public class FileStorageService {
         if (!path.isAbsolute()) {
             path = Paths.get(System.getProperty("user.dir"), uploadDir);
         }
+        
+        // Log the base upload directory for debugging
+        log.debug("Base upload directory: {}", path.toAbsolutePath());
+        
         return path;
     }
     
@@ -45,13 +51,22 @@ public class FileStorageService {
         }
         
         // Tạo đường dẫn đầy đủ
-        Path targetPath = getUploadDirPath().resolve(relativePath);
+        Path basePath = getUploadDirPath();
+        Path targetPath = basePath.resolve(relativePath);
+        
+        log.info("Upload file: {} -> {}", file.getOriginalFilename(), targetPath.toAbsolutePath());
         
         // Tạo thư mục nếu chưa tồn tại
         File targetFile = targetPath.toFile();
-        if (!targetFile.getParentFile().exists()) {
-            targetFile.getParentFile().mkdirs();
-            log.info("Đã tạo thư mục: {}", targetFile.getParentFile().getAbsolutePath());
+        File parentDir = targetFile.getParentFile();
+        if (!parentDir.exists()) {
+            boolean created = parentDir.mkdirs();
+            if (created) {
+                log.info("Đã tạo thư mục: {}", parentDir.getAbsolutePath());
+            } else {
+                log.warn("Không thể tạo thư mục: {}", parentDir.getAbsolutePath());
+                throw new IOException("Không thể tạo thư mục: " + parentDir.getAbsolutePath());
+            }
         }
         
         // Kiểm tra file cũ có tồn tại không
@@ -59,20 +74,67 @@ public class FileStorageService {
         if (fileExists) {
             log.info("File đã tồn tại, sẽ được ghi đè: {}", targetPath.toAbsolutePath());
             // Xóa file cũ trước để đảm bảo ghi đè hoàn toàn
-            Files.deleteIfExists(targetPath);
+            try {
+                Files.deleteIfExists(targetPath);
+                // Đợi một chút để đảm bảo file được xóa hoàn toàn
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Thread bị interrupt khi đợi xóa file cũ");
+            }
+        }
+        
+        // Đảm bảo parent directory tồn tại và có quyền ghi
+        if (parentDir != null && !parentDir.exists()) {
+            boolean created = parentDir.mkdirs();
+            if (!created) {
+                log.error("❌ Không thể tạo thư mục: {}", parentDir.getAbsolutePath());
+                throw new IOException("Không thể tạo thư mục: " + parentDir.getAbsolutePath());
+            }
+            log.info("✅ Đã tạo thư mục: {}", parentDir.getAbsolutePath());
+        }
+        
+        // Kiểm tra quyền ghi vào parent directory
+        if (parentDir != null && !parentDir.canWrite()) {
+            log.error("❌ Không có quyền ghi vào thư mục: {}", parentDir.getAbsolutePath());
+            throw new IOException("Không có quyền ghi vào thư mục: " + parentDir.getAbsolutePath());
         }
         
         // Lưu file mới (ghi đè nếu đã tồn tại)
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        // Sử dụng try-with-resources để đảm bảo stream được đóng đúng cách
+        try (var inputStream = file.getInputStream()) {
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            
+            // Force sync để đảm bảo file được ghi vào disk
+            try (FileChannel channel = FileChannel.open(targetPath, StandardOpenOption.WRITE)) {
+                channel.force(true);
+            } catch (Exception e) {
+                log.warn("Không thể force sync file (có thể không hỗ trợ): {}", e.getMessage());
+            }
+        }
         
-        // Verify file đã được lưu
-        if (Files.exists(targetPath)) {
+        // Verify file đã được lưu - đợi một chút để đảm bảo file được ghi xong
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        if (Files.exists(targetPath) && Files.isRegularFile(targetPath)) {
             long fileSize = Files.size(targetPath);
-            log.info("✅ Đã lưu file thành công: {} -> {} (Size: {} bytes)", 
-                file.getOriginalFilename(), targetPath.toAbsolutePath(), fileSize);
+            if (fileSize > 0) {
+                log.info("✅ Đã lưu file thành công: {} -> {} (Size: {} bytes)", 
+                    file.getOriginalFilename(), targetPath.toAbsolutePath(), fileSize);
+            } else {
+                log.error("❌ Lỗi: File được tạo nhưng size = 0: {}", targetPath.toAbsolutePath());
+                throw new IOException("File được tạo nhưng size = 0: " + targetPath.toAbsolutePath());
+            }
         } else {
-            log.error("❌ Lỗi: File không được lưu tại: {}", targetPath.toAbsolutePath());
-            throw new IOException("File không được lưu thành công");
+            log.error("❌ Lỗi: File không được lưu tại: {} (exists: {}, isRegularFile: {})", 
+                targetPath.toAbsolutePath(), 
+                Files.exists(targetPath),
+                Files.exists(targetPath) ? Files.isRegularFile(targetPath) : false);
+            throw new IOException("File không được lưu thành công tại: " + targetPath.toAbsolutePath());
         }
         
         // Trả về đường dẫn để truy cập file (bắt đầu từ /images)
