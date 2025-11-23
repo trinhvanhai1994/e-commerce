@@ -164,8 +164,20 @@ const router = createRouter({
   }
 })
 
+// Import visitor tracking
+import { trackVisit } from '../services/visitor-tracking.service.js'
+
 // Router guard for authentication - BẮT BUỘC LOGIN CHO TẤT CẢ ADMIN ROUTES
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  // Track visitor visit (only for non-admin routes)
+  if (!to.path.startsWith('/admin')) {
+    // Track visit asynchronously without blocking navigation
+    trackVisit().catch(err => {
+      // Silently fail - don't interrupt navigation
+      console.error('Failed to track visit:', err)
+    })
+  }
+  
   const isAdminRoute = to.path.startsWith('/admin')
   const isLoginPage = to.path === '/admin/login'
   

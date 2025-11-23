@@ -7,6 +7,7 @@ public class Constants {
         "/api/dragun/products/**",
         "/api/extend/orders",
         "/api/extend/orders/**",
+        "/api/public/visitors/**",  // Allow public access to visitor tracking
         "/provinces",
         "/districts/**",
         "/wards/**",

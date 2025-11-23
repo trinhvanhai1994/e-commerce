@@ -117,6 +117,15 @@ export const adminService = {
     const userStr = localStorage.getItem('adminUser')
     return userStr ? JSON.parse(userStr) : null
   },
+
+  /**
+   * Get dashboard statistics
+   * @returns {Promise<Object>} Dashboard stats response
+   */
+  async getDashboardStats() {
+    const data = await httpClient.get('/api/dragun/admin/dashboard/stats')
+    return data
+  },
 }
 
 export default adminService

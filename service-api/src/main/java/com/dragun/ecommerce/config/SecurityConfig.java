@@ -37,9 +37,13 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints - must be first
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(Constants.PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers("/api/dragun/admin/login").permitAll()
+                // Admin endpoints - require authentication
                 .requestMatchers(Constants.ADMIN_ENDPOINTS).hasRole("ADMIN")
+                // All other requests require authentication
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

@@ -25,6 +25,10 @@ AOS.init({
   offset: 100
 })
 
+// Initialize visitor tracking
+import { initVisitorTracking } from './services/visitor-tracking.service.js'
+initVisitorTracking()
+
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)

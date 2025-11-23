@@ -24,6 +24,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Skip filter for public endpoints
+        return path.startsWith("/api/public/") ||
+               path.startsWith("/api/dragun/products/") ||
+               path.startsWith("/api/extend/orders") ||
+               path.startsWith("/provinces") ||
+               path.startsWith("/districts/") ||
+               path.startsWith("/wards/") ||
+               path.startsWith("/images/") ||
+               path.equals("/api/dragun/admin/login");
+    }
+    
+    @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
