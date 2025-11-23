@@ -39,6 +39,7 @@ public class VisitorTrackingService {
         String pagePath = request.getRequestURI();
         
         // Check if visitor with this sessionId already exists
+        // Note: With unique constraint, there should be at most one record
         Optional<Visitor> existingVisitor = visitorRepository.findBySessionId(sessionId);
         
         if (existingVisitor.isPresent()) {

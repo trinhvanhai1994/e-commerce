@@ -11,6 +11,12 @@ import java.util.Optional;
 @Repository
 public interface VisitorRepository extends JpaRepository<Visitor, Long> {
     
+    /**
+     * Find visitor by session ID.
+     * Returns the most recent one if multiple exist (should not happen with unique constraint).
+     * This query uses LIMIT 1 to ensure only one result is returned.
+     */
+    @Query(value = "SELECT * FROM visitors WHERE session_id = :sessionId ORDER BY last_visit_at DESC, id DESC LIMIT 1", nativeQuery = true)
     Optional<Visitor> findBySessionId(String sessionId);
     
     @Query("SELECT COUNT(DISTINCT v.sessionId) FROM Visitor v")
