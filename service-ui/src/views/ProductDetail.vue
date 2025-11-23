@@ -546,14 +546,13 @@
       </div>
 
       <!-- Video giới thiệu sản phẩm (PC only - trước phần mô tả) -->
-      <div class="hidden lg:block mt-4 mb-6">
+      <div v-if="product.id !== 3 && product.id !== 4" class="hidden lg:block mt-4 mb-6">
         <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
           <h2 class="text-lg md:text-xl font-bold text-green-700 mb-4 text-center">Video giới thiệu sản phẩm</h2>
           <div class="flex justify-center">
             <video
               class="w-full max-w-2xl rounded-lg"
               controls
-              :poster="getImageUrlFromApi('/images/products/details/black/1.png')"
               style="max-height: 70vh; object-fit: contain;"
             >
               <source src="/video/intro.mp4" type="video/mp4" />
@@ -565,21 +564,67 @@
 
               <!-- Product Details Table -->
         <div class="space-y-6">
-          <div class="grid grid-cols-1 gap-6">
+          <!-- Thông báo đợi update cho sản phẩm id 3,4 -->
+          <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
+            <div class="text-center py-8">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">Đang cập nhật thông tin</h3>
+              <p class="text-gray-600">Video giới thiệu sản phẩm đang được cập nhật.</p>
+            </div>
+          </div>
+
+          <div v-if="product.id !== 3 && product.id !== 4" class="grid grid-cols-1 gap-6">
+            <!-- THÔNG TIN SẢN PHẨM - ME_DEN -->
+            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
+              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
+              <ul class="benefits-list">
+                <li>Tên sản phẩm: Bột Ngũ Hắc Mè Đen</li>
+                <li>Quy cách: Lon thiếc 600g</li>
+                <li>Hạn sử dụng: 10 tháng kể từ ngày sản xuất</li>
+                <li>Xuất xứ: Việt Nam</li>
+              </ul>
+            </div>
+
+            <!-- THÔNG TIN SẢN PHẨM - HONG_DAU -->
+            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
+              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
+              <ul class="benefits-list">
+                <li>Tên sản phẩm: Bột Ngũ Sắc Hồng Đậu</li>
+                <li>Quy cách: Lon thiếc 600g</li>
+                <li>Hạn sử dụng: 08 tháng kể từ ngày sản xuất</li>
+                <li>Xuất xứ: Việt Nam</li>
+              </ul>
+            </div>
+
+            <!-- THÀNH PHẦN - ME_DEN -->
+            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
+              <h3 class="section-title">THÀNH PHẦN</h3>
+              <p class="section-content">Yến mạch; Gạo lứt đen; Đậu đỏ có vỏ; Diêm mạch đen; Mè đen; Dâu tằm đen; Đậu đen có vỏ (trắng lòng); Óc chó; Erythritol; FOS, Khoai mỡ.</p>
+            </div>
+
+            <!-- THÀNH PHẦN - HONG_DAU -->
+            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
+              <h3 class="section-title">THÀNH PHẦN</h3>
+              <p class="section-content">Đậu đỏ nhỏ có vỏ, Hạt sen đỏ Củ dền đỏ, Diêm mạch đỏ, Yến mạch, Táo đỏ khô, Konjac Gum, Bột sữa dừa, Nacl, Fructose, Isomalto Oligosaccharide.</p>
+            </div>
+
             <div class="product-detail-section">
               <h3 v-if="product.id === 5" class="section-title">1. BỘT NGŨ HẮC MÈ ĐEN</h3>
               <h3 class="section-title">CÔNG DỤNG</h3>
               <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo </li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng cho tóc chắc khỏe, đen mượt từ 5 loại hạt đen giàu dưỡng chất</li>
-                <li v-if="product.id === 1 || product.id === 2">• Bổ huyết, bồi bổ sức khỏe: kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, hỗ trợ tuần hoàn máu, bổ sung dưỡng chất cần thiết giúp cơ thể duy trì thể trạng</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng cho giấc ngủ, giúp cơ thể thư giãn, dễ đi vào giấc ngủ, ngủ ngon và ngủ sâu hơn.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
-                
+                <li v-if="product.id === 1 || product.id === 2">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo</li>
+                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng đen cho tóc chắc khỏe, đen mượt</li>
+                <li v-if="product.id === 1 || product.id === 2">• Bổi bổ sức khoẻ, nuôi dưỡng khí huyết: công thức ngũ hắc dưỡng sinh kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, nuôi dưỡng cơ thể và khí huyết mỗi ngày.</li>
+                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng cho giấc ngủ: 5 nguyên liệu đen có tính bình kết hợp cùng hạt óc chó giàu dưỡng chất nuôi dưỡng giấc ngủ</li>
+                <li v-if="product.id === 1 || product.id === 2">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
                 <li v-if="product.id === 3 || product.id === 4">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Bồi bổ và nuôi dưỡng khí huyết: Củ dền đỏ giàu sắt và folate, kèm hơn 25 vi chất cần thiết cho cơ thể. Kết hợp cùng táo đỏ, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dinh dưỡng giúp cơ thể thêm khỏe khoắn, giảm cảm giác mệt mỏi, điều khí, cải thiện lưu thông máu, góp phần hỗ trợ tuần hoàn và duy trì năng lượng cho cơ thể.</li>
+                <li v-if="product.id === 3 || product.id === 4">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
                 <li v-if="product.id === 3 || product.id === 4">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dinh dưỡng cho giấc ngủ, giúp cơ thể thư thái và dễ chìm vào giấc ngủ sâu hơn.</li>
+                <li v-if="product.id === 3 || product.id === 4">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
 
                 <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo </li>
                 <li v-if="product.id === 52">• Dinh dưỡng cho tóc chắc khỏe, đen mượt từ 5 loại hạt đen giàu dưỡng chất</li>
@@ -591,10 +636,10 @@
               <h3 v-if="product.id === 52" class="section-title">2. BỘT NGŨ SẮC HỒNG ĐẬU</h3>
               <h3 v-if="product.id === 52" class="section-title">CÔNG DỤNG</h3>
               <ul class="benefits-list">
-                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh. </li>
-                <li v-if="product.id === 52">• Bồi bổ và nuôi dưỡng khí huyết: Củ dền đỏ giàu sắt và folate, kèm hơn 25 vi chất cần thiết cho cơ thể. Kết hợp cùng táo đỏ, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dinh dưỡng giúp cơ thể thêm khỏe khoắn, giảm cảm giác mệt mỏi, điều khí, cải thiện lưu thông máu, góp phần hỗ trợ tuần hoàn và duy trì năng lượng cho cơ thể.</li>
+                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
+                <li v-if="product.id === 52">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
                 <li v-if="product.id === 52">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ, giúp cơ thể thư thái và dễ chìm vào giấc ngủ sâu hơn.</li>
+                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
               </ul>
             </div>
 
@@ -606,33 +651,52 @@
                 <li v-if="product.id === 1 || product.id === 2">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
                 <li v-if="product.id === 1 || product.id === 2">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
                 <li v-if="product.id === 1 || product.id === 2">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
+                <li v-if="product.id === 1 || product.id === 2">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
                 
                 <li v-if="product.id === 3 || product.id === 4">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
                 <li v-if="product.id === 3 || product.id === 4">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
                 <li v-if="product.id === 3 || product.id === 4">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
                 <li v-if="product.id === 3 || product.id === 4">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
+                <li v-if="product.id === 3 || product.id === 4">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
 
                 <li v-if="product.id === 52">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
                 <li v-if="product.id === 52">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
                 <li v-if="product.id === 52">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
                 <li v-if="product.id === 52">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
+                <li v-if="product.id === 52">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
+              </ul>
+            </div>
+
+            <!-- ƯU ĐIỂM NỔI BẬT - ME_DEN -->
+            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
+              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
+              <ul class="benefits-list">
+                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
+                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
+                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
+                <li>• Hàm lượng natri gần như bằng 0, phù hợp với người muốn ăn nhạt, kiểm soát huyết áp.</li>
+              </ul>
+            </div>
+
+            <!-- ƯU ĐIỂM NỔI BẬT - HONG_DAU -->
+            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
+              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
+              <ul class="benefits-list">
+                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
+                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
+                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
+                <li>• Giàu sắt, kẽm và phytoestrogen tự nhiên</li>
               </ul>
             </div>
 
             <div class="product-detail-section">
               <h3 class="section-title">CÔNG NGHỆ VƯỢT TRỘI TỐI ƯU DƯỠNG CHẤT</h3>
               <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Công nghệ nén khí & bơm nitơ: Kéo dài thời gian bảo quản, giữ nguyên hương vị, màu sắc, dưỡng chất.</li>
-                <li v-if="product.id === 1 || product.id === 2">• Nghiền Nano siêu mịn, không lợn cợn, dễ uống</li>
-                <li v-if="product.id === 1 || product.id === 2">• Hấp nhiệt thông minh: Giữ nguyên hương vị và dưỡng chất tự nhiên</li>
+                <li v-if="product.id === 1 || product.id === 2">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
                 
-                <li v-if="product.id === 3 || product.id === 4">• Công nghệ nén khí & bơm nitơ: Kéo dài thời gian bảo quản, giữ nguyên hương vị, màu sắc, dưỡng chất.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Nghiền Nano siêu mịn, không lợn cợn, dễ uống</li>
-                <li v-if="product.id === 3 || product.id === 4">• Hấp nhiệt thông minh: Giữ nguyên hương vị và dưỡng chất tự nhiên</li>
+                <li v-if="product.id === 3 || product.id === 4">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
 
-                <li v-if="product.id === 52">• Công nghệ nén khí & bơm nitơ: Kéo dài thời gian bảo quản, giữ nguyên hương vị, màu sắc, dưỡng chất.</li>
-                <li v-if="product.id === 52">• Nghiền Nano siêu mịn, không lợn cợn, dễ uống</li>
-                <li v-if="product.id === 52">• Hấp nhiệt thông minh: Giữ nguyên hương vị và dưỡng chất tự nhiên</li>
+                <li v-if="product.id === 52">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
               </ul>
             </div>
 
@@ -655,9 +719,9 @@
      <div class="bg-white rounded-none shadow-none md:rounded-lg md:shadow-lg p-2 md:p-4 mt-2 md:mt-4 md:hidden">
        <!-- Video giới thiệu sản phẩm -->
        <video
+         v-if="product.id !== 3 && product.id !== 4"
          class="w-full max-w-2xl mx-auto rounded-lg mb-4"
          controls
-         :poster="getImageUrlFromApi('/images/products/details/black/1.png')"
        >
          <source src="/video/intro.mp4" type="video/mp4" />
          Trình duyệt của bạn không hỗ trợ video.
@@ -769,7 +833,7 @@
 
       <!-- Usage Instructions with Visual -->
       <div class="bg-white rounded-lg shadow-lg p-4 mt-1">
-        <h2 class="text-sm md:text-base font-bold text-gray-900 mb-4 text-center">Hướng dẫn sử dụng</h2>
+        <h2 class="text-sm md:text-base font-bold text-gray-900 mb-4 text-center">HƯỚNG DẪN SỬ DỤNG: Chuẩn bị dễ dàng trong 1 phút</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
           <!-- Step 1 -->
@@ -779,7 +843,8 @@
               <img :src="getImageUrlFromApi('/images/icons/Step1.png')" alt="Step 1" class="w-24 h-24 object-contain" />
             </div>
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Cho bột vào cốc</h3>
-            <p class="text-gray-600 text-xs">Cho 2-3 thìa bột vào cốc sạch</p>
+            <p v-if="product.id === 1 || product.id === 2" class="text-gray-600 text-xs">Lấy 3 muỗng bột vào ly</p>
+            <p v-else class="text-gray-600 text-xs">Cho 2-3 thìa bột vào cốc sạch</p>
           </div>
           
           <!-- Step 2 -->
@@ -789,7 +854,8 @@
               <img :src="getImageUrlFromApi('/images/icons/Step2.png')" alt="Step 2" class="w-24 h-24 object-contain" />
             </div>
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Pha với nước ấm</h3>
-            <p class="text-gray-600 text-xs">Thêm 200ml nước ấm hoặc sữa</p>
+            <p v-if="product.id === 1 || product.id === 2 || product.id === 3 || product.id === 4" class="text-gray-600 text-xs">Đổ 180ml nước ấm 60-70°C</p>
+            <p v-else class="text-gray-600 text-xs">Thêm 200ml nước ấm hoặc sữa</p>
           </div>
           
           <!-- Step 3 -->
@@ -801,6 +867,12 @@
             <h3 class="text-xs md:text-sm font-semibold text-gray-900 mb-1">Khuấy đều & thưởng thức</h3>
             <p class="text-gray-600 text-xs">Khuấy đều và thưởng thức ngay</p>
           </div>
+        </div>
+        
+        <!-- Additional notes for ME_DEN and HONG_DAU -->
+        <div v-if="product.id === 1 || product.id === 2 || product.id === 3 || product.id === 4" class="mt-4 pt-4 border-t border-gray-200">
+          <p class="text-xs text-gray-600 mb-2">👉 Có thể thêm hạt, trái cây cắt nhỏ, hoặc yến mạch để tăng hương vị.</p>
+          <p class="text-xs text-gray-600">👉 Dùng 1-2 lần/ngày thay bữa sáng hoặc bữa nhẹ buổi chiều/tối.</p>
         </div>
       </div>
 
