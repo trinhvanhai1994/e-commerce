@@ -19,7 +19,10 @@ public class CorsConfig {
             "http://localhost:3000",
             "http://localhost:5173",
             "https://debase.vn",
-            "https://www.phodem.click"
+            "https://www.phodem.click",
+            "https://botnguhacmeden.thiyen.vn",
+            "https://botngusachongdau.thiyen.vn",
+            "https://thiyen.vn"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
