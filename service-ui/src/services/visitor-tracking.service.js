@@ -128,15 +128,12 @@ export async function trackVisit() {
 
 /**
  * Track visit on page load
- * Call this in App.vue or main.js
+ * NOTE: This function is no longer used. Tracking is handled by router navigation guards.
+ * Kept for backward compatibility but does nothing.
  */
 export function initVisitorTracking() {
-  // Track visit when app loads
-  trackVisit()
-  
-  // Track visit on route changes (for SPA)
-  if (typeof window !== 'undefined' && window.addEventListener) {
-    // This will be handled by router navigation guards if needed
-  }
+  // Tracking is now handled by router.beforeEach guard
+  // This function is kept for backward compatibility but does nothing
+  // to avoid duplicate tracking calls
 }
 

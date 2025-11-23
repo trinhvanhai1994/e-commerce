@@ -29,9 +29,8 @@ AOS.init({
   offset: 100
 })
 
-// Initialize visitor tracking
-import { initVisitorTracking } from './services/visitor-tracking.service.js'
-initVisitorTracking()
+// Visitor tracking is handled by router navigation guards
+// No need to initialize here to avoid duplicate calls
 
 const app = createApp(App)
 app.use(createPinia())
