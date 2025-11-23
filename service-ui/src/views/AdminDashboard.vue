@@ -1,8 +1,8 @@
 <template>
   <AdminLayout>
     <div class="min-h-screen bg-gray-50">
-      <div class="max-w-7xl mx-auto py-8 px-4">
-        <h1 class="text-3xl font-bold text-green-700 mb-8 text-center">Admin Dashboard</h1>
+      <div class="max-w-7xl mx-auto py-4 md:py-8 px-4">
+        <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-4 md:mb-8 text-center">Admin Dashboard</h1>
         
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-12">
@@ -29,16 +29,16 @@
         <!-- Dashboard Content -->
         <div v-else>
           <!-- Statistics Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <!-- Total Visitors -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition">
+            <div class="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100 hover:shadow-lg transition">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600 mb-1">Số người truy cập</p>
-                  <p class="text-3xl font-bold text-blue-600">{{ formatNumber(stats.totalVisitors) }}</p>
+                  <p class="text-xs md:text-sm font-medium text-gray-600 mb-1">Số người truy cập</p>
+                  <p class="text-2xl md:text-3xl font-bold text-blue-600">{{ formatNumber(stats.totalVisitors) }}</p>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-full">
-                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-blue-100 p-2 md:p-3 rounded-full">
+                  <svg class="w-6 h-6 md:w-8 md:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                   </svg>
@@ -47,14 +47,14 @@
             </div>
 
             <!-- Total Buyers -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition">
+            <div class="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100 hover:shadow-lg transition">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600 mb-1">Số người mua hàng</p>
-                  <p class="text-3xl font-bold text-green-600">{{ formatNumber(stats.totalBuyers) }}</p>
+                  <p class="text-xs md:text-sm font-medium text-gray-600 mb-1">Số người mua hàng</p>
+                  <p class="text-2xl md:text-3xl font-bold text-green-600">{{ formatNumber(stats.totalBuyers) }}</p>
                 </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-green-100 p-2 md:p-3 rounded-full">
+                  <svg class="w-6 h-6 md:w-8 md:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                   </svg>
                 </div>
@@ -62,14 +62,14 @@
             </div>
 
             <!-- Total Orders -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition">
+            <div class="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100 hover:shadow-lg transition">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600 mb-1">Số đơn hàng</p>
-                  <p class="text-3xl font-bold text-purple-600">{{ formatNumber(stats.totalOrders) }}</p>
+                  <p class="text-xs md:text-sm font-medium text-gray-600 mb-1">Số đơn hàng</p>
+                  <p class="text-2xl md:text-3xl font-bold text-purple-600">{{ formatNumber(stats.totalOrders) }}</p>
                 </div>
-                <div class="bg-purple-100 p-3 rounded-full">
-                  <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-purple-100 p-2 md:p-3 rounded-full">
+                  <svg class="w-6 h-6 md:w-8 md:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
                 </div>
@@ -77,14 +77,14 @@
             </div>
 
             <!-- Total Revenue -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition">
+            <div class="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100 hover:shadow-lg transition">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-600 mb-1">Tổng giá trị đơn hàng</p>
-                  <p class="text-3xl font-bold text-orange-600">{{ formatPrice(stats.totalRevenue) }}</p>
+                  <p class="text-xs md:text-sm font-medium text-gray-600 mb-1">Tổng giá trị đơn hàng</p>
+                  <p class="text-2xl md:text-3xl font-bold text-orange-600">{{ formatPrice(stats.totalRevenue) }}</p>
                 </div>
-                <div class="bg-orange-100 p-3 rounded-full">
-                  <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-orange-100 p-2 md:p-3 rounded-full">
+                  <svg class="w-6 h-6 md:w-8 md:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>

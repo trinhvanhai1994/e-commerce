@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div>
-      <h2 class="text-2xl font-bold text-green-700 text-center mb-8">Khách Hàng</h2>
+      <h2 class="text-xl md:text-2xl font-bold text-green-700 text-center mb-4 md:mb-8">Khách Hàng</h2>
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-8">
@@ -32,8 +32,8 @@
       </div>
 
       <!-- Users Table -->
-      <div v-else class="bg-white rounded-xl shadow p-6 mb-6">
-        <div class="mb-4 flex justify-between items-center">
+      <div v-else class="bg-white rounded-xl shadow p-3 md:p-6 mb-6 overflow-x-auto">
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h3 class="text-lg font-semibold text-gray-800">
               Danh sách khách hàng ({{ users.length }})
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Customer Statistics -->
-        <div v-if="users.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div v-if="users.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
           <div class="bg-blue-50 rounded-lg p-4">
             <div class="flex items-center">
               <div class="p-2 bg-blue-100 rounded-lg">
@@ -146,11 +146,11 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full text-sm border rounded-xl">
+          <table class="min-w-full text-xs md:text-sm border rounded-xl">
             <thead class="bg-green-50">
               <tr>
-                <th class="px-3 py-2 text-left font-bold">Tên khách hàng</th>
-                <th class="px-3 py-2 text-left font-bold">
+                <th class="px-2 md:px-3 py-2 text-left font-bold">Tên khách hàng</th>
+                <th class="px-2 md:px-3 py-2 text-left font-bold hidden md:table-cell">
                   Số điện thoại
                   <span
                     class="text-xs text-blue-600 ml-1"
@@ -158,8 +158,8 @@
                     >🔗</span
                   >
                 </th>
-                <th class="px-3 py-2 text-left font-bold">Địa chỉ</th>
-                <th class="px-3 py-2 text-left font-bold">
+                <th class="px-2 md:px-3 py-2 text-left font-bold hidden md:table-cell">Địa chỉ</th>
+                <th class="px-2 md:px-3 py-2 text-left font-bold">
                   Số đơn hàng
                   <span
                     class="text-xs text-green-600 ml-1"
@@ -167,8 +167,8 @@
                     >📊</span
                   >
                 </th>
-                <th class="px-3 py-2 text-left font-bold">Tổng giá trị</th>
-                <th class="px-3 py-2 text-left font-bold">Đơn hàng gần nhất</th>
+                <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Tổng giá trị</th>
+                <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Đơn hàng gần nhất</th>
               </tr>
             </thead>
             <tbody>
@@ -177,22 +177,25 @@
                 :key="user.phone"
                 class="border-b hover:bg-green-50 transition-colors duration-200"
               >
-                <td class="px-3 py-2 font-semibold">{{ user.name }}</td>
-                <td class="px-3 py-2">{{ user.phone }}</td>
-                <td class="px-3 py-2 max-w-xs truncate" :title="user.address">
+                <td class="px-2 md:px-3 py-2 font-semibold">
+                  <div>{{ user.name }}</div>
+                  <div class="text-xs text-gray-500 md:hidden">{{ user.phone }}</div>
+                </td>
+                <td class="px-2 md:px-3 py-2 hidden md:table-cell">{{ user.phone }}</td>
+                <td class="px-2 md:px-3 py-2 max-w-xs truncate hidden md:table-cell" :title="user.address">
                   {{ user.address }}
                 </td>
-                <td class="px-3 py-2 text-center">
+                <td class="px-2 md:px-3 py-2 text-center">
                   <span
                     class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium"
                   >
                     {{ user.orders }}
                   </span>
                 </td>
-                <td class="px-3 py-2 font-semibold text-green-600">
+                <td class="px-2 md:px-3 py-2 font-semibold text-green-600 hidden lg:table-cell">
                   {{ formatCurrency(user.totalValue) }}
                 </td>
-                <td class="px-3 py-2 text-gray-600">
+                <td class="px-2 md:px-3 py-2 text-gray-600 hidden lg:table-cell">
                   {{ formatDate(user.lastOrderDate) }}
                 </td>
               </tr>

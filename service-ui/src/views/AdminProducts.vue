@@ -1,9 +1,9 @@
 <template>
   <AdminLayout>
     <div>
-      <h2 class="text-2xl font-bold text-green-700 text-center mb-8">Sản Phẩm</h2>
+      <h2 class="text-xl md:text-2xl font-bold text-green-700 text-center mb-4 md:mb-8">Sản Phẩm</h2>
       <div class="mb-4 flex justify-end">
-        <button @click="openAdd" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold">+ Thêm sản phẩm</button>
+        <button @click="openAdd" class="bg-green-600 text-white px-3 md:px-4 py-2 rounded hover:bg-green-700 font-semibold text-sm md:text-base">+ Thêm sản phẩm</button>
       </div>
       
       <!-- Loading state -->
@@ -19,32 +19,38 @@
       </div>
 
       <!-- Products table -->
-      <div v-else class="bg-white rounded-xl shadow p-6 mb-6">
-        <table class="min-w-full text-sm border rounded-xl">
+      <div v-else class="bg-white rounded-xl shadow p-3 md:p-6 mb-6 overflow-x-auto">
+        <table class="min-w-full text-xs md:text-sm border rounded-xl">
           <thead class="bg-green-50">
             <tr>
-              <th class="px-3 py-2 text-left font-bold">ID</th>
-              <th class="px-3 py-2 text-left font-bold">Tên sản phẩm</th>
-              <th class="px-3 py-2 text-left font-bold">Giá</th>
-              <th class="px-3 py-2 text-left font-bold">Giá cũ</th>
-              <th class="px-3 py-2 text-left font-bold">Quy cách</th>
-              <th class="px-3 py-2 text-left font-bold">Giảm giá</th>
-              <th class="px-3 py-2 text-left font-bold">Danh mục</th>
-              <th class="px-3 py-2 text-left font-bold">Trạng thái</th>
-              <th class="px-3 py-2 text-left font-bold">Ưu tiên</th>
-              <th class="px-3 py-2 text-center font-bold">Thao tác</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden sm:table-cell">ID</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold">Tên sản phẩm</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden md:table-cell">Giá</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Giá cũ</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Quy cách</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden md:table-cell">Giảm giá</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Danh mục</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold">Trạng thái</th>
+              <th class="px-2 md:px-3 py-2 text-left font-bold hidden lg:table-cell">Ưu tiên</th>
+              <th class="px-2 md:px-3 py-2 text-center font-bold">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="product in products" :key="product.id" class="border-b hover:bg-green-50">
-              <td class="px-3 py-2 font-semibold">{{ product.id }}</td>
-              <td class="px-3 py-2">{{ product.name }}</td>
-              <td class="px-3 py-2">{{ formatPrice(product.price) }}</td>
-              <td class="px-3 py-2">{{ formatPrice(product.oldPrice) }}</td>
-              <td class="px-3 py-2">{{ product.quantity }}</td>
-              <td class="px-3 py-2">{{ product.discount }}%</td>
-              <td class="px-3 py-2">{{ getCategoryName(product.category) }}</td>
-              <td class="px-3 py-2">
+              <td class="px-2 md:px-3 py-2 font-semibold hidden sm:table-cell">{{ product.id }}</td>
+              <td class="px-2 md:px-3 py-2">
+                <div class="font-medium">{{ product.name }}</div>
+                <div class="text-xs text-gray-500 sm:hidden">
+                  <div>Giá: {{ formatPrice(product.price) }}</div>
+                  <div>Giảm: {{ product.discount }}%</div>
+                </div>
+              </td>
+              <td class="px-2 md:px-3 py-2 hidden md:table-cell">{{ formatPrice(product.price) }}</td>
+              <td class="px-2 md:px-3 py-2 hidden lg:table-cell">{{ formatPrice(product.oldPrice) }}</td>
+              <td class="px-2 md:px-3 py-2 hidden lg:table-cell">{{ product.quantity }}</td>
+              <td class="px-2 md:px-3 py-2 hidden md:table-cell">{{ product.discount }}%</td>
+              <td class="px-2 md:px-3 py-2 hidden lg:table-cell">{{ getCategoryName(product.category) }}</td>
+              <td class="px-2 md:px-3 py-2">
                 <span 
                   :class="{
                     'px-2 py-1 rounded text-xs font-semibold': true,
@@ -55,17 +61,19 @@
                   {{ product.status === 'ACTIVE' ? 'Hiển thị' : 'Ẩn' }}
                 </span>
               </td>
-              <td class="px-3 py-2">
+              <td class="px-2 md:px-3 py-2 hidden lg:table-cell">
                 <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-800">
                   {{ product.priority || 999 }}
                 </span>
               </td>
-              <td class="px-3 py-2 text-center">
-                <button @click="goToDetail(product.id)" class="text-blue-600 hover:underline mr-2">Sửa</button>
-                <button @click="toggleStatus(product.id)" class="text-yellow-600 hover:underline mr-2">
-                  {{ product.status === 'ACTIVE' ? 'Ẩn' : 'Hiện' }}
-                </button>
-                <button @click="remove(product.id)" class="text-red-600 hover:underline">Xoá</button>
+              <td class="px-2 md:px-3 py-2 text-center">
+                <div class="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center items-center">
+                  <button @click="goToDetail(product.id)" class="text-blue-600 hover:underline text-xs sm:text-sm">Sửa</button>
+                  <button @click="toggleStatus(product.id)" class="text-yellow-600 hover:underline text-xs sm:text-sm">
+                    {{ product.status === 'ACTIVE' ? 'Ẩn' : 'Hiện' }}
+                  </button>
+                  <button @click="remove(product.id)" class="text-red-600 hover:underline text-xs sm:text-sm">Xoá</button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -73,8 +81,8 @@
       </div>
 
       <!-- Modal Thêm/Sửa -->
-      <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative max-h-[80vh] overflow-y-auto">
+      <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 w-full max-w-md relative max-h-[90vh] md:max-h-[80vh] overflow-y-auto">
           <h3 class="text-lg font-bold mb-4">{{ isEdit ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h3>
           <form @submit.prevent="submitForm">
             <div class="mb-3">

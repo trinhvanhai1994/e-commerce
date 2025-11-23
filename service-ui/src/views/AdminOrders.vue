@@ -26,8 +26,8 @@
       </div>
 
       <!-- Main content -->
-      <div v-else class="bg-white rounded-xl shadow p-6 mb-6">
-        <form class="flex flex-wrap gap-4 items-end justify-center mb-4">
+      <div v-else class="bg-white rounded-xl shadow p-3 md:p-6 mb-6">
+        <form class="flex flex-wrap gap-3 md:gap-4 items-end justify-center mb-4">
           <div>
             <label class="block text-gray-700 text-sm font-semibold mb-1">Mã Đơn Hàng</label>
             <input v-model="filters.orderId" class="border rounded px-3 py-2 w-40" />

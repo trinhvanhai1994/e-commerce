@@ -2,13 +2,13 @@
   <AdminLayout>
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
-      <div class="mb-6 flex items-center justify-between">
+      <div class="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-2xl font-bold text-green-700">Chi tiết sản phẩm</h2>
+          <h2 class="text-xl md:text-2xl font-bold text-green-700">Chi tiết sản phẩm</h2>
         </div>
         <button 
           @click="goBack" 
-          class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold"
+          class="px-3 md:px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold text-sm md:text-base w-full sm:w-auto"
         >
           ← Quay lại
         </button>
@@ -27,13 +27,13 @@
       </div>
 
       <!-- Product Form -->
-      <div v-else class="bg-white rounded-xl shadow-lg p-8">
+      <div v-else class="bg-white rounded-xl shadow-lg p-4 md:p-6 lg:p-8">
         <form @submit.prevent="submitForm">
           <!-- Basic Information Section -->
-          <div class="mb-8">
-            <h3 class="text-xl font-bold text-green-700 mb-4 pb-2 border-b">Thông tin cơ bản</h3>
+          <div class="mb-6 md:mb-8">
+            <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Thông tin cơ bản</h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label class="block font-semibold mb-2 text-gray-700">
                   Tên sản phẩm <span class="text-red-500">*</span>
@@ -128,7 +128,7 @@
               </div>
             </div>
 
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label class="block font-semibold mb-2 text-gray-700">Trạng thái</label>
                 <select 
@@ -144,10 +144,10 @@
           </div>
 
           <!-- Description Section -->
-          <div class="mb-8">
-            <h3 class="text-xl font-bold text-green-700 mb-4 pb-2 border-b">Mô tả sản phẩm</h3>
+          <div class="mb-6 md:mb-8">
+            <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Mô tả sản phẩm</h3>
             
-            <div class="space-y-6">
+            <div class="space-y-4 md:space-y-6">
               <div>
                 <label class="block font-semibold mb-2 text-gray-700">Mô tả ngắn</label>
                 <textarea 
@@ -173,16 +173,16 @@
           </div>
 
           <!-- Images Section -->
-          <div class="mb-8">
-            <h3 class="text-xl font-bold text-green-700 mb-4 pb-2 border-b">Hình ảnh sản phẩm</h3>
+          <div class="mb-6 md:mb-8">
+            <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Hình ảnh sản phẩm</h3>
             
             <!-- Gallery Images - 11 ảnh -->
             <div>
-              <label class="block font-semibold mb-3 text-gray-700">Ảnh mô tả (Gallery) - Tối đa 11 ảnh</label>
-              <p class="text-xs text-gray-500 mb-4">Chọn ảnh để thay thế. Nếu có path cũ, ảnh mới sẽ thay thế ảnh cũ nhưng giữ nguyên path.</p>
+              <label class="block font-semibold mb-2 md:mb-3 text-gray-700 text-sm md:text-base">Ảnh mô tả (Gallery) - Tối đa 11 ảnh</label>
+              <p class="text-xs text-gray-500 mb-3 md:mb-4">Chọn ảnh để thay thế. Nếu có path cũ, ảnh mới sẽ thay thế ảnh cũ nhưng giữ nguyên path.</p>
               
               <!-- Grid 11 ảnh -->
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 <div 
                   v-for="(imageItem, index) in form.galleryImages" 
                   :key="index"
@@ -265,18 +265,18 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex justify-end gap-4 pt-6 border-t">
+          <div class="flex flex-col sm:flex-row justify-end gap-3 md:gap-4 pt-4 md:pt-6 border-t">
             <button 
               type="button" 
               @click="goBack" 
-              class="px-6 py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 font-semibold text-gray-700"
+              class="px-4 md:px-6 py-2 md:py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 font-semibold text-gray-700 text-sm md:text-base w-full sm:w-auto"
             >
               Hủy
             </button>
             <button 
               type="submit" 
               :disabled="submitting" 
-              class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 md:px-6 py-2 md:py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base w-full sm:w-auto"
             >
               {{ submitting ? 'Đang lưu...' : 'Lưu thay đổi' }}
             </button>
