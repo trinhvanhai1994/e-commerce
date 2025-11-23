@@ -8,14 +8,24 @@
  * @returns {boolean} - True if domain should be changed
  */
 export function shouldChangeDomain(productId) {
-  return productId === 1 || productId === 2
+  return productId === 1 || productId === 2 || productId === 3 || productId === 4
 }
 
 /**
  * Get the subdomain for specific products
+ * @param {number} productId - The product ID (optional, for product-specific subdomain)
  * @returns {string} - The subdomain prefix
  */
-export function getSubdomainPrefix() {
+export function getSubdomainPrefix(productId = null) {
+  // ProductId 1,2 → botnguhacmeden
+  if (productId === 1 || productId === 2) {
+    return 'botnguhacmeden'
+  }
+  // ProductId 3,4 → botngusachongdau
+  if (productId === 3 || productId === 4) {
+    return 'botngusachongdau'
+  }
+  // Default (for backward compatibility)
   return 'botnguhacmeden'
 }
 
@@ -27,7 +37,7 @@ export function getSubdomainPrefix() {
 export function navigateWithDomainChange(productId, path) {
   if (shouldChangeDomain(productId)) {
     const currentHost = window.location.hostname
-    const subdomainPrefix = getSubdomainPrefix()
+    const subdomainPrefix = getSubdomainPrefix(productId)
     
     // Extract the main domain (remove any existing subdomain)
     const domainParts = currentHost.split('.')
@@ -52,11 +62,12 @@ export function navigateWithDomainChange(productId, path) {
 
 /**
  * Check if current domain is the subdomain for specific products
+ * @param {number} productId - The product ID (optional)
  * @returns {boolean} - True if on the correct subdomain
  */
-export function isOnProductSubdomain() {
+export function isOnProductSubdomain(productId = null) {
   const currentHost = window.location.hostname
-  const subdomainPrefix = getSubdomainPrefix()
+  const subdomainPrefix = getSubdomainPrefix(productId)
   
   return currentHost.startsWith(`${subdomainPrefix}.`)
 }
@@ -67,10 +78,13 @@ export function isOnProductSubdomain() {
  */
 export function getMainDomain() {
   const currentHost = window.location.hostname
-  const subdomainPrefix = getSubdomainPrefix()
   
-  if (currentHost.startsWith(`${subdomainPrefix}.`)) {
-    return currentHost.substring(subdomainPrefix.length + 1)
+  // Check both subdomains
+  const subdomainPrefixes = ['botnguhacmeden', 'botngusachongdau']
+  for (const prefix of subdomainPrefixes) {
+    if (currentHost.startsWith(`${prefix}.`)) {
+      return currentHost.substring(prefix.length + 1)
+    }
   }
   
   return currentHost
@@ -82,14 +96,16 @@ export function getMainDomain() {
  */
 export function navigateToMainDomain(path) {
   const currentHost = window.location.hostname
-  const subdomainPrefix = getSubdomainPrefix()
   
-  // If currently on subdomain, redirect to main domain
-  if (currentHost.startsWith(`${subdomainPrefix}.`)) {
-    const mainDomain = getMainDomain()
-    const newUrl = `${window.location.protocol}//${mainDomain}${path}`
-    window.location.href = newUrl
-    return true
+  // Check if currently on any product subdomain
+  const subdomainPrefixes = ['botnguhacmeden', 'botngusachongdau']
+  for (const prefix of subdomainPrefixes) {
+    if (currentHost.startsWith(`${prefix}.`)) {
+      const mainDomain = getMainDomain()
+      const newUrl = `${window.location.protocol}//${mainDomain}${path}`
+      window.location.href = newUrl
+      return true
+    }
   }
   
   return false
@@ -98,12 +114,26 @@ export function navigateToMainDomain(path) {
 /**
  * Navigate to subdomain for special products
  * @param {string} path - The path to navigate to
+ * @param {number} productId - The product ID (optional, extracted from path if not provided)
  */
-export function navigateToSubdomain(path) {
-  const currentHost = window.location.hostname
-  const subdomainPrefix = getSubdomainPrefix()
+export function navigateToSubdomain(path, productId = null) {
+  // Extract productId from path if not provided
+  if (!productId) {
+    const productMatch = path.match(/^\/products\/(\d+)/)
+    if (productMatch) {
+      productId = parseInt(productMatch[1], 10)
+    }
+  }
   
-  // If not on subdomain, redirect to subdomain
+  // Only navigate if productId requires subdomain
+  if (!shouldChangeDomain(productId)) {
+    return false
+  }
+  
+  const currentHost = window.location.hostname
+  const subdomainPrefix = getSubdomainPrefix(productId)
+  
+  // If not on correct subdomain, redirect to subdomain
   if (!currentHost.startsWith(`${subdomainPrefix}.`)) {
     const mainDomain = getMainDomain()
     const newUrl = `${window.location.protocol}//${subdomainPrefix}.${mainDomain}${path}`
@@ -120,7 +150,7 @@ export function navigateToSubdomain(path) {
  * @returns {boolean} - True if should stay on subdomain
  */
 export function shouldStayOnSubdomain(path) {
-  // Check if path is a product page with ID 1 or 2
-  const productMatch = path.match(/^\/products\/([12])/)
+  // Check if path is a product page with ID 1, 2, 3, or 4
+  const productMatch = path.match(/^\/products\/([1234])/)
   return productMatch !== null
 }

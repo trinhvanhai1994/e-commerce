@@ -2012,9 +2012,9 @@ import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
 function navigateToProduct(id) {
   const path = `/products/${id}`
   
-  // Check if this is a special product (ID 1 or 2)
-  if (id === 1 || id === 2) {
-    const domainChanged = navigateToSubdomain(path)
+  // Check if this is a special product (ID 1, 2, 3, or 4)
+  if (id === 1 || id === 2 || id === 3 || id === 4) {
+    const domainChanged = navigateToSubdomain(path, id)
     if (!domainChanged) {
       router.push(path)
     }
@@ -2032,9 +2032,9 @@ function navigateToSocialProofProduct() {
     const path = `/products/${socialProofData.value.productId}`
     const productId = socialProofData.value.productId
     
-    // Check if this is a special product (ID 1 or 2)
-    if (productId === 1 || productId === 2) {
-      const domainChanged = navigateToSubdomain(path)
+    // Check if this is a special product (ID 1, 2, 3, or 4)
+    if (productId === 1 || productId === 2 || productId === 3 || productId === 4) {
+      const domainChanged = navigateToSubdomain(path, productId)
       if (!domainChanged) {
         router.push(path)
       }

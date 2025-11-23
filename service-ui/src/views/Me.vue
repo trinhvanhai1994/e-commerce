@@ -633,9 +633,9 @@ export default {
     const goToProductDetail = (productId) => {
       const path = `/products/${productId}`;
       
-      // Check if this is a special product (ID 1 or 2)
-      if (productId === 1 || productId === 2) {
-        const domainChanged = navigateToSubdomain(path);
+      // Check if this is a special product (ID 1, 2, 3, or 4)
+      if (productId === 1 || productId === 2 || productId === 3 || productId === 4) {
+        const domainChanged = navigateToSubdomain(path, productId);
         if (!domainChanged) {
           router.push(path);
         }

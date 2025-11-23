@@ -132,7 +132,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(order, index) in pagedOrders" :key="getOrderId(order)" class="border-b hover:bg-green-50 cursor-pointer" @click="showOrderDetail(order)">
+              <tr v-for="(order, index) in pagedOrders" :key="getOrderId(order)" class="border-b hover:bg-green-50 cursor-pointer transition-colors duration-150" @click="showOrderDetail(order)">
                 <td class="px-3 py-2 text-green-700 font-semibold">{{ getOrderId(order) }}</td>
                 <td class="px-3 py-2">
                   <div class="space-y-1">
@@ -1342,11 +1342,7 @@ onUnmounted(() => {
   }
 }
 
-/* Hover effect for product images */
-.cursor-pointer:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease-in-out;
-}
+/* Hover effect for product images - removed zoom */
 
 /* Fix horizontal scrollbar issue on table hover */
 .overflow-x-auto {

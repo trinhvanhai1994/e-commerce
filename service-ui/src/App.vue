@@ -80,12 +80,13 @@ const handleNavigation = (path, e) => {
   // Extract path without query string for matching
   const pathWithoutQuery = path.split('?')[0]
   
-  // Check if this is a product page with special domain (ID 1 or 2)
-  const productMatch = pathWithoutQuery.match(/^\/products\/([12])/)
+  // Check if this is a product page with special domain (ID 1, 2, 3, or 4)
+  const productMatch = pathWithoutQuery.match(/^\/products\/([1234])/)
   
   if (productMatch) {
     // This is a special product, navigate to subdomain
-    const domainChanged = navigateToSubdomain(path)
+    const productId = parseInt(productMatch[1], 10)
+    const domainChanged = navigateToSubdomain(path, productId)
     if (!domainChanged) {
       router.push(path).catch(() => {}) // Ignore navigation errors
     }
@@ -94,14 +95,16 @@ const handleNavigation = (path, e) => {
   
   // For all other navigation, check if we need to switch domain
   const currentHost = window.location.hostname
-  const subdomainPrefix = 'botnguhacmeden'
+  const subdomainPrefixes = ['botnguhacmeden', 'botngusachongdau']
   
-  // If currently on subdomain and navigating to non-product page, switch to main domain
-  if (currentHost.startsWith(`${subdomainPrefix}.`)) {
-    const mainDomain = currentHost.substring(subdomainPrefix.length + 1)
-    const newUrl = `${window.location.protocol}//${mainDomain}${path}`
-    window.location.href = newUrl
-    return
+  // If currently on any product subdomain and navigating to non-product page, switch to main domain
+  for (const prefix of subdomainPrefixes) {
+    if (currentHost.startsWith(`${prefix}.`)) {
+      const mainDomain = currentHost.substring(prefix.length + 1)
+      const newUrl = `${window.location.protocol}//${mainDomain}${path}`
+      window.location.href = newUrl
+      return
+    }
   }
   
   // Otherwise, use router navigation directly

@@ -385,9 +385,9 @@ import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
 const navigateToProduct = (id) => {
   const path = `/products/${id}`
   
-  // Check if this is a special product (ID 1 or 2)
-  if (id === 1 || id === 2) {
-    const domainChanged = navigateToSubdomain(path)
+  // Check if this is a special product (ID 1, 2, 3, or 4)
+  if (id === 1 || id === 2 || id === 3 || id === 4) {
+    const domainChanged = navigateToSubdomain(path, id)
     if (!domainChanged) {
       router.push(path)
     }
@@ -403,9 +403,9 @@ const navigateToProduct = (id) => {
 const openProductDetail = (product) => {
   const path = `/products/${product.id}`
   
-  // Check if this is a special product (ID 1 or 2)
-  if (product.id === 1 || product.id === 2) {
-    const domainChanged = navigateToSubdomain(path)
+  // Check if this is a special product (ID 1, 2, 3, or 4)
+  if (product.id === 1 || product.id === 2 || product.id === 3 || product.id === 4) {
+    const domainChanged = navigateToSubdomain(path, product.id)
     if (!domainChanged) {
       router.push(path)
     }
