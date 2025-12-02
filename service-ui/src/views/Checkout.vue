@@ -19,7 +19,7 @@
           <label class="block text-sm font-medium mb-1">Họ và tên</label>
           <input 
             v-model="form.name" 
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500"
             placeholder="Nhập họ và tên"
           />
           <div v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</div>
@@ -30,7 +30,8 @@
           <label class="block text-sm font-medium mb-1">Số điện thoại</label>
           <input 
             v-model="form.phone" 
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            type="tel"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500"
             placeholder="Nhập số điện thoại"
           />
           <div v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</div>
@@ -41,7 +42,7 @@
           <label class="block text-sm font-medium mb-1">Địa chỉ chi tiết:</label>
           <input 
             v-model="form.address" 
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500"
             placeholder="Số nhà, tên đường, phường/xã"
           />
           <div v-if="errors.address" class="text-red-500 text-xs mt-1">{{ errors.address }}</div>
@@ -55,7 +56,7 @@
               v-model="form.province" 
               @change="onProvinceChange"
               :disabled="loadingProvinces"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
             >
               <option value="">{{ loadingProvinces ? 'Đang tải...' : 'Chọn tỉnh/thành phố' }}</option>
               <option v-for="province in provinces" :key="province.code" :value="province.code">
@@ -71,7 +72,7 @@
               v-model="form.district" 
               @change="onDistrictChange"
               :disabled="!form.province || loadingDistricts"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
             >
               <option value="">{{ loadingDistricts ? 'Đang tải...' : 'Chọn quận/huyện' }}</option>
               <option v-for="district in filteredDistricts" :key="district.code" :value="district.code">
@@ -86,7 +87,7 @@
             <select 
               v-model="form.ward" 
               :disabled="!form.district || loadingWards"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500 disabled:bg-gray-100 appearance-none bg-white relative z-10"
             >
               <option value="">{{ loadingWards ? 'Đang tải...' : 'Chọn xã/phường' }}</option>
               <option v-for="ward in filteredWards" :key="ward.code" :value="ward.code">
@@ -467,6 +468,16 @@ select {
 
 /* Fix select trên mobile để không bị lệch */
 @media (max-width: 768px) {
+  /* Đảm bảo font-size >= 16px để tránh auto-zoom trên iOS */
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+  }
+  
   select {
     position: relative;
     z-index: 10;

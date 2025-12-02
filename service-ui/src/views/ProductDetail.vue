@@ -555,7 +555,7 @@
       </div>
 
       <!-- Video giới thiệu sản phẩm (PC only - trước phần mô tả) -->
-      <div v-if="product.id !== 3 && product.id !== 4" class="hidden lg:block mt-4 mb-6">
+      <div class="hidden lg:block mt-4 mb-6">
         <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
           <h2 class="text-lg md:text-xl font-bold text-green-700 mb-4 text-center">Video giới thiệu sản phẩm</h2>
           <div class="flex justify-center">
@@ -564,7 +564,7 @@
               controls
               style="max-height: 70vh; object-fit: contain;"
             >
-              <source src="/video/intro.mp4" type="video/mp4" />
+              <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
               Trình duyệt của bạn không hỗ trợ video.
             </video>
           </div>
@@ -573,20 +573,7 @@
 
               <!-- Product Details Table -->
         <div class="space-y-6">
-          <!-- Thông báo đợi update cho sản phẩm id 3,4 -->
-          <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-            <div class="text-center py-8">
-              <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-2">Đang cập nhật thông tin</h3>
-              <p class="text-gray-600">Video giới thiệu sản phẩm đang được cập nhật.</p>
-            </div>
-          </div>
-
-          <div v-if="product.id !== 3 && product.id !== 4" class="grid grid-cols-1 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <!-- THÔNG TIN SẢN PHẨM - ME_DEN -->
             <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
               <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
@@ -728,11 +715,10 @@
      <div class="bg-white rounded-none shadow-none md:rounded-lg md:shadow-lg p-2 md:p-4 mt-2 md:mt-4 md:hidden">
        <!-- Video giới thiệu sản phẩm -->
        <video
-         v-if="product.id !== 3 && product.id !== 4"
          class="w-full max-w-2xl mx-auto rounded-lg mb-4"
          controls
        >
-         <source src="/video/intro.mp4" type="video/mp4" />
+         <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
          Trình duyệt của bạn không hỗ trợ video.
        </video>
        <div class="flex flex-col gap-3">
