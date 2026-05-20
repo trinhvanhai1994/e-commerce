@@ -104,7 +104,7 @@ public class OrderService {
         List<Order> orders = orderRepository.findAllByOrderByCreatedAtDesc();
         Map<String, String> misaRefByOrderId = loadLatestMisaInvoiceRefs(orders);
         return orders.stream()
-            .map(order -> mapToResponse(order, misaRefByOrderId.get(order.getOrderId())))
+            .map(order -> mapToResponse(order, resolveSubmissionRefForOrder(order, misaRefByOrderId)))
             .collect(Collectors.toList());
     }
     
@@ -112,7 +112,7 @@ public class OrderService {
         List<Order> orders = orderRepository.findByCustomerPhone(phone);
         Map<String, String> misaRefByOrderId = loadLatestMisaInvoiceRefs(orders);
         return orders.stream()
-            .map(order -> mapToResponse(order, misaRefByOrderId.get(order.getOrderId())))
+            .map(order -> mapToResponse(order, resolveSubmissionRefForOrder(order, misaRefByOrderId)))
             .collect(Collectors.toList());
     }
     
@@ -146,12 +146,16 @@ public class OrderService {
         return refs;
     }
 
+    private String resolveSubmissionRefForOrder(Order order, Map<String, String> misaRefByOrderId) {
+        return resolveMisaInvoiceRef(order, misaRefByOrderId != null ? misaRefByOrderId.get(order.getOrderId()) : null);
+    }
+
     private String resolveMisaInvoiceRef(Order order, String submissionRefId) {
-        if (StringUtils.hasText(submissionRefId)) {
-            return submissionRefId;
-        }
         if (order != null && StringUtils.hasText(order.getMeinvoiceRefId())) {
             return order.getMeinvoiceRefId();
+        }
+        if (StringUtils.hasText(submissionRefId)) {
+            return submissionRefId;
         }
         if (order == null) {
             return null;
@@ -181,8 +185,9 @@ public class OrderService {
     
     private OrderResponse mapToResponse(Order order, String misaInvoiceRef) {
         String resolvedRef = resolveMisaInvoiceRef(order, misaInvoiceRef);
-        boolean meinvoiceInvoiced = Boolean.TRUE.equals(order.getMeinvoiceInvoiced())
-                || StringUtils.hasText(resolvedRef);
+        boolean draftDeleted = Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted());
+        boolean meinvoiceInvoiced = !draftDeleted
+                && (Boolean.TRUE.equals(order.getMeinvoiceInvoiced()) || StringUtils.hasText(resolvedRef));
         OrderResponse.CustomerInfo customerInfo = OrderResponse.CustomerInfo.builder()
             .name(order.getCustomerName())
             .phone(order.getCustomerPhone())
@@ -214,6 +219,7 @@ public class OrderService {
             .orderType(order.getOrderType())
             .pancakeOrderId(order.getPancakeOrderId())
             .meinvoiceInvoiced(meinvoiceInvoiced)
+            .meinvoiceDraftDeleted(draftDeleted)
             .misaInvoiceRef(resolvedRef)
             .createdAt(order.getCreatedAt())
             .build();

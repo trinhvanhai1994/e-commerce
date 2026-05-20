@@ -94,6 +94,11 @@ public class Order {
 
     @Column(name = "meinvoice_invoiced_at")
     private LocalDateTime meinvoiceInvoicedAt;
+
+    /** {@code true} when draft was deleted on MeInvoice; {@code meinvoice_ref_id} is kept for PDF access. */
+    @Column(name = "meinvoice_draft_deleted", nullable = false)
+    @Builder.Default
+    private Boolean meinvoiceDraftDeleted = false;
     
     @PrePersist
     protected void onCreate() {

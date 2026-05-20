@@ -61,9 +61,15 @@ export const MSG_DELETE_CONFIRM_FORMAT =
 export const MSG_DELETE_SUCCESS = 'Đã xóa hóa đơn nháp trên MeInvoice.'
 export const MSG_DELETE_FAILED = 'Không thể xóa hóa đơn nháp. Kiểm tra MeInvoice và quyền admin.'
 
+export const LABEL_DRAFT_DELETED_ON_MISA = 'Đã xóa nháp trên MeInvoice'
+export const TITLE_DRAFT_DELETED_ON_MISA =
+  'Hóa đơn nháp đã xóa trên MeInvoice. Chỉ xem hoặc tải PDF lưu trữ (RefID giữ nguyên).'
+export const MSG_DRAFT_ALREADY_DELETED = 'Hóa đơn nháp này đã được xóa trên MeInvoice.'
+
 export const RESPONSE_FIELD_PDF_BASE64 = 'pdfBase64'
 export const RESPONSE_FIELD_RECORDED_SUCCESS = 'recordedSuccess'
 export const RESPONSE_FIELD_MEINVOICE_REF_ID = 'meinvoiceRefId'
 export const RESPONSE_FIELD_REF_ID = 'refId'
 export const RESPONSE_FIELD_MISA_INVOICE_REF = 'misaInvoiceRef'
 export const RESPONSE_FIELD_MEINVOICE_INVOICED = 'meinvoiceInvoiced'
+export const RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED = 'meinvoiceDraftDeleted'

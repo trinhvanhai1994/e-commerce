@@ -227,7 +227,8 @@ public class MeinvoiceInvoiceService {
     }
 
     /**
-     * Delete unpublished draft on MeInvoice ({@code DELETE /webapp/delete}) and clear local order flags.
+     * Delete unpublished draft on MeInvoice ({@code DELETE /webapp/delete}).
+     * Keeps {@code meinvoice_ref_id}; sets {@code meinvoice_draft_deleted=true}.
      */
     @Transactional
     public Map<String, Object> deleteDraftInvoiceByRefId(String refId, Boolean invoiceWithCode, String orderBusinessId) {
@@ -245,13 +246,15 @@ public class MeinvoiceInvoiceService {
 
         String resolvedOrderId = resolveOrderBusinessIdForDelete(trimmedRefId, orderBusinessId);
         if (StringUtils.hasText(resolvedOrderId)) {
-            orderRepository.findByOrderId(resolvedOrderId).ifPresent(this::clearMeinvoiceOnOrder);
+            orderRepository.findByOrderId(resolvedOrderId).ifPresent(this::markOrderDraftDeletedOnMisa);
         }
+        invalidateMeinvoiceSubmissionAfterDelete(trimmedRefId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("refId", trimmedRefId);
         result.put("orderBusinessId", resolvedOrderId);
         result.put("meinvoiceSuccess", true);
+        result.put("meinvoiceDraftDeleted", true);
         result.put("meinvoiceResponse", response);
         return result;
     }
@@ -430,7 +433,7 @@ public class MeinvoiceInvoiceService {
      * {@code true} when this order must not receive another MeInvoice insert (DB flag or legacy submission row).
      */
     public boolean isOrderInvoicedOnMeinvoice(Order order) {
-        if (order == null) {
+        if (order == null || Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted())) {
             return false;
         }
         if (Boolean.TRUE.equals(order.getMeinvoiceInvoiced())) {
@@ -455,13 +458,25 @@ public class MeinvoiceInvoiceService {
         order.setMeinvoiceInvoiced(true);
         order.setMeinvoiceRefId(refId);
         order.setMeinvoiceInvoicedAt(LocalDateTime.now());
+        order.setMeinvoiceDraftDeleted(false);
     }
 
-    private void clearMeinvoiceOnOrder(Order order) {
-        order.setMeinvoiceInvoiced(false);
-        order.setMeinvoiceRefId(null);
-        order.setMeinvoiceInvoicedAt(null);
+    private void markOrderDraftDeletedOnMisa(Order order) {
+        order.setMeinvoiceDraftDeleted(true);
         orderRepository.save(order);
+    }
+
+    /**
+     * Marks submission inactive so a new draft insert can succeed (unique success per order).
+     * RefID remains on {@code orders.meinvoice_ref_id}.
+     */
+    private void invalidateMeinvoiceSubmissionAfterDelete(String refId) {
+        submissionRepository.findByRefId(refId).ifPresent(submission -> {
+            submission.setSuccess(false);
+            submission.setLastErrorCode(MeinvoiceIntegrationConstants.SUBMISSION_ERROR_CODE_DELETED);
+            submission.setLastMessage(MeinvoiceIntegrationConstants.SUBMISSION_MESSAGE_DELETED);
+            submissionRepository.save(submission);
+        });
     }
 
     private String resolveOrderBusinessIdForDelete(String refId, String orderBusinessId) {
@@ -492,6 +507,7 @@ public class MeinvoiceInvoiceService {
         m.put("pancakeImported", Boolean.TRUE.equals(order.getPancakeImported()));
         m.put("createdAt", order.getCreatedAt());
         m.put("meinvoiceInvoiced", isOrderInvoicedOnMeinvoice(order));
+        m.put("meinvoiceDraftDeleted", Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted()));
         m.put("meinvoiceRefId", order.getMeinvoiceRefId());
         m.put("meinvoiceInvoicedAt", order.getMeinvoiceInvoicedAt());
         List<String> issues = collectInvoiceValidationIssues(order);

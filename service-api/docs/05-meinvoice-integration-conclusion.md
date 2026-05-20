@@ -60,7 +60,7 @@ Bảng mã lỗi có `TokenExpiredCode` — gọi hàm **RefreshToken** (endpoin
 ### 6. Các API chưa bọc / đã gỡ
 
 - `POST /webapp/preview` — **đang dùng** (xem PDF popup admin).
-- `DELETE /webapp/delete` — **đang dùng** (xóa HĐ nháp).
+- `DELETE /webapp/delete` — **đang dùng** (xóa HĐ nháp trên MISA; giữ `meinvoice_ref_id`, set `orders.meinvoice_draft_deleted=true`, `meinvoice_submissions.success=false`).
 - `GET /webapp/viewrefid` — **đang dùng** (tải PDF về máy; popup vẫn dùng preview base64).
 - `POST /webapp/paging` và `/webapp/paging/calculating` — chưa bọc.
 

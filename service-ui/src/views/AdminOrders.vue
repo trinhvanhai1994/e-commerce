@@ -129,7 +129,7 @@
                     </svg>
                   </span>
                 </th>
-                <th class="px-3 py-2 text-left font-bold w-36">Hóa Đơn MISA</th>
+                <th class="px-3 py-2 text-left font-bold w-40">Hóa Đơn MISA</th>
                 <th class="px-3 py-2 text-left font-bold w-28">Option Misa</th>
               </tr>
             </thead>
@@ -182,7 +182,14 @@
                 <td class="px-3 py-2 font-semibold align-top whitespace-nowrap">{{ formatPrice(order.total) }}</td>
                 <td class="px-3 py-2 align-top" @click.stop>
                   <span
-                    v-if="isMeinvoiceCreated(order)"
+                    v-if="isMeinvoiceDraftDeleted(order)"
+                    class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-amber-50 border-amber-300 text-amber-900"
+                    :title="TITLE_DRAFT_DELETED_ON_MISA"
+                  >
+                    {{ LABEL_DRAFT_DELETED_ON_MISA }}
+                  </span>
+                  <span
+                    v-else-if="isMeinvoiceCreated(order)"
                     class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-green-50 border-green-300 text-green-800"
                     :title="getMisaInvoiceRef(order) || undefined"
                   >
@@ -238,6 +245,7 @@
                       />
                     </button>
                     <button
+                      v-if="!isMeinvoiceDraftDeleted(order)"
                       type="button"
                       class="p-1.5 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
                       title="Xóa hóa đơn nháp trên MeInvoice"
@@ -492,16 +500,27 @@
                 </div>
                 <div>
                   <label class="text-sm font-medium text-gray-600">Hóa đơn MISA:</label>
-                  <div v-if="isMeinvoiceCreated(selectedOrder)" class="mt-1 space-y-1">
+                  <div v-if="isMeinvoiceDraftDeleted(selectedOrder)" class="mt-1 space-y-1">
                     <span
-                      class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-green-50 border-green-300 text-green-800"
+                      class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-amber-50 border-amber-300 text-amber-900"
                     >
-                      Đã tạo hóa đơn
+                      {{ LABEL_DRAFT_DELETED_ON_MISA }}
                     </span>
+                    <p class="text-xs text-amber-800">{{ TITLE_DRAFT_DELETED_ON_MISA }}</p>
                     <p v-if="getMisaInvoiceRef(selectedOrder)" class="text-xs font-mono text-gray-700 break-all">
                       Ref: {{ getMisaInvoiceRef(selectedOrder) }}
                     </p>
                   </div>
+                  <div v-else-if="isMeinvoiceCreated(selectedOrder)" class="mt-1 space-y-1">
+                      <span
+                        class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-green-50 border-green-300 text-green-800"
+                      >
+                        Đã tạo hóa đơn
+                      </span>
+                      <p v-if="getMisaInvoiceRef(selectedOrder)" class="text-xs font-mono text-gray-700 break-all">
+                        Ref: {{ getMisaInvoiceRef(selectedOrder) }}
+                      </p>
+                    </div>
                   <button
                     v-else
                     type="button"
@@ -512,7 +531,7 @@
                     {{ draftInvoiceLoadingKey === getDraftInvoiceLoadingKey(selectedOrder) ? 'Đang tạo...' : 'Tạo HĐ nháp MeInvoice' }}
                   </button>
                 </div>
-                <div v-if="getMisaInvoiceRef(selectedOrder)">
+                <div v-if="hasMisaInvoiceArchive(selectedOrder)">
                   <label class="text-sm font-medium text-gray-600">Option Misa:</label>
                   <div class="mt-1 flex items-center gap-1">
                     <button
@@ -549,6 +568,7 @@
                       />
                     </button>
                     <button
+                      v-if="!isMeinvoiceDraftDeleted(selectedOrder)"
                       type="button"
                       class="p-2 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
                       title="Xóa hóa đơn nháp trên MeInvoice"
@@ -750,8 +770,12 @@ import {
   MISA_REF_DISPLAY_TAIL_LENGTH,
   ORDER_SOURCE_LABELS,
   ORDER_TYPE_PANCAKE,
+  LABEL_DRAFT_DELETED_ON_MISA,
+  MSG_DRAFT_ALREADY_DELETED,
+  RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED,
   RESPONSE_FIELD_MEINVOICE_INVOICED,
   RESPONSE_FIELD_MEINVOICE_REF_ID,
+  TITLE_DRAFT_DELETED_ON_MISA,
   RESPONSE_FIELD_MISA_INVOICE_REF,
   RESPONSE_FIELD_RECORDED_SUCCESS,
   RESPONSE_FIELD_REF_ID,
@@ -861,8 +885,19 @@ function getMisaInvoiceRef(order) {
   return order?.misaInvoiceRef || order?.meinvoiceRefId || null
 }
 
+function isMeinvoiceDraftDeleted(order) {
+  return order?.[RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED] === true
+}
+
 function isMeinvoiceCreated(order) {
-  return order?.meinvoiceInvoiced === true || !!getMisaInvoiceRef(order)
+  if (isMeinvoiceDraftDeleted(order)) {
+    return false
+  }
+  return order?.[RESPONSE_FIELD_MEINVOICE_INVOICED] === true
+}
+
+function hasMisaInvoiceArchive(order) {
+  return !!getMisaInvoiceRef(order)
 }
 
 function truncateMisaRef(ref) {
@@ -902,14 +937,15 @@ function onInvoicePdfViewerError(message) {
   invoicePdfData.value = null
 }
 
-function applyMeinvoiceClearedToOrder(orderId) {
+function applyMeinvoiceDraftDeletedToOrder(orderId, refId) {
   const idx = orders.value.findIndex((o) => getOrderId(o) === orderId)
   if (idx < 0) return
   const updated = {
     ...orders.value[idx],
+    [RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED]: true,
     [RESPONSE_FIELD_MEINVOICE_INVOICED]: false,
-    [RESPONSE_FIELD_MISA_INVOICE_REF]: null,
-    [RESPONSE_FIELD_MEINVOICE_REF_ID]: null,
+    [RESPONSE_FIELD_MISA_INVOICE_REF]: refId,
+    [RESPONSE_FIELD_MEINVOICE_REF_ID]: refId,
   }
   orders.value[idx] = updated
   if (selectedOrder.value && getOrderId(selectedOrder.value) === orderId) {
@@ -918,6 +954,10 @@ function applyMeinvoiceClearedToOrder(orderId) {
 }
 
 function openDeleteDraftInvoiceConfirm(order) {
+  if (isMeinvoiceDraftDeleted(order)) {
+    showErrorPopup(MSG_DRAFT_ALREADY_DELETED)
+    return
+  }
   const refId = getMisaInvoiceRef(order)
   if (!refId) {
     showErrorPopup(MSG_ORDER_NO_MISA_REF)
@@ -946,13 +986,14 @@ async function confirmDeleteDraftInvoice() {
   draftInvoiceDeleteRefId.value = refId
   try {
     await deleteDraftInvoice(refId, orderId)
-    applyMeinvoiceClearedToOrder(orderId)
+    applyMeinvoiceDraftDeletedToOrder(orderId, refId)
     if (showInvoicePdfModal.value && invoicePdfRefLabel.value === refId) {
       closeInvoicePdfModal()
     }
     showDeleteInvoiceModal.value = false
     pendingDeleteInvoice.value = { orderId: '', refId: '' }
     showSuccessPopup(MSG_DELETE_SUCCESS)
+    await loadOrders()
   } catch (err) {
     const msg =
       (err instanceof Error ? err.message : null) || err?.message || MSG_DELETE_FAILED
@@ -1022,7 +1063,9 @@ async function handleCreateDraftInvoice(order) {
       const updated = {
         ...orders.value[idx],
         [RESPONSE_FIELD_MEINVOICE_INVOICED]: recorded,
+        [RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED]: recorded ? false : orders.value[idx][RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED],
         [RESPONSE_FIELD_MISA_INVOICE_REF]: recorded ? refId : orders.value[idx][RESPONSE_FIELD_MISA_INVOICE_REF],
+        [RESPONSE_FIELD_MEINVOICE_REF_ID]: recorded ? refId : orders.value[idx][RESPONSE_FIELD_MEINVOICE_REF_ID],
       }
       orders.value[idx] = updated
       if (selectedOrder.value && getOrderId(selectedOrder.value) === orderId) {

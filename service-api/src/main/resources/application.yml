@@ -105,7 +105,7 @@ meinvoice:
   credentials:
     taxcode: ${MEINVOICE_TAXCODE:008300006641}
     username: ${MEINVOICE_USERNAME:thiyen.vietnam@gmail.com}
-    password: ${MEINVOICE_PASSWORD:}
+    password: ${MEINVOICE_PASSWORD:Ms.ThiYen@@1}
   defaults:
     invoice-with-code: ${MEINVOICE_INVOICE_WITH_CODE:true}
     invoice-template-id: ${MEINVOICE_TEMPLATE_ID:4ae1095d-409c-4dc1-bfee-776a526034ea}

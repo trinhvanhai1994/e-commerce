@@ -98,6 +98,8 @@ public final class MeinvoiceIntegrationConstants {
             "Order already invoiced on MeInvoice (meinvoice_invoiced=true, refId=%s, orderId=%s)";
 
     public static final String SUBMISSION_ERROR_CODE_EXCEPTION = "Exception";
+    public static final String SUBMISSION_ERROR_CODE_DELETED = "DELETED";
+    public static final String SUBMISSION_MESSAGE_DELETED = "Draft invoice deleted on MeInvoice";
 
     public static final String VALIDATION_MEINVOICE_DISABLED = "MEINVOICE_DISABLED";
     public static final String VALIDATION_MEINVOICE_TEMPLATE_NOT_CONFIGURED = "MEINVOICE_TEMPLATE_NOT_CONFIGURED";

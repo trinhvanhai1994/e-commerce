@@ -26,6 +26,8 @@ public class OrderResponse {
     private String orderType;
     private String pancakeOrderId;
     private Boolean meinvoiceInvoiced;
+    /** Draft removed on MeInvoice; RefID retained for preview/download only. */
+    private Boolean meinvoiceDraftDeleted;
     /** Latest successful {@code meinvoice_submissions.ref_id} for this order. */
     private String misaInvoiceRef;
     private LocalDateTime createdAt;
