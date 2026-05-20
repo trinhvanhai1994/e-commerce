@@ -1,5 +1,6 @@
 package com.dragun.ecommerce.repository;
 
+import com.dragun.ecommerce.integration.pancake.PancakeCatalogConstants;
 import com.dragun.ecommerce.model.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +18,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByPancakeProductId(String pancakeProductId);
     List<Product> findByPancakeProductIdIsNull();
     
-    @Query("SELECT p FROM Product p WHERE p.pancakeSyncedAt IS NULL OR p.updatedAt > :updatedAt")
+    @Query("SELECT p FROM Product p WHERE (p.pancakeSyncedAt IS NULL OR p.updatedAt > :updatedAt) "
+            + "AND (p.deleted IS NULL OR p.deleted = false) "
+            + "AND (p.category IS NULL OR UPPER(p.category) <> 'SYSTEM') "
+            + "AND (p.pancakeProductId IS NULL OR (p.pancakeProductId <> '"
+            + PancakeCatalogConstants.UNMAPPED_LINE_PANCAKE_PRODUCT_ID
+            + "' AND p.pancakeProductId NOT LIKE '"
+            + PancakeCatalogConstants.INTERNAL_PANCAKE_PRODUCT_ID_PREFIX
+            + "%'))")
     List<Product> findProductsNeedingSync(@Param("updatedAt") LocalDateTime updatedAt);
     
     // Find all products that are not deleted

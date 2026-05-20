@@ -78,6 +78,22 @@ public class Order {
     
     @Column(name = "pancake_synced_at")
     private LocalDateTime pancakeSyncedAt;
+
+    /** {@code true} after first successful import from Pancake POS — skip re-import unless {@code force=true}. */
+    @Column(name = "pancake_imported", nullable = false)
+    @Builder.Default
+    private Boolean pancakeImported = false;
+
+    /** {@code true} after MeInvoice insert succeeded — do not create invoice again. */
+    @Column(name = "meinvoice_invoiced", nullable = false)
+    @Builder.Default
+    private Boolean meinvoiceInvoiced = false;
+
+    @Column(name = "meinvoice_ref_id", length = 64)
+    private String meinvoiceRefId;
+
+    @Column(name = "meinvoice_invoiced_at")
+    private LocalDateTime meinvoiceInvoicedAt;
     
     @PrePersist
     protected void onCreate() {

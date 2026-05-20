@@ -1,0 +1,1 @@
+function e(n,i){if(!i||i<=n||i<=0)return 0;const t=(i-n)/i*100;return Math.round(t)}function r(n){return n?n.oldPrice&&n.price&&n.oldPrice>n.price?e(n.price,n.oldPrice):n.discount||0:0}export{r as g};

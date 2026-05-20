@@ -24,6 +24,10 @@ public class OrderResponse {
     private String status; // Serialized as enum value (e.g., "pending", "confirmed")
     private String paymentMethod;
     private String orderType;
+    private String pancakeOrderId;
+    private Boolean meinvoiceInvoiced;
+    /** Latest successful {@code meinvoice_submissions.ref_id} for this order. */
+    private String misaInvoiceRef;
     private LocalDateTime createdAt;
     
     @Data

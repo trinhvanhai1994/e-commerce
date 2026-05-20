@@ -17,24 +17,23 @@ public class PancakeSyncScheduler {
     private final PancakeOrderSyncService orderSyncService;
     private final PancakeIntegrationConfig config;
     
-    @Scheduled(cron = "${pancake.sync.schedule.products.cron:0 */30 * * * *}")
+    @Scheduled(cron = "${pancake.sync.schedule.products.cron:0 */2 * * * *}")
     public void syncProducts() {
         if (!config.getSync().getEnabled() || !config.getSync().getSchedule().getProducts().getEnabled()) {
             log.debug("Product sync scheduled task is disabled");
             return;
         }
         
-        log.info("Starting scheduled product sync");
+        log.info("Starting scheduled product sync (import from Pancake only; push disabled in scheduler)");
         try {
             int fromCount = productSyncService.syncFromPancake();
-            int toCount = productSyncService.syncToPancake();
-            log.info("Scheduled product sync completed: {} from Pancake, {} to Pancake", fromCount, toCount);
+            log.info("Scheduled product sync completed: {} imported from Pancake", fromCount);
         } catch (Exception e) {
             log.error("Error in scheduled product sync: {}", e.getMessage(), e);
         }
     }
     
-    @Scheduled(cron = "${pancake.sync.schedule.orders.cron:0 */15 * * * *}")
+    @Scheduled(cron = "${pancake.sync.schedule.orders.cron:0 */2 * * * *}")
     public void syncOrders() {
         if (!config.getSync().getEnabled() || !config.getSync().getSchedule().getOrders().getEnabled()) {
             log.debug("Order sync scheduled task is disabled");

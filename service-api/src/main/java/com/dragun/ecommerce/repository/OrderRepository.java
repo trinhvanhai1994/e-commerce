@@ -1,5 +1,6 @@
 package com.dragun.ecommerce.repository;
 
+import com.dragun.ecommerce.integration.pancake.PancakeIntegrationConstants;
 import com.dragun.ecommerce.model.entity.Order;
 import com.dragun.ecommerce.model.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +28,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT o FROM Order o WHERE o.pancakeSyncedAt IS NULL OR o.updatedAt > :updatedAt")
     List<Order> findOrdersNeedingSync(@Param("updatedAt") LocalDateTime updatedAt);
+
+    @Query("SELECT DISTINCT o FROM Order o JOIN FETCH o.items i JOIN FETCH i.product WHERE o.orderId = :orderId")
+    Optional<Order> findByOrderIdWithItems(@Param("orderId") String orderId);
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product WHERE o.pancakeOrderId = :pancakeOrderId")
+    Optional<Order> findByPancakeOrderIdWithItems(@Param("pancakeOrderId") String pancakeOrderId);
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product WHERE o.id = :id")
+    Optional<Order> findByIdWithItems(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product WHERE o.orderType = '"
+            + PancakeIntegrationConstants.ORDER_TYPE_PANCAKE
+            + "' ORDER BY o.createdAt DESC")
+    List<Order> findPancakeOrdersWithItems();
 }
-
-

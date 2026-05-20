@@ -1,0 +1,972 @@
+{
+	"info": {
+		"_postman_id": "166fcfaf-949b-4392-b445-e5155fc26847",
+		"name": "API AIO WEB APP",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9386188",
+		"_collection_link": "https://planetary-equinox-280069.postman.co/workspace/meInvoice~51a4face-2497-4b15-b99b-a27d5ff99002/collection/9386188-166fcfaf-949b-4392-b445-e5155fc26847?action=share&source=collection_link&creator=9386188"
+	},
+	"item": [
+		{
+			"name": "1. GetToken WebApp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = pm.response.json();\r",
+							"let resData =JSON.parse(res.data);\r",
+							"pm.collectionVariables.set(\"token\",resData.access_token);\r",
+							"pm.collectionVariables.set(\"UserID\",resData.UserID);\r",
+							"pm.collectionVariables.set(\"OrganizationUnitID\",resData.OrganizationUnitID);\r",
+							"pm.collectionVariables.set(\"CompanyID\",resData.CompanyID);\r",
+							"pm.collectionVariables.set(\"UserName\",resData.UserName);\r",
+							"console.log(resData.access_token);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let moment = require('moment');\r",
+							"pm.collectionVariables.set(\"currentDate\", moment().format(\"YYYY-MM-DD\"));\r",
+							"let taxcodeTest = \"0111146660\";\r",
+							"let userTest = \"hotrotichhopmisa@gmail.com\";\r",
+							"let passTest = \"12345678@Abc\";\r",
+							"let hehe = \"\";\r",
+							"let test = 1;\r",
+							"if(test === 1)\r",
+							"{\r",
+							"    hehe = \"test\";\r",
+							"    taxcodeTest = \"0101243150-339\";\r",
+							"    userTest = \"testmisa@yahoo.com\";\r",
+							"    passTest = \"123456Aa\";\r",
+							"}\r",
+							"let url = \"https://\"+hehe+\"api.meinvoice.vn/api/integration/webapp\";\r",
+							"pm.collectionVariables.set(\"urlWeb\", url);\r",
+							"pm.collectionVariables.set(\"taxcode\",taxcodeTest);\r",
+							"pm.collectionVariables.set(\"username\",userTest);\r",
+							"pm.collectionVariables.set(\"password\",passTest);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"taxcode\": \"{{taxcode}}\",\r\n    \"username\": \"{{username}}\",\r\n    \"password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/token",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. GetTemplate",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"TaxCode\": \"{{taxcode}}\",\r\n  \"UserName\": \"{{username}}\",\r\n  \"Password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/templates?invoiceWithCode=true",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"templates"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						},
+						{
+							"key": "Isticket",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get ticket template",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{urlWeb}}/templates/ticket?invoiceWithCode=true&start=0&length=100&invoiceCalcu=true",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"templates",
+						"ticket"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						},
+						{
+							"key": "start",
+							"value": "0"
+						},
+						{
+							"key": "length",
+							"value": "100"
+						},
+						{
+							"key": "invoiceCalcu",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Insert",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"RefID\": \"116f0f15-bcfc-44a8-b690-2a27726e9f0e\",\r\n        \"InvSeries\": \"1C25MAD\",\r\n        \"InvDate\": \"2025-09-26T00:00:00+07:00\",\r\n        \"InvNo\": \"<Chưa cấp số>\",\r\n        \"AccountObjectAddress\": \"******hường Tân Hòa, Thành Phố Biên Hòa, Đồng Nai\",\r\n        \"ContactName\": \"N******m_250918RDESVXDX\",\r\n        \"PaymentMethod\": \"TM/CK\",\r\n        \"CurrencyCode\": \"VND\",\r\n        \"CurrencyID\": \"VND\",\r\n        \"DiscountRate\": 1.00,\r\n        \"ExchangeRate\": 1.00,\r\n        \"VATRate\": 8.0,\r\n        \"TotalSaleAmountOC\": 314815.0,\r\n        \"TotalDiscountAmountOC\": 0.0,\r\n        \"TotalVATAmountOC\": 25185.0,\r\n        \"TotalAmountOC\": 340000.0,\r\n        \"TotalSaleAmount\": 314815.0,\r\n        \"TotalDiscountAmount\": 0.0,\r\n        \"TotalVATAmount\": 25185.0,\r\n        \"TotalAmount\": 340000.0,\r\n        \"CreatedDate\": \"2025-09-26T00:00:00+07:00\",\r\n        \"ModifiedDate\": \"2025-09-26T00:00:00+07:00\",\r\n        \"InvoiceDetails\": [\r\n            {\r\n                \"Description\": \"Chai nước lau sàn sả chanh 1l\",\r\n                \"UnitName\": \"Chai\",\r\n                \"Quantity\": 1.0,\r\n                \"UnitPrice\": 111111.0,\r\n                \"AmountOC\": 104938.0,\r\n                \"Amount\": 104938.0,\r\n                \"DiscountRate\": 0.00,\r\n                \"DiscountAmountOC\": 0.0,\r\n                \"DiscountAmount\": 0.0,\r\n                \"VATRate\": 8.0,\r\n                \"VATAmountOC\": 8395.0,\r\n                \"VATAmount\": 8395.0,\r\n                \"SortOrder\": 1,\r\n                \"InventoryItemType\": 0,\r\n                \"SortOrderView\": 1\r\n            },\r\n            {\r\n                \"Description\": \"Chai nước lau sàn quế đậm đặc 1l\",\r\n                \"UnitName\": \"Chai\",\r\n                \"Quantity\": 2.0,\r\n                \"UnitPrice\": 104938.0,\r\n                \"AmountOC\": 209877.0,\r\n                \"Amount\": 209877.0,\r\n                \"DiscountRate\": 0.00,\r\n                \"DiscountAmountOC\": 0.0,\r\n                \"DiscountAmount\": 0.0,\r\n                \"VATRate\": 8.0,\r\n                \"VATAmountOC\": 16790.0,\r\n                \"VATAmount\": 16790.0,\r\n                \"SortOrder\": 2,\r\n                \"InventoryItemType\": 0,\r\n                \"SortOrderView\": 2\r\n            },\r\n            {\r\n                \"Description\": \"Chai nước lau sàn sả chanh 1l\",\r\n                \"UnitName\": \"Chai\",\r\n                \"Quantity\": 1.0,\r\n                \"UnitPrice\": 0.0,\r\n                \"AmountOC\": 0.0,\r\n                \"Amount\": 0.0,\r\n                \"DiscountRate\": 0.00,\r\n                \"DiscountAmountOC\": 0.0,\r\n                \"DiscountAmount\": 0.0,\r\n                \"VATRate\": 8.0,\r\n                \"VATAmountOC\": 0.0,\r\n                \"VATAmount\": 0.0,\r\n                \"SortOrder\": 3,\r\n                \"InventoryItemType\": 2,\r\n                \"SortOrderView\": 3\r\n            }\r\n        ],\r\n        \"InvoiceTemplateID\": \"df622dde-7ca3-4237-87ff-6a8fb759636a\",\r\n        \"CustomField1\": \"610222432\",\r\n        \"CustomField2\": \"SPXVN054507204099\",\r\n        \"CustomField3\": \"250918RDESVXDX\",\r\n        \"CustomField4\": \"SPX Express\",\r\n        \"CustomField5\": \"Shopee\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/insert",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"insert"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Insert ticket",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"RefID\": \"1abf4396-670e-4618-8680-1809be9049a7\",\r\n        \"TicketTemplateID\": \"bd4240e2-2110-4132-852f-e227ed6f4170\",\r\n        \"InvSeries\": \"5C25MAA\",\r\n        \"InvDate\": \"2025-06-13\",\r\n        \"TemplateType\": 1,\r\n        \"Quantity\": 1,\r\n        \"DeclarationType\": 0,\r\n        \"ServiceName\": \"Vé vào cổng\",\r\n        \"AccountObjectTaxCode\": null,\r\n        \"AccountObjectCode\": null,\r\n        \"AccountObjectName\": null,\r\n        \"AccountObjectAddress\": null,\r\n        \"AccountObjectBankAccount\": null,\r\n        \"AccountObjectBankName\": null,\r\n        \"ReceiverEmail\": null,\r\n        \"ReceiverMobile\": null,\r\n        \"ReceiverName\": null,\r\n        \"PaymentMethod\": \"Tiền mặt\",\r\n        \"ExchangeRate\": 1,\r\n        \"VATRate\": 10,\r\n        \"AmountWithoutVAT\": 50000,\r\n        \"VATAmount\": 5000,\r\n        \"Amount\": 55000,\r\n        \"TaxReduction43Amount\": 0,\r\n        \"AmountWithoutReduceVAT\": 0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/insert/ticket",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"insert",
+						"ticket"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. GetList",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    \"993d48fb-5c9a-4094-ac12-2f74e05390c2\",\"ce4462a1-5e4f-4d95-a01b-41311be11668\"\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/getlist?invoiceWithCode=true",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"getlist"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "paging",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Start\": 0,\r\n    \"Length\": 100,\r\n    \"Sort\": \"InvDate\",\r\n    \"FromDate\": \"2025-10-01\",\r\n    \"ToDate\": \"2025-10-02\",\r\n    \"PublishStatus\": \"0\"\r\n}  ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/paging?invoiceWithCode=true",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"paging"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "paging MTT",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Start\": 100,\r\n    \"Length\": 200,\r\n    \"Sort\": \"InvDate\",\r\n    \"RefID\": \"11\",\r\n    \"FromDate\": \"2025-10-09\",\r\n    \"ToDate\": \"2025-10-09\",\r\n    \"PublishStatus\": \"3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/paging/calculating",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"paging",
+						"calculating"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create item",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"InventoryItemID\": \"bcce4d72-6bce-4acd-9354-11a0b2070545\",\r\n    \"InventoryItemCode\": \"HH0008\",\r\n    \"InventoryItemName\": \"Áo khoác AK 999998\",\r\n    \"GroupCode\": null,\r\n    \"GroupID\": null,\r\n    \"GroupName\": null,\r\n    \"UnitName\": \"\",\r\n    \"Description\": \"mô tả hàng hóa\",\r\n    \"ExpiredDate\": null,\r\n    \"Source\": null,\r\n    \"UnitPrice\": 22000.0,\r\n    \"VATTaxRate\": 10.0,\r\n    \"VATRateBusinessGroup\": null,\r\n    \"TotalAmount\": null,\r\n    \"DiscountRate\": 0.0,\r\n    \"CreatedDate\": \"2024-08-15T17:06:24+07:00\",\r\n    \"CreatedBy\": \"testmisa@yahoo.com\",\r\n    \"ModifiedDate\": \"2024-08-15T17:06:24+07:00\",\r\n    \"ModifiedBy\": \"testmisa@yahoo.com\",\r\n    \"Inactive\": false,\r\n    \"CompanyID\": 113401,\r\n    \"IsUnitAfterTax\": false,\r\n    \"EditVersion\": 0,\r\n    \"BranchID\": null,\r\n    \"EntityState\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/InventoryItem/Insert",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"InventoryItem",
+						"Insert"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create account",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"AccountObjectID\": \"56102a2b-aa9b-4316-86a0-cfe9e501762c\",\r\n    \"AccountObjectType\": 0,\r\n    \"AccountObjectCode\": \"KH00003\",\r\n    \"AccountObjectName\": \"cty misa test 111\",\r\n    \"AccountObjectAddress\": \"ngoại giao đoàn\",\r\n    \"AccountObjectTaxCode\": \"\",\r\n    \"AccountObjectTel\": null,\r\n    \"AccountObjectFax\": null,\r\n    \"AccountObjectEmail\": null,\r\n    \"AccountObjectWebsite\": null,\r\n    \"AccountObjectBankAccount\": \"1234567\",\r\n    \"AccountObjectBankName\": \"acb\",\r\n    \"AccountObjectBankBranchName\": null,\r\n    \"Description\": null,\r\n    \"IdentificationNumber\": null,\r\n    \"IssueDate\": null,\r\n    \"IssueBy\": null,\r\n    \"ContactPrefix\": null,\r\n    \"ContactName\": null,\r\n    \"ContactTitle\": null,\r\n    \"ContactMobile\": null,\r\n    \"ContactOtherMobile\": null,\r\n    \"ContactEmail\": null,\r\n    \"InvoiceReceiverName\": \"Người mua hàng 01\",\r\n    \"BuyerName\": \"Người mua hàng 01\",\r\n    \"InvoiceReceiverAddress\": null,\r\n    \"InvoiceReceiverMobile\": \"0988111111\",\r\n    \"InvoiceReceiverEmail\": \"nmh@gmail.com\",\r\n    \"BuyerMobile\": \"0988111111\",\r\n    \"BuyerEmail\": \"nmh@gmail.com\",\r\n    \"ShippingAddress\": null,\r\n    \"Inactive\": false,\r\n    \"CreatedDate\": \"2024-07-11T14:41:19+07:00\",\r\n    \"CreatedBy\": \"testmisa@yahoo.com\",\r\n    \"ModifiedDate\": \"2024-07-11T14:41:19+07:00\",\r\n    \"ModifiedBy\": \"testmisa@yahoo.com\",\r\n    \"CompanyID\": 113400,\r\n    \"EditVersion\": 0,\r\n    \"BranchID\": null,\r\n    \"AccountObjectAddressNew\": null,\r\n    \"RelatedUnitCode\": null,\r\n    \"CitizenIDNumber\": null,\r\n    \"PassportNumber\": null,\r\n    \"EntityState\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/AccountObject/Insert",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"AccountObject",
+						"Insert"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View invoice by RefID",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var res = pm.response.json();\r",
+							"console.log(res.data);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{urlWeb}}/viewrefid?invoiceWithCode=true&refid=9347cb48-430b-41eb-8f1c-2e0297c06c8d",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"viewrefid"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						},
+						{
+							"key": "refid",
+							"value": "9347cb48-430b-41eb-8f1c-2e0297c06c8d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View invoice by Json value",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var moment = require('moment');\r",
+							"pm.globals.set('currentdate', moment().format((\"YYYY-MM-DD\")));\r",
+							"var uuid = require('uuid');\r",
+							"var myUUID = uuid.v4();\r",
+							"pm.globals.set('refid',myUUID);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"ContactName\": \"Lê Thị Nhung\",\r\n\t\"PaymentMethod\": \"TM/CK\",\r\n\t\"InvDate\": \"2025-06-03T00:00:00+07:00\",\r\n\t\"InvSeries\": \"1C25MAD\",\r\n\t\"InvoiceTemplateID\": \"df622dde-7ca3-4237-87ff-6a8fb759636a\",\r\n\t\"OtherSystemID\": \"D:\\\\TestToolExcel\\\\Original\\\\mì - Copy.xlsx\",\r\n\t\"CustomField9\": \"SO00010160119\",\r\n\t\"CustomField10\": \"Create by tool\",\r\n\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\"InvNo\": \"<Chưa cấp số>\",\r\n\t\"PublishStatus\": 0,\r\n\t\"SendInvoiceStatus\": 0,\r\n\t\"SendNumber\": 0,\r\n\t\"IsInvoiceReceipted\": false,\r\n\t\"CurrencyCode\": \"VND\",\r\n\t\"CurrencyID\": \"VND\",\r\n\t\"DiscountRate\": 0.0,\r\n\t\"ExchangeRate\": 1.0,\r\n\t\"VATRate\": 8.0,\r\n\t\"TotalSaleAmountOC\": 527778.0,\r\n\t\"TotalDiscountAmountOC\": 0.0,\r\n\t\"TotalVATAmountOC\": 42222.0,\r\n\t\"TotalAmountOC\": 570000.0,\r\n\t\"TotalSaleAmount\": 527778.0,\r\n\t\"TotalDiscountAmount\": 0.0,\r\n\t\"TotalVATAmount\": 42222.0,\r\n\t\"TotalAmount\": 570000.0,\r\n\t\"EInvoiceStatus\": 1,\r\n\t\"PaymentStatus\": 0,\r\n\t\"PaymentRule\": -1,\r\n\t\"IsInvoiceDiscount\": false,\r\n\t\"TypeDiscount\": 0,\r\n\t\"ApproveStep\": -3,\r\n\t\"CreatedDate\": \"2025-07-11T00:00:00+07:00\",\r\n\t\"ModifiedDate\": \"2025-07-11T00:00:00+07:00\",\r\n\t\"EditVersion\": 0,\r\n\t\"OrgInvoiceType\": 0,\r\n\t\"InvoiceDetails\": [\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"04f02767-c10c-4180-a6db-e26e8e755048\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"305000071\",\r\n\t\t\t\"Description\": \"450/24+4L6 chai Trà Mật Ong Boncha-Việt Quất (Uống Boncha - Vi Vu Châu Âu)\",\r\n\t\t\t\"UnitName\": \"Thùng\",\r\n\t\t\t\"Quantity\": 1.0,\r\n\t\t\t\"UnitPrice\": 175926.0,\r\n\t\t\t\"AmountOC\": 175926.0,\r\n\t\t\t\"Amount\": 175926.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 14074.0,\r\n\t\t\t\"VATAmount\": 14074.0,\r\n\t\t\t\"SortOrder\": 1,\r\n\t\t\t\"IsPromotion\": false,\r\n\t\t\t\"InventoryItemType\": 0,\r\n\t\t\t\"SortOrderView\": 1\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"8a0c7990-61b5-42eb-ae1e-ffcfcb8255cf\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"305000072\",\r\n\t\t\t\"Description\": \"450/24+4L6 chai Trà Mật Ong Boncha-Tắc (Uống Boncha - Vi Vu Châu Âu)\",\r\n\t\t\t\"UnitName\": \"Thùng\",\r\n\t\t\t\"Quantity\": 1.0,\r\n\t\t\t\"UnitPrice\": 175926.0,\r\n\t\t\t\"AmountOC\": 175926.0,\r\n\t\t\t\"Amount\": 175926.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 14074.0,\r\n\t\t\t\"VATAmount\": 14074.0,\r\n\t\t\t\"SortOrder\": 2,\r\n\t\t\t\"IsPromotion\": false,\r\n\t\t\t\"InventoryItemType\": 0,\r\n\t\t\t\"SortOrderView\": 2\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"bdbd6ce4-dc2c-4280-956d-fa0b689985c5\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"305000074\",\r\n\t\t\t\"Description\": \"450/24+4L6 chai Trà Mật Ong Boncha-Chanh (Uống Boncha - Vi Vu Châu Âu)\",\r\n\t\t\t\"UnitName\": \"Thùng\",\r\n\t\t\t\"Quantity\": 1.0,\r\n\t\t\t\"UnitPrice\": 175926.0,\r\n\t\t\t\"AmountOC\": 175926.0,\r\n\t\t\t\"Amount\": 175926.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 14074.0,\r\n\t\t\t\"VATAmount\": 14074.0,\r\n\t\t\t\"SortOrder\": 3,\r\n\t\t\t\"IsPromotion\": false,\r\n\t\t\t\"InventoryItemType\": 0,\r\n\t\t\t\"SortOrderView\": 3\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"9595ea55-67c8-47c2-abda-293bad32529c\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"N002\",\r\n\t\t\t\"Description\": \"Nắp Boncha\",\r\n\t\t\t\"UnitName\": \"Thùng\",\r\n\t\t\t\"Quantity\": 12.0,\r\n\t\t\t\"UnitPrice\": 0.0,\r\n\t\t\t\"AmountOC\": 0.0,\r\n\t\t\t\"Amount\": 0.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 0.0,\r\n\t\t\t\"VATAmount\": 0.0,\r\n\t\t\t\"SortOrder\": 4,\r\n\t\t\t\"IsPromotion\": false,\r\n\t\t\t\"InventoryItemType\": 0,\r\n\t\t\t\"SortOrderView\": 4\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"fa48c226-e412-4ff3-9165-7ced50157bf1\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"305000072\",\r\n\t\t\t\"Description\": \"450/24+4L6 chai Trà Mật Ong Boncha-Tắc (Uống Boncha - Vi Vu Châu Âu)\",\r\n\t\t\t\"UnitName\": \"Chai\",\r\n\t\t\t\"Quantity\": 16.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 0.0,\r\n\t\t\t\"VATAmount\": 0.0,\r\n\t\t\t\"SortOrder\": 5,\r\n\t\t\t\"IsPromotion\": true,\r\n\t\t\t\"InventoryItemType\": 2,\r\n\t\t\t\"SortOrderView\": 5\r\n\t\t},\r\n\t\t{\r\n\t\t\t\"RefDetailID\": \"3e7d3c26-a09b-48f4-b415-06a590d84faa\",\r\n\t\t\t\"RefID\": \"5b15c2d6-acd7-49cc-832d-98d656283cb2\",\r\n\t\t\t\"InventoryItemCode\": \"305000072\",\r\n\t\t\t\"Description\": \"450/24+4L6 chai Trà Mật Ong Boncha-Tắc (Uống Boncha - Vi Vu Châu Âu)\",\r\n\t\t\t\"UnitName\": \"Chai\",\r\n\t\t\t\"Quantity\": 8.0,\r\n\t\t\t\"DiscountRate\": 0.0,\r\n\t\t\t\"DiscountAmountOC\": 0.0,\r\n\t\t\t\"DiscountAmount\": 0.0,\r\n\t\t\t\"VATRate\": 8.0,\r\n\t\t\t\"VATAmountOC\": 0.0,\r\n\t\t\t\"VATAmount\": 0.0,\r\n\t\t\t\"SortOrder\": 6,\r\n\t\t\t\"IsPromotion\": true,\r\n\t\t\t\"InventoryItemType\": 2,\r\n\t\t\t\"SortOrderView\": 6\r\n\t\t}\r\n\t],\r\n\t\"SendToTaxStatus\": 0,\r\n\t\"IsTaxReduction43\": true,\r\n\t\"SpecificInvoiceType\": 0,\r\n\t\"OptionUserDefinedWeb\": {\r\n\t\t\"DecimalDigitCurrency\": \"0\",\r\n\t\t\"DecimalDigitCurrencyOC\": \"0\",\r\n\t\t\"DecimalDigitQuantity\": \"0\",\r\n\t\t\"DecimalDigitUnitPrice\": \"0\",\r\n\t\t\"DecimalDigitUnitPriceOC\": \"0\",\r\n\t\t\"DecimalDigitPercent\": \"0\",\r\n\t\t\"DecimalDigitExchange\": \"0\",\r\n\t\t\"isSaved\": false\r\n\t},\r\n\t\"CustomData\": \"{\\\"CustomField9\\\":\\\"SO00010160119\\\",\\\"CustomField10\\\":\\\"Create by tool\\\"}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{urlWeb}}/preview",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"preview"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete invoice by refId",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "taxcode",
+						"value": "{{taxcode}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{urlWeb}}/delete?invoiceWithCode=true&refid=5504aefa-b076-4177-a211-a1fc42ea4ab1",
+					"host": [
+						"{{urlWeb}}"
+					],
+					"path": [
+						"delete"
+					],
+					"query": [
+						{
+							"key": "invoiceWithCode",
+							"value": "true"
+						},
+						{
+							"key": "refid",
+							"value": "5504aefa-b076-4177-a211-a1fc42ea4ab1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "taxcode",
+			"value": ""
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "currentDate",
+			"value": ""
+		},
+		{
+			"key": "url",
+			"value": ""
+		},
+		{
+			"key": "urlallinonetoken",
+			"value": ""
+		},
+		{
+			"key": "urlallinone",
+			"value": ""
+		},
+		{
+			"key": "urlallinonetokenTest",
+			"value": ""
+		},
+		{
+			"key": "urlallinoneTest",
+			"value": ""
+		},
+		{
+			"key": "urlWeb",
+			"value": ""
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "UserID",
+			"value": ""
+		},
+		{
+			"key": "OrganizationUnitID",
+			"value": ""
+		},
+		{
+			"key": "CompanyID",
+			"value": ""
+		},
+		{
+			"key": "UserName",
+			"value": ""
+		}
+	]
+}

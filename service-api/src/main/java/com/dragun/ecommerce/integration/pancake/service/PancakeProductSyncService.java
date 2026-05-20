@@ -1,6 +1,8 @@
 package com.dragun.ecommerce.integration.pancake.service;
 
 import com.dragun.ecommerce.integration.config.PancakeIntegrationConfig;
+import com.dragun.ecommerce.integration.pancake.PancakeCatalogConstants;
+import com.dragun.ecommerce.integration.pancake.PancakeIntegrationConstants;
 import com.dragun.ecommerce.integration.pancake.client.PancakeApiClient;
 import com.dragun.ecommerce.integration.pancake.dto.PancakeProductDto;
 import com.dragun.ecommerce.integration.pancake.mapper.ProductMapper;
@@ -30,20 +32,26 @@ public class PancakeProductSyncService {
     private final PancakeProductMappingRepository mappingRepository;
     private final PancakeSyncLogRepository syncLogRepository;
     private final PancakeIntegrationConfig config;
+    private final PancakeCatalogFetchService catalogFetchService;
     
     /**
      * Sync products from Pancake to Thi Yen
      */
     @Transactional
     public int syncFromPancake() {
-        if (!config.getSync().getEnabled() || 
-            (!config.getSync().getDirection().equals("FROM_PANCAKE") && 
-             !config.getSync().getDirection().equals("BIDIRECTIONAL"))) {
+        if (!config.getSync().getEnabled()
+                || !PancakeIntegrationConstants.isSyncFromPancakeEnabled(config.getSync().getDirection())) {
             log.info("Sync from Pancake is disabled");
             return 0;
         }
         
         try {
+            try {
+                catalogFetchService.fetchAndLinkCatalog();
+            } catch (Exception e) {
+                log.warn("Catalog prefetch before product import failed (continuing): {}", e.getMessage());
+            }
+
             List<PancakeProductDto> pancakeProducts = pancakeApiClient.getProducts().block();
             if (pancakeProducts == null || pancakeProducts.isEmpty()) {
                 log.info("No products found in Pancake");
@@ -55,10 +63,14 @@ public class PancakeProductSyncService {
                 try {
                     syncProductFromPancake(pancakeProduct);
                     syncedCount++;
-                    logSync("PRODUCT", pancakeProduct.getId(), "FROM_PANCAKE", "SUCCESS", null);
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_PRODUCT, pancakeProduct.getId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_FROM_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_SUCCESS, null);
                 } catch (Exception e) {
                     log.error("Error syncing product {} from Pancake: {}", pancakeProduct.getId(), e.getMessage());
-                    logSync("PRODUCT", pancakeProduct.getId(), "FROM_PANCAKE", "FAILED", e.getMessage());
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_PRODUCT, pancakeProduct.getId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_FROM_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_FAILED, e.getMessage());
                 }
             }
             
@@ -75,9 +87,8 @@ public class PancakeProductSyncService {
      */
     @Transactional
     public int syncToPancake() {
-        if (!config.getSync().getEnabled() || 
-            (!config.getSync().getDirection().equals("TO_PANCAKE") && 
-             !config.getSync().getDirection().equals("BIDIRECTIONAL"))) {
+        if (!config.getSync().getEnabled()
+                || !PancakeIntegrationConstants.isSyncToPancakeEnabled(config.getSync().getDirection())) {
             log.info("Sync to Pancake is disabled");
             return 0;
         }
@@ -94,13 +105,22 @@ public class PancakeProductSyncService {
             
             int syncedCount = 0;
             for (Product product : productsToSync) {
+                if (!PancakeCatalogConstants.isSyncableToPancake(product)) {
+                    log.debug("Skipping non-syncable product id={} pancakeId={}",
+                            product.getId(), product.getPancakeProductId());
+                    continue;
+                }
                 try {
                     syncProductToPancake(product);
                     syncedCount++;
-                    logSync("PRODUCT", String.valueOf(product.getId()), "TO_PANCAKE", "SUCCESS", null);
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_PRODUCT, String.valueOf(product.getId()),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_TO_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_SUCCESS, null);
                 } catch (Exception e) {
                     log.error("Error syncing product {} to Pancake: {}", product.getId(), e.getMessage());
-                    logSync("PRODUCT", String.valueOf(product.getId()), "TO_PANCAKE", "FAILED", e.getMessage());
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_PRODUCT, String.valueOf(product.getId()),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_TO_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_FAILED, e.getMessage());
                 }
             }
             
@@ -167,12 +187,17 @@ public class PancakeProductSyncService {
      */
     @Transactional
     public PancakeProductDto syncProductToPancake(Product product) {
+        if (!PancakeCatalogConstants.isSyncableToPancake(product)) {
+            throw new IllegalArgumentException(
+                    "Product is not eligible for Pancake push (system/placeholder): id=" + product.getId());
+        }
         try {
-            log.info("Syncing product to Pancake: {} (ID: {})", product.getName(), product.getId());
-            
+            Long productId = product.getId();
+            log.info("Syncing product to Pancake: {} (ID: {})", product.getName(), productId);
+
             // Reload product with gallery to avoid LazyInitializationException
-            Product productWithGallery = productRepository.findById(product.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + product.getId()));
+            Product productWithGallery = productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
             
             // Initialize gallery collection if needed
             if (productWithGallery.getGallery() != null) {
@@ -195,7 +220,9 @@ public class PancakeProductSyncService {
             log.debug("Mapped product data: name={}, variations={}", 
                     pancakeProduct.getName(), pancakeProduct.getVariations().size());
             
-            if (product.getPancakeProductId() != null && !product.getPancakeProductId().isEmpty()) {
+            if (product.getPancakeProductId() != null
+                    && !product.getPancakeProductId().isEmpty()
+                    && !PancakeCatalogConstants.isSystemPancakeProductId(product.getPancakeProductId())) {
                 // Update existing product in Pancake
                 log.info("Updating existing product in Pancake: {}", product.getPancakeProductId());
                 pancakeProduct = pancakeApiClient.updateProduct(product.getPancakeProductId(), pancakeProduct)

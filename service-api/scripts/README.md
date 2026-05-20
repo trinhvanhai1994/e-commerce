@@ -6,11 +6,11 @@ Thư mục này chứa các scripts tiện ích để build, run và setup môi 
 
 ```
 scripts/
-├── setup/          # Scripts setup môi trường (JDK)
-├── build/          # Scripts build cho các môi trường
-├── run/            # Scripts run cho các môi trường
-├── copy-images.ps1 # Script copy ảnh từ service-ui sang service-api (Windows)
-└── copy-images.sh  # Script copy ảnh từ service-ui sang service-api (Linux/Mac)
+├── setup/              # Scripts setup môi trường (JDK)
+├── build/              # Scripts build cho các môi trường
+├── run/                # Scripts run cho các môi trường
+├── copy-images.ps1    # Script copy ảnh từ service-ui sang service-api (Windows)
+└── copy-images.sh     # Script copy ảnh từ service-ui sang service-api (Linux/Mac)
 ```
 
 ## 🔧 Setup Scripts

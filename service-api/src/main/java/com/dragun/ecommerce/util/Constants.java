@@ -15,7 +15,8 @@ public class Constants {
     };
     
     public static final String[] ADMIN_ENDPOINTS = {
-        "/api/dragun/admin/**"
+        "/api/dragun/admin/**",
+        "/api/thiyen/admin/**"
     };
     
     // Order Status - Deprecated: Use OrderStatus enum instead

@@ -17,9 +17,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.MediaType;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebSecurity
@@ -40,11 +44,27 @@ public class SecurityConfig {
                 // Public endpoints - must be first
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(Constants.PUBLIC_ENDPOINTS).permitAll()
-                .requestMatchers("/api/dragun/admin/login").permitAll()
+                .requestMatchers("/api/dragun/admin/login", "/api/thiyen/admin/login").permitAll()
                 // Admin endpoints - require authentication
-                .requestMatchers(Constants.ADMIN_ENDPOINTS).hasRole("ADMIN")
+                .requestMatchers(Constants.ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write(
+                            "{\"success\":false,\"message\":\"Unauthorized. Send header: Authorization: Bearer <data.token>\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write(
+                            "{\"success\":false,\"message\":\"Forbidden. Account must have ROLE_ADMIN.\"}");
+                })
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

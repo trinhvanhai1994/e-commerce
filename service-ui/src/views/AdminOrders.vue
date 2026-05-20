@@ -117,7 +117,7 @@
                     </svg>
                   </span>
                 </th>
-                <th class="px-3 py-2 text-left font-bold w-32">Phương Thức Thanh Toán</th>
+                <th class="px-3 py-2 text-left font-bold w-24">Nguồn</th>
                 <th class="px-3 py-2 text-left font-bold w-28">
                   Tổng Tiền
                   <span v-if="sortBy === 'total'" class="ml-1 text-xs">
@@ -129,6 +129,8 @@
                     </svg>
                   </span>
                 </th>
+                <th class="px-3 py-2 text-left font-bold w-36">Hóa Đơn MISA</th>
+                <th class="px-3 py-2 text-left font-bold w-28">Option Misa</th>
               </tr>
             </thead>
             <tbody>
@@ -172,8 +174,99 @@
                     <option :value="ORDER_STATUS.ORDER_STATUS_CANCELLED">Đã hủy</option>
                   </select>
                 </td>
-                <td class="px-3 py-2">{{ order.paymentMethod || order.payment }}</td>
-                <td class="px-3 py-2 font-semibold">{{ formatPrice(order.total) }}</td>
+                <td class="px-3 py-2 align-top">
+                  <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                    {{ formatOrderSource(order) }}
+                  </span>
+                </td>
+                <td class="px-3 py-2 font-semibold align-top whitespace-nowrap">{{ formatPrice(order.total) }}</td>
+                <td class="px-3 py-2 align-top" @click.stop>
+                  <span
+                    v-if="isMeinvoiceCreated(order)"
+                    class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-green-50 border-green-300 text-green-800"
+                    :title="getMisaInvoiceRef(order) || undefined"
+                  >
+                    Đã tạo hóa đơn
+                  </span>
+                  <button
+                    v-else
+                    type="button"
+                    class="px-2 py-1 text-xs font-semibold rounded-lg border border-green-600 text-green-700 bg-white hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition whitespace-nowrap"
+                    :disabled="draftInvoiceLoadingKey === getDraftInvoiceLoadingKey(order)"
+                    @click="handleCreateDraftInvoice(order)"
+                  >
+                    {{ draftInvoiceLoadingKey === getDraftInvoiceLoadingKey(order) ? 'Đang tạo...' : 'Tạo HĐ nháp' }}
+                  </button>
+                </td>
+                <td class="px-3 py-2 align-top" @click.stop>
+                  <div
+                    v-if="getMisaInvoiceRef(order)"
+                    class="flex items-center justify-center gap-0.5"
+                  >
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50 border border-transparent hover:border-green-200 transition disabled:opacity-50"
+                      title="Xem PDF hóa đơn nháp"
+                      :disabled="invoicePdfLoading && invoicePdfRefLabel === getMisaInvoiceRef(order)"
+                      @click="handleViewInvoicePdf(order)"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition disabled:opacity-50"
+                      title="Tải PDF hóa đơn về máy"
+                      :disabled="draftInvoicePdfDownloadRefId === getMisaInvoiceRef(order) || draftInvoiceDeleteRefId === getMisaInvoiceRef(order)"
+                      @click="handleDownloadInvoicePdf(order)"
+                    >
+                      <svg
+                        v-if="draftInvoicePdfDownloadRefId !== getMisaInvoiceRef(order)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span
+                        v-else
+                        class="w-5 h-5 block border-2 border-blue-400 border-t-transparent rounded-full animate-spin"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
+                      title="Xóa hóa đơn nháp trên MeInvoice"
+                      :disabled="draftInvoiceDeleteRefId === getMisaInvoiceRef(order)"
+                      @click="openDeleteDraftInvoiceConfirm(order)"
+                    >
+                      <svg
+                        v-if="draftInvoiceDeleteRefId !== getMisaInvoiceRef(order)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      <span
+                        v-else
+                        class="w-5 h-5 block border-2 border-red-400 border-t-transparent rounded-full animate-spin"
+                      />
+                    </button>
+                  </div>
+                  <span v-else class="text-gray-300 text-xs">—</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -189,6 +282,42 @@
             <button v-for="p in totalPages" :key="p" @click="goToPage(p)" :class="['px-2 py-1 rounded border text-xs', page === p ? 'bg-green-500 text-white' : 'bg-white hover:bg-green-50']">{{ p }}</button>
             <button @click="goToPage(page + 1)" :disabled="page === totalPages" class="px-2 py-1 rounded border text-xs" :class="page === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-white hover:bg-green-50'">Sau</button>
             <button @click="goToPage(totalPages)" :disabled="page === totalPages" class="px-2 py-1 rounded border text-xs" :class="page === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-white hover:bg-green-50'">Trang Cuối</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MeInvoice PDF preview -->
+      <div
+        v-if="showInvoicePdfModal"
+        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4"
+        @click.self="closeInvoicePdfModal"
+      >
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b bg-green-50">
+            <div>
+              <h3 class="text-lg font-bold text-gray-900">Xem trước hóa đơn nháp</h3>
+              <p v-if="invoicePdfRefLabel" class="text-xs font-mono text-gray-600 mt-0.5">Ref: {{ invoicePdfRefLabel }}</p>
+            </div>
+            <button type="button" class="text-gray-500 hover:text-gray-800 p-1" @click="closeInvoicePdfModal" aria-label="Đóng">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="flex-1 min-h-0 relative bg-gray-100">
+            <div v-if="invoicePdfLoading" class="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
+              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-3"></div>
+              <p>Đang tạo xem trước PDF (MeInvoice preview)...</p>
+            </div>
+            <div v-else-if="invoicePdfError" class="absolute inset-0 flex items-center justify-center p-6">
+              <p class="text-red-600 text-center">{{ invoicePdfError }}</p>
+            </div>
+            <MeinvoicePdfViewer
+              v-else-if="invoicePdfData"
+              :pdf-data="invoicePdfData"
+              class="absolute inset-0"
+              @error="onInvoicePdfViewerError"
+            />
           </div>
         </div>
       </div>
@@ -239,6 +368,65 @@
               class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
               Xác nhận
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete draft invoice confirmation -->
+      <div
+        v-if="showDeleteInvoiceModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]"
+        @click.self="cancelDeleteDraftInvoice"
+      >
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-invoice-modal-title">
+          <div class="flex items-center mb-4">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 id="delete-invoice-modal-title" class="text-lg font-medium text-gray-900">{{ MSG_DELETE_MODAL_TITLE }}</h3>
+            </div>
+          </div>
+
+          <div class="mb-6 space-y-3">
+            <p class="text-sm text-gray-600">
+              {{ MSG_DELETE_MODAL_BODY }}
+            </p>
+            <div class="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-600 shrink-0">Mã đơn:</span>
+                <strong class="text-gray-900 text-right">{{ pendingDeleteInvoice.orderId }}</strong>
+              </div>
+              <div>
+                <span class="text-gray-600">Ref MeInvoice:</span>
+                <p class="mt-1 font-mono text-xs text-gray-800 break-all leading-snug">{{ pendingDeleteInvoice.refId }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+              :disabled="!!draftInvoiceDeleteRefId"
+              @click="cancelDeleteDraftInvoice"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 inline-flex items-center gap-2"
+              :disabled="!!draftInvoiceDeleteRefId"
+              @click="confirmDeleteDraftInvoice"
+            >
+              <span
+                v-if="draftInvoiceDeleteRefId === pendingDeleteInvoice.refId"
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              />
+              {{ draftInvoiceDeleteRefId === pendingDeleteInvoice.refId ? 'Đang xóa...' : 'Xóa hóa đơn nháp' }}
             </button>
           </div>
         </div>
@@ -298,6 +486,94 @@
                   <label class="text-sm font-medium text-gray-600">Phương thức thanh toán:</label>
                   <p class="text-gray-900">{{ selectedOrder.paymentMethod || selectedOrder.payment }}</p>
                 </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-600">Nguồn:</label>
+                  <p class="text-gray-900">{{ formatOrderSource(selectedOrder) }}</p>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-600">Hóa đơn MISA:</label>
+                  <div v-if="isMeinvoiceCreated(selectedOrder)" class="mt-1 space-y-1">
+                    <span
+                      class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-green-50 border-green-300 text-green-800"
+                    >
+                      Đã tạo hóa đơn
+                    </span>
+                    <p v-if="getMisaInvoiceRef(selectedOrder)" class="text-xs font-mono text-gray-700 break-all">
+                      Ref: {{ getMisaInvoiceRef(selectedOrder) }}
+                    </p>
+                  </div>
+                  <button
+                    v-else
+                    type="button"
+                    class="mt-1 px-4 py-2 text-sm font-semibold rounded-lg border border-green-600 text-green-700 bg-white hover:bg-green-50 disabled:opacity-50"
+                    :disabled="draftInvoiceLoadingKey === getDraftInvoiceLoadingKey(selectedOrder)"
+                    @click="handleCreateDraftInvoice(selectedOrder)"
+                  >
+                    {{ draftInvoiceLoadingKey === getDraftInvoiceLoadingKey(selectedOrder) ? 'Đang tạo...' : 'Tạo HĐ nháp MeInvoice' }}
+                  </button>
+                </div>
+                <div v-if="getMisaInvoiceRef(selectedOrder)">
+                  <label class="text-sm font-medium text-gray-600">Option Misa:</label>
+                  <div class="mt-1 flex items-center gap-1">
+                    <button
+                      type="button"
+                      class="p-2 rounded-lg text-gray-600 hover:text-green-700 hover:bg-green-50"
+                      title="Xem PDF hóa đơn nháp"
+                      @click="handleViewInvoicePdf(selectedOrder)"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-2 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition disabled:opacity-50"
+                      title="Tải PDF hóa đơn về máy"
+                      :disabled="draftInvoicePdfDownloadRefId === getMisaInvoiceRef(selectedOrder) || draftInvoiceDeleteRefId === getMisaInvoiceRef(selectedOrder)"
+                      @click="handleDownloadInvoicePdf(selectedOrder)"
+                    >
+                      <svg
+                        v-if="draftInvoicePdfDownloadRefId !== getMisaInvoiceRef(selectedOrder)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span
+                        v-else
+                        class="w-5 h-5 block border-2 border-blue-400 border-t-transparent rounded-full animate-spin"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      class="p-2 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
+                      title="Xóa hóa đơn nháp trên MeInvoice"
+                      :disabled="draftInvoiceDeleteRefId === getMisaInvoiceRef(selectedOrder)"
+                      @click="openDeleteDraftInvoiceConfirm(selectedOrder)"
+                    >
+                      <svg
+                        v-if="draftInvoiceDeleteRefId !== getMisaInvoiceRef(selectedOrder)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      <span v-else class="w-5 h-5 block border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -312,7 +588,7 @@
                         :src="getProductImage(item)" 
                         :alt="item.name" 
                         class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                        @error="handleImageError($event, item)"
+                        @error="handleImageError($event)"
                         @click="openImageModal(getProductImage(item), getProductName(item))"
                       >
                       <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center absolute top-0 left-0" style="display: none;">
@@ -449,14 +725,57 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import AdminLayout from './AdminLayout.vue'
 import { orderAPI } from '../utils/api'
+import {
+  createDraftInvoice,
+  deleteDraftInvoice,
+  downloadInvoicePdf,
+  previewInvoicePdfArrayBuffer,
+} from '../services/meinvoice.service.js'
+import MeinvoicePdfViewer from '../components/MeinvoicePdfViewer.vue'
+import {
+  MEINVOICE_LOOKUP_BY_ORDER,
+  MEINVOICE_LOOKUP_BY_PANCAKE,
+  MSG_DELETE_MODAL_BODY,
+  MSG_DELETE_MODAL_TITLE,
+  MSG_DELETE_FAILED,
+  MSG_DELETE_SUCCESS,
+  MSG_DRAFT_SUCCESS,
+  MSG_DRAFT_SUCCESS_WITH_REF_FORMAT,
+  MSG_ORDER_NO_MISA_REF,
+  MSG_PDF_DOWNLOAD_FAILED,
+  MSG_PDF_LOAD_FAILED,
+  MSG_PDF_VIEWER_FAILED,
+  MISA_REF_DISPLAY_HEAD_LENGTH,
+  MISA_REF_DISPLAY_MAX_LENGTH,
+  MISA_REF_DISPLAY_TAIL_LENGTH,
+  ORDER_SOURCE_LABELS,
+  ORDER_TYPE_PANCAKE,
+  RESPONSE_FIELD_MEINVOICE_INVOICED,
+  RESPONSE_FIELD_MEINVOICE_REF_ID,
+  RESPONSE_FIELD_MISA_INVOICE_REF,
+  RESPONSE_FIELD_RECORDED_SUCCESS,
+  RESPONSE_FIELD_REF_ID,
+} from '../constants/meinvoice.constants.js'
 import { 
   ORDER_STATUS, 
   getStatusText as getStatusTextUtil, 
   getStatusClass as getStatusClassUtil,
   getStatusSelectClass as getStatusSelectClassUtil 
 } from '../constants/orderStatus.js'
+import { getProductImage as getProductImageUtil } from '../utils/productImage'
+import { getImageUrlFromApi } from '../utils/imageUtils.js'
+
+const PLACEHOLDER_PRODUCT_IMAGE = getImageUrlFromApi('/images/products/Combo-mix.png')
 
 const orders = ref([])
+const draftInvoiceLoadingKey = ref(null)
+const draftInvoiceDeleteRefId = ref(null)
+const draftInvoicePdfDownloadRefId = ref(null)
+const showInvoicePdfModal = ref(false)
+const invoicePdfLoading = ref(false)
+const invoicePdfData = ref(null)
+const invoicePdfError = ref('')
+const invoicePdfRefLabel = ref('')
 const loading = ref(true)
 const error = ref(null)
 const filters = ref({ orderId: '', status: '', paymentMethod: '', dateFrom: '', dateTo: '' })
@@ -472,6 +791,12 @@ const pendingUpdate = ref({
   currentStatus: '',
   newStatus: '',
   orderIndex: -1
+})
+
+const showDeleteInvoiceModal = ref(false)
+const pendingDeleteInvoice = ref({
+  orderId: '',
+  refId: '',
 })
 
 // Order detail modal state
@@ -524,6 +849,207 @@ function closePopup() {
   }
   showPopup.value = false
   popupMessage.value = ''
+}
+
+function formatOrderSource(order) {
+  const type = order?.orderType || order?.type || ''
+  if (!type) return '—'
+  return ORDER_SOURCE_LABELS[type] || type
+}
+
+function getMisaInvoiceRef(order) {
+  return order?.misaInvoiceRef || order?.meinvoiceRefId || null
+}
+
+function isMeinvoiceCreated(order) {
+  return order?.meinvoiceInvoiced === true || !!getMisaInvoiceRef(order)
+}
+
+function truncateMisaRef(ref) {
+  if (!ref || ref.length <= MISA_REF_DISPLAY_MAX_LENGTH) return ref
+  return `${ref.slice(0, MISA_REF_DISPLAY_HEAD_LENGTH)}…${ref.slice(-MISA_REF_DISPLAY_TAIL_LENGTH)}`
+}
+
+function getDraftInvoiceBy(order) {
+  const type = order?.orderType || order?.type
+  if (type === ORDER_TYPE_PANCAKE && order?.pancakeOrderId) {
+    return MEINVOICE_LOOKUP_BY_PANCAKE
+  }
+  return MEINVOICE_LOOKUP_BY_ORDER
+}
+
+function getDraftInvoiceOrderKey(order) {
+  if (getDraftInvoiceBy(order) === MEINVOICE_LOOKUP_BY_PANCAKE) {
+    return order.pancakeOrderId || getOrderId(order)
+  }
+  return getOrderId(order)
+}
+
+function getDraftInvoiceLoadingKey(order) {
+  return `${getDraftInvoiceBy(order)}:${getDraftInvoiceOrderKey(order)}`
+}
+
+function closeInvoicePdfModal() {
+  showInvoicePdfModal.value = false
+  invoicePdfLoading.value = false
+  invoicePdfData.value = null
+  invoicePdfError.value = ''
+  invoicePdfRefLabel.value = ''
+}
+
+function onInvoicePdfViewerError(message) {
+  invoicePdfError.value = message || MSG_PDF_VIEWER_FAILED
+  invoicePdfData.value = null
+}
+
+function applyMeinvoiceClearedToOrder(orderId) {
+  const idx = orders.value.findIndex((o) => getOrderId(o) === orderId)
+  if (idx < 0) return
+  const updated = {
+    ...orders.value[idx],
+    [RESPONSE_FIELD_MEINVOICE_INVOICED]: false,
+    [RESPONSE_FIELD_MISA_INVOICE_REF]: null,
+    [RESPONSE_FIELD_MEINVOICE_REF_ID]: null,
+  }
+  orders.value[idx] = updated
+  if (selectedOrder.value && getOrderId(selectedOrder.value) === orderId) {
+    selectedOrder.value = updated
+  }
+}
+
+function openDeleteDraftInvoiceConfirm(order) {
+  const refId = getMisaInvoiceRef(order)
+  if (!refId) {
+    showErrorPopup(MSG_ORDER_NO_MISA_REF)
+    return
+  }
+  pendingDeleteInvoice.value = {
+    orderId: getOrderId(order),
+    refId,
+  }
+  showDeleteInvoiceModal.value = true
+}
+
+function cancelDeleteDraftInvoice() {
+  if (draftInvoiceDeleteRefId.value) {
+    return
+  }
+  showDeleteInvoiceModal.value = false
+  pendingDeleteInvoice.value = { orderId: '', refId: '' }
+}
+
+async function confirmDeleteDraftInvoice() {
+  const { orderId, refId } = pendingDeleteInvoice.value
+  if (!refId || !orderId) {
+    return
+  }
+  draftInvoiceDeleteRefId.value = refId
+  try {
+    await deleteDraftInvoice(refId, orderId)
+    applyMeinvoiceClearedToOrder(orderId)
+    if (showInvoicePdfModal.value && invoicePdfRefLabel.value === refId) {
+      closeInvoicePdfModal()
+    }
+    showDeleteInvoiceModal.value = false
+    pendingDeleteInvoice.value = { orderId: '', refId: '' }
+    showSuccessPopup(MSG_DELETE_SUCCESS)
+  } catch (err) {
+    const msg =
+      (err instanceof Error ? err.message : null) || err?.message || MSG_DELETE_FAILED
+    showErrorPopup(msg)
+  } finally {
+    if (draftInvoiceDeleteRefId.value === refId) {
+      draftInvoiceDeleteRefId.value = null
+    }
+  }
+}
+
+async function handleDownloadInvoicePdf(order) {
+  const refId = getMisaInvoiceRef(order)
+  if (!refId) {
+    showErrorPopup(MSG_ORDER_NO_MISA_REF)
+    return
+  }
+  draftInvoicePdfDownloadRefId.value = refId
+  try {
+    await downloadInvoicePdf(refId)
+  } catch (err) {
+    const msg =
+      (err instanceof Error ? err.message : null) || err?.message || MSG_PDF_DOWNLOAD_FAILED
+    showErrorPopup(msg)
+  } finally {
+    if (draftInvoicePdfDownloadRefId.value === refId) {
+      draftInvoicePdfDownloadRefId.value = null
+    }
+  }
+}
+
+async function handleViewInvoicePdf(order) {
+  const refId = getMisaInvoiceRef(order)
+  if (!refId) {
+    showErrorPopup(MSG_ORDER_NO_MISA_REF)
+    return
+  }
+  showInvoicePdfModal.value = true
+  invoicePdfLoading.value = true
+  invoicePdfData.value = null
+  invoicePdfError.value = ''
+  invoicePdfRefLabel.value = refId
+  try {
+    invoicePdfData.value = await previewInvoicePdfArrayBuffer(
+      getDraftInvoiceOrderKey(order),
+      refId,
+      getDraftInvoiceBy(order)
+    )
+  } catch (err) {
+    invoicePdfError.value =
+      (err instanceof Error ? err.message : null) || err?.message || MSG_PDF_LOAD_FAILED
+  } finally {
+    invoicePdfLoading.value = false
+  }
+}
+
+async function handleCreateDraftInvoice(order) {
+  const loadingKey = getDraftInvoiceLoadingKey(order)
+  draftInvoiceLoadingKey.value = loadingKey
+  try {
+    const data = await createDraftInvoice(getDraftInvoiceOrderKey(order), getDraftInvoiceBy(order))
+    const recorded = data?.[RESPONSE_FIELD_RECORDED_SUCCESS] === true
+    const refId = data?.[RESPONSE_FIELD_MEINVOICE_REF_ID] || data?.[RESPONSE_FIELD_REF_ID]
+    const orderId = getOrderId(order)
+    const idx = orders.value.findIndex((o) => getOrderId(o) === orderId)
+    if (idx >= 0) {
+      const updated = {
+        ...orders.value[idx],
+        [RESPONSE_FIELD_MEINVOICE_INVOICED]: recorded,
+        [RESPONSE_FIELD_MISA_INVOICE_REF]: recorded ? refId : orders.value[idx][RESPONSE_FIELD_MISA_INVOICE_REF],
+      }
+      orders.value[idx] = updated
+      if (selectedOrder.value && getOrderId(selectedOrder.value) === orderId) {
+        selectedOrder.value = updated
+      }
+    }
+    if (recorded) {
+      showSuccessPopup(
+        refId ? MSG_DRAFT_SUCCESS_WITH_REF_FORMAT.replace('%s', refId) : MSG_DRAFT_SUCCESS
+      )
+    } else {
+      showErrorPopup(
+        data?.message || data?.meinvoiceResponse || 'MeInvoice trả về lỗi khi tạo hóa đơn nháp.'
+      )
+    }
+  } catch (err) {
+    const msg =
+      (err instanceof Error ? err.message : null) ||
+      err?.message ||
+      err?.data?.message ||
+      'Không thể tạo hóa đơn nháp. Kiểm tra đăng nhập admin và cấu hình MeInvoice.'
+    showErrorPopup(msg)
+  } finally {
+    if (draftInvoiceLoadingKey.value === loadingKey) {
+      draftInvoiceLoadingKey.value = null
+    }
+  }
 }
 
 // Load orders from API
@@ -612,163 +1138,7 @@ async function loadOrders() {
   } catch (err) {
     console.error('Error loading orders:', err)
     error.value = err.message || 'Không thể tải dữ liệu đơn hàng'
-    
-    // Fallback to mock data if API fails
-    orders.value = [
-      { 
-        id: '2507240002', 
-        customerName: 'TRAN XUAN NGHIA', 
-        createdAt: '2025-07-24 10:59:19', 
-        address: 'C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội', 
-        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
-        paymentMethod: 'COD', 
-        total: 618000, 
-        type: 'THI_YEN',
-        customerInfo: {
-          name: 'TRAN XUAN NGHIA',
-          phone: '0987654321',
-          address: 'C16 Khu đấu giá tân triều, thanh trì, hà nội Xã Tân Triều, Huyện Thanh Trì, Thành phố Hà Nội',
-          notes: 'Giao hàng vào buổi chiều, gọi trước khi giao'
-        },
-        items: [
-          {
-            productId: 1, // Test case: API trả về productId = 1 → "BỘT NGŨ HẮC MÈ ĐEN"
-            name: '', // Test case: name rỗng, sẽ fallback to defaultProducts
-            description: '', // Test case: description rỗng, sẽ fallback to defaultProducts
-            price: 299000,
-            quantity: 2,
-            image: '', // Test case: image rỗng, sẽ fallback to defaultProducts
-            imageUrl: '' // Test case: imageUrl rỗng
-          },
-          {
-            productId: 2, // Test case: API trả về productId = 2 → "COMBO 2 LON BỘT NGŨ HẮC MÈ ĐEN"
-            name: '', // Test case: name rỗng
-            description: '', // Test case: description rỗng
-            price: 499000,
-            quantity: 1,
-            image: '', // Test case: image rỗng
-            imageUrl: '' // Test case: imageUrl rỗng
-          },
-          {
-            productId: 99, // Test case: productId không có trong defaultProducts → "Sản phẩm #99"
-            name: '', // Test case: name rỗng
-            description: '', // Test case: description rỗng
-            price: 199000,
-            quantity: 1,
-            image: '', // Test case: image rỗng
-            imageUrl: '' // Test case: imageUrl rỗng
-          }
-        ]
-      },
-      { 
-        id: '2507240001', 
-        customerName: 'Phuong Thao Vu', 
-        createdAt: '2025-07-24 07:19:45', 
-        address: '72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội', 
-        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
-        paymentMethod: 'COD', 
-        total: 598000, 
-        type: 'THI_YEN',
-        customerInfo: {
-          name: 'Phuong Thao Vu',
-          phone: '0912345678',
-          address: '72, nguyễn trãi, r5 royal city Phường Thượng Đình, Quận Thanh Xuân, Thành phố Hà Nội',
-          notes: 'Không có ghi chú'
-        },
-        items: [
-          {
-            id: 2, // Test case: API trả về id (không phải productId)
-            productName: '', // Test case: productName rỗng, sẽ fallback to defaultProducts
-            desc: '', // Test case: desc rỗng, sẽ fallback to defaultProducts
-            price: 499000,
-            quantity: 2,
-            image: '', // Test case: image rỗng, sẽ fallback to defaultProducts
-            imageUrl: 'https://invalid-url.com/image.jpg' // Test case: API trả về imageUrl lỗi
-          }
-        ]
-      },
-      { 
-        id: '2507230003', 
-        customerName: 'Đoàn Hải Nam', 
-        createdAt: '2025-07-23 23:09:00', 
-        address: '4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội', 
-        status: ORDER_STATUS.ORDER_STATUS_SHIPPING, 
-        paymentMethod: 'COD', 
-        total: 618000, 
-        type: 'THI_YEN',
-        customerInfo: {
-          name: 'Đoàn Hải Nam',
-          phone: '0901234567',
-          address: '4 Phạm Sư Mạnh Phường Phan Chu Trinh, Quận Hoàn Kiếm, Thành phố Hà Nội',
-          notes: 'Giao hàng nhanh, khách hàng VIP'
-        },
-        items: [
-          {
-            id: 3, // Sẽ lấy từ defaultProducts: "BỘT NGŨ SẮC HỒNG ĐẬU"
-            name: '', // Test case: name rỗng, sẽ fallback to defaultProducts
-            description: '', // Test case: description rỗng, sẽ fallback to defaultProducts
-            price: 299000,
-            quantity: 2,
-            image: '', // Test case: image rỗng, sẽ fallback to defaultProducts
-            imageUrl: null // Test case: API không trả về imageUrl
-          }
-        ]
-      },
-      { 
-        id: '2507230002', 
-        customerName: 'Vĩ Bùi', 
-        createdAt: '2025-07-23 12:43:35', 
-        address: '444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh', 
-        status: ORDER_STATUS.ORDER_STATUS_DELIVERED, 
-        paymentMethod: 'COD', 
-        total: 598000, 
-        type: 'THI_YEN',
-        customerInfo: {
-          name: 'Vĩ Bùi',
-          phone: '0923456789',
-          address: '444 Cách Mạng Tháng 8 Phường 11, Quận 3, Thành phố Hồ Chí Minh',
-          notes: null
-        },
-        items: [
-          {
-            id: 4, // Sẽ lấy từ defaultProducts: "COMBO 2 LON BỘT NGŨ SẮC HỒNG ĐẬU"
-            name: '', // Test case: name rỗng, sẽ fallback to defaultProducts
-            description: '', // Test case: description rỗng, sẽ fallback to defaultProducts
-            price: 499000,
-            quantity: 2,
-            image: '', // Test case: image rỗng, sẽ fallback to defaultProducts
-            imageUrl: undefined // Test case: API không có field imageUrl
-          }
-        ]
-      },
-      { 
-        id: '2507230001', 
-        customerName: 'Nguyen thanh vu', 
-        createdAt: '2025-07-23 10:22:22', 
-        address: '103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh', 
-        status: ORDER_STATUS.ORDER_STATUS_CONFIRMED, 
-        paymentMethod: 'COD', 
-        total: 618000, 
-        type: 'THI_YEN',
-        customerInfo: {
-          name: 'Nguyen thanh vu',
-          phone: '0934567890',
-          address: '103/23 Hồ Thị Kỉ Phường 01, Quận 10, Thành phố Hồ Chí Minh',
-          notes: 'Đổi địa chỉ giao hàng, liên hệ trước'
-        },
-        items: [
-          {
-            id: 5, // Sẽ lấy từ defaultProducts: "COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)"
-            name: '', // Test case: name rỗng, sẽ fallback to defaultProducts
-            description: '', // Test case: description rỗng, sẽ fallback to defaultProducts
-            price: 499000,
-            quantity: 2,
-            image: '', // Test case: image rỗng, sẽ fallback to defaultProducts
-            imageUrl: '' // Test case: imageUrl rỗng
-          }
-        ]
-      },
-    ]
+    orders.value = []
   } finally {
     loading.value = false
   }
@@ -827,145 +1197,39 @@ function getCustomerNotes(order) {
   return order.notes || null
 }
 
-// Product image helper functions - sử dụng utility từ productImage.js
-import { getProductImage as getProductImageUtil } from '../utils/productImage'
-import { getImageUrlFromApi } from '../utils/imageUtils.js'
-
 function getProductImage(item) {
-  // Nếu item có mainImage hoặc image, sử dụng utility function
   if (item.mainImage || item.image) {
     return getProductImageUtil(item)
   }
-  
-  // Nếu có imageUrl từ API và hợp lệ
   if (item.imageUrl && item.imageUrl.trim() !== '') {
     return item.imageUrl
   }
-  
-  // Fallback: sử dụng utility function với ID
-  const productId = item.id || item.productId
-  return getProductImageUtil(productId)
+  return PLACEHOLDER_PRODUCT_IMAGE
 }
 
-function getDefaultProductImage(productId) {
-  // Đảm bảo productId là number
-  const numericProductId = Number(productId)
-  const product = defaultProducts.find(p => p.id === numericProductId)
-  return product ? product.image : getImageUrlFromApi('/images/products/Combo-mix.png') // Ảnh mặc định chung
-}
-
-function handleImageError(event, item) {
-  // Khi ảnh lỗi, thử ảnh mặc định theo ID (thử cả id và productId)
-  const productId = item.id || item.productId
-  const defaultImage = getDefaultProductImage(productId)
-  
-  // Nếu ảnh hiện tại không phải là ảnh mặc định, thử ảnh mặc định
-  if (event.target.src !== defaultImage) {
-    event.target.src = defaultImage
+function handleImageError(event) {
+  if (event.target.src !== PLACEHOLDER_PRODUCT_IMAGE) {
+    event.target.src = PLACEHOLDER_PRODUCT_IMAGE
   } else {
-    // Nếu ảnh mặc định cũng lỗi, hiển thị placeholder
     event.target.style.display = 'none'
-    event.target.nextElementSibling.style.display = 'flex'
+    if (event.target.nextElementSibling) {
+      event.target.nextElementSibling.style.display = 'flex'
+    }
   }
 }
 
-// Product name and description helper functions
 function getProductName(item) {
-  // Thử các field có thể có tên sản phẩm
-  if (item.name && item.name.trim() !== '') {
-    return item.name
+  const name = item.name || item.productName || item.title || item.productTitle
+  if (name && String(name).trim() !== '') {
+    return String(name).trim()
   }
-  if (item.productName && item.productName.trim() !== '') {
-    return item.productName
-  }
-  if (item.title && item.title.trim() !== '') {
-    return item.title
-  }
-  if (item.productTitle && item.productTitle.trim() !== '') {
-    return item.productTitle
-  }
-  
-  // Fallback: tên mặc định theo ID (thử cả id và productId)
   const productId = item.id || item.productId
-  return getDefaultProductName(productId)
+  return productId ? `Sản phẩm #${productId}` : 'Sản phẩm'
 }
 
 function getProductDescription(item) {
-  // Thử các field có thể có mô tả sản phẩm
-  if (item.description && item.description.trim() !== '') {
-    return item.description
-  }
-  if (item.desc && item.desc.trim() !== '') {
-    return item.desc
-  }
-  if (item.productDescription && item.productDescription.trim() !== '') {
-    return item.productDescription
-  }
-  
-  // Fallback: mô tả mặc định theo ID (thử cả id và productId)
-  const productId = item.id || item.productId
-  return getDefaultProductDescription(productId)
-}
-
-// Danh sách sản phẩm mặc định - đồng nhất với Home.vue
-const defaultProducts = [
-  { 
-    id: 1, 
-    name: 'BỘT NGŨ HẮC MÈ ĐEN', 
-    description: 'Bột Ngũ Hắc Mè Đen là bữa ăn thay thế tiện lợi, bổ dưỡng từ 5 loại hạt đen nguyên bản', 
-    image: getImageUrlFromApi('/images/products/me-den.jpg'),
-    category: 'me-den',
-    price: 299000,
-    oldPrice: 390000
-  },
-  { 
-    id: 2, 
-    name: 'COMBO 2 LON BỘT NGŨ HẮC MÈ ĐEN', 
-    description: 'Combo tiết kiệm cho gia đình với 2 lon bột ngũ hắc mè đen', 
-    image: getImageUrlFromApi('/images/products/combo-black.png'),
-    category: 'combo',
-    price: 499000,
-    oldPrice: 780000
-  },
-  { 
-    id: 3, 
-    name: 'BỘT NGŨ SẮC HỒNG ĐẬU', 
-    description: 'Bột Ngũ Sắc Hồng Đậu là bữa ăn thay thế tiện lợi, bổ dưỡng từ 5 loại hạt hồng đậu', 
-    image: getImageUrlFromApi('/images/products/hong-dau.jpg'),
-    category: 'hong-dau',
-    price: 299000,
-    oldPrice: 390000
-  },
-  { 
-    id: 4, 
-    name: 'COMBO 2 LON BỘT NGŨ SẮC HỒNG ĐẬU', 
-    description: 'Combo tiết kiệm cho gia đình với 2 lon bột ngũ sắc hồng đậu', 
-    image: getImageUrlFromApi('/images/products/combo-pink.png'),
-    category: 'combo',
-    price: 499000,
-    oldPrice: 780000
-  },
-  { 
-    id: 5, 
-    name: 'COMBO 2 (1 BỘT NGŨ HẮC MÈ ĐEN + 1 BỘT NGŨ SẮC HỒNG ĐẬU)', 
-    description: 'Combo tiết kiệm cho gia đình với 1 lon mè đen và 1 lon hồng đậu', 
-    image: getImageUrlFromApi('/images/products/Combo-mix.png'),
-    category: 'combo',
-    price: 499000,
-    oldPrice: 780000
-  }
-]
-
-function getDefaultProductName(productId) {
-  // Đảm bảo productId là number
-  const numericProductId = Number(productId)
-  const product = defaultProducts.find(p => p.id === numericProductId)
-  return product ? product.name : `Sản phẩm #${productId}`
-}
-
-function getDefaultProductDescription(productId) {
-  const product = defaultProducts.find(p => p.id === productId)
-  return product ? product.description : null
+  const desc = item.description || item.desc || item.productDescription
+  return desc && String(desc).trim() !== '' ? String(desc).trim() : null
 }
 
 // Get order status with normalization (for display)
@@ -1327,6 +1591,8 @@ onUnmounted(() => {
     clearTimeout(popupTimeout)
     popupTimeout = null
   }
+
+  invoicePdfData.value = null
 })
 </script>
 
@@ -1427,5 +1693,6 @@ td, th {
   .w-24 {
     width: 4rem;
   }
+
 }
 </style> 

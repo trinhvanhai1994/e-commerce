@@ -36,6 +36,12 @@ Hướng dẫn tích hợp với Pancake POS:
 - Chạy test tích hợp
 - Troubleshooting
 
+### 5. [Kết luận tích hợp MISA MeInvoice](./05-meinvoice-integration-conclusion.md)
+Tích hợp API MeInvoice (tạo hóa đơn chưa phát hành), cấu hình biến môi trường, và các hạng mục cần bổ sung để go-live.
+
+### 6. [Báo cáo đồ án Lập trình Java](./BAO-CAO-DO-AN-LAP-TRINH-JAVA.md)
+Mẫu báo cáo đồ án (Markdown chuẩn Pandoc → DOCX, font Times New Roman 13pt, line spacing 1.5) — nộp môn Java.
+
 ## 🚀 Quick Start
 
 Nếu bạn mới bắt đầu, hãy làm theo thứ tự:

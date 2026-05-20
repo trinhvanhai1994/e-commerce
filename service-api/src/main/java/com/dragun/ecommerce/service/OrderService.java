@@ -2,9 +2,12 @@ package com.dragun.ecommerce.service;
 
 import com.dragun.ecommerce.exception.BadRequestException;
 import com.dragun.ecommerce.exception.ResourceNotFoundException;
+import com.dragun.ecommerce.integration.meinvoice.model.MeinvoiceSubmission;
+import com.dragun.ecommerce.integration.meinvoice.repository.MeinvoiceSubmissionRepository;
 import com.dragun.ecommerce.model.dto.request.CreateOrderRequest;
 import com.dragun.ecommerce.model.dto.request.UpdateOrderStatusRequest;
 import com.dragun.ecommerce.model.dto.response.OrderResponse;
+import com.dragun.ecommerce.model.OrderIntegrationConstants;
 import com.dragun.ecommerce.model.entity.Order;
 import com.dragun.ecommerce.model.entity.OrderItem;
 import com.dragun.ecommerce.model.entity.Product;
@@ -14,11 +17,14 @@ import com.dragun.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +33,7 @@ public class OrderService {
     
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final MeinvoiceSubmissionRepository meinvoiceSubmissionRepository;
     
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
@@ -44,7 +51,7 @@ public class OrderService {
         order.setWardCode(request.getCustomerInfo().getWard());
         order.setStatus(OrderStatus.ORDER_STATUS_PENDING);
         order.setPaymentMethod("COD");
-        order.setOrderType("THI_YEN");
+        order.setOrderType(OrderIntegrationConstants.ORDER_TYPE_THI_YEN);
         
         BigDecimal[] subTotal = {BigDecimal.ZERO};
         List<OrderItem> items = request.getItems().stream()
@@ -84,24 +91,28 @@ public class OrderService {
         order.setItems(items);
         
         Order savedOrder = orderRepository.save(order);
-        return mapToResponse(savedOrder);
+        return mapToResponse(savedOrder, null);
     }
     
     public OrderResponse getOrderById(String orderId) {
         Order order = orderRepository.findByOrderId(orderId)
             .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
-        return mapToResponse(order);
+        return mapToResponse(order, resolveMisaInvoiceRef(order, null));
     }
     
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAllByOrderByCreatedAtDesc().stream()
-            .map(this::mapToResponse)
+        List<Order> orders = orderRepository.findAllByOrderByCreatedAtDesc();
+        Map<String, String> misaRefByOrderId = loadLatestMisaInvoiceRefs(orders);
+        return orders.stream()
+            .map(order -> mapToResponse(order, misaRefByOrderId.get(order.getOrderId())))
             .collect(Collectors.toList());
     }
     
     public List<OrderResponse> getOrdersByCustomerPhone(String phone) {
-        return orderRepository.findByCustomerPhone(phone).stream()
-            .map(this::mapToResponse)
+        List<Order> orders = orderRepository.findByCustomerPhone(phone);
+        Map<String, String> misaRefByOrderId = loadLatestMisaInvoiceRefs(orders);
+        return orders.stream()
+            .map(order -> mapToResponse(order, misaRefByOrderId.get(order.getOrderId())))
             .collect(Collectors.toList());
     }
     
@@ -118,7 +129,37 @@ public class OrderService {
         
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
-        return mapToResponse(updatedOrder);
+        return mapToResponse(updatedOrder, resolveMisaInvoiceRef(updatedOrder, null));
+    }
+
+    private Map<String, String> loadLatestMisaInvoiceRefs(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return Map.of();
+        }
+        List<String> orderIds = orders.stream().map(Order::getOrderId).distinct().toList();
+        List<MeinvoiceSubmission> submissions =
+                meinvoiceSubmissionRepository.findByOrderBusinessIdInAndSuccessTrueOrderByCreatedAtDesc(orderIds);
+        Map<String, String> refs = new HashMap<>();
+        for (MeinvoiceSubmission submission : submissions) {
+            refs.putIfAbsent(submission.getOrderBusinessId(), submission.getRefId());
+        }
+        return refs;
+    }
+
+    private String resolveMisaInvoiceRef(Order order, String submissionRefId) {
+        if (StringUtils.hasText(submissionRefId)) {
+            return submissionRefId;
+        }
+        if (order != null && StringUtils.hasText(order.getMeinvoiceRefId())) {
+            return order.getMeinvoiceRefId();
+        }
+        if (order == null) {
+            return null;
+        }
+        return meinvoiceSubmissionRepository
+                .findFirstByOrderBusinessIdAndSuccessTrueOrderByCreatedAtDesc(order.getOrderId())
+                .map(MeinvoiceSubmission::getRefId)
+                .orElse(null);
     }
     
     /**
@@ -138,7 +179,10 @@ public class OrderService {
         return datePrefix + sequence;
     }
     
-    private OrderResponse mapToResponse(Order order) {
+    private OrderResponse mapToResponse(Order order, String misaInvoiceRef) {
+        String resolvedRef = resolveMisaInvoiceRef(order, misaInvoiceRef);
+        boolean meinvoiceInvoiced = Boolean.TRUE.equals(order.getMeinvoiceInvoiced())
+                || StringUtils.hasText(resolvedRef);
         OrderResponse.CustomerInfo customerInfo = OrderResponse.CustomerInfo.builder()
             .name(order.getCustomerName())
             .phone(order.getCustomerPhone())
@@ -168,6 +212,9 @@ public class OrderService {
             .status(order.getStatus() != null ? order.getStatus().getValue() : null)
             .paymentMethod(order.getPaymentMethod())
             .orderType(order.getOrderType())
+            .pancakeOrderId(order.getPancakeOrderId())
+            .meinvoiceInvoiced(meinvoiceInvoiced)
+            .misaInvoiceRef(resolvedRef)
             .createdAt(order.getCreatedAt())
             .build();
     }

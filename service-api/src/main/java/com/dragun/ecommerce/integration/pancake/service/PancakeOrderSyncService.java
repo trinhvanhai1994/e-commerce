@@ -1,11 +1,16 @@
 package com.dragun.ecommerce.integration.pancake.service;
 
 import com.dragun.ecommerce.integration.config.PancakeIntegrationConfig;
+import com.dragun.ecommerce.integration.pancake.PancakeCatalogConstants;
+import com.dragun.ecommerce.integration.pancake.PancakeIntegrationConstants;
 import com.dragun.ecommerce.integration.pancake.client.PancakeApiClient;
 import com.dragun.ecommerce.integration.pancake.dto.PancakeOrderDto;
+import com.dragun.ecommerce.integration.pancake.dto.PancakeOrderSyncBatchResult;
 import com.dragun.ecommerce.integration.pancake.mapper.OrderMapper;
 import com.dragun.ecommerce.integration.pancake.model.PancakeOrderMapping;
 import com.dragun.ecommerce.integration.pancake.model.PancakeSyncLog;
+import com.dragun.ecommerce.integration.pancake.model.PancakeCatalogEntry;
+import com.dragun.ecommerce.integration.pancake.repository.PancakeCatalogEntryRepository;
 import com.dragun.ecommerce.integration.pancake.repository.PancakeOrderMappingRepository;
 import com.dragun.ecommerce.integration.pancake.repository.PancakeSyncLogRepository;
 import com.dragun.ecommerce.model.entity.Order;
@@ -34,43 +39,70 @@ public class PancakeOrderSyncService {
     private final PancakeOrderMappingRepository mappingRepository;
     private final PancakeSyncLogRepository syncLogRepository;
     private final PancakeIntegrationConfig config;
+    private final PancakeCatalogEntryRepository catalogEntryRepository;
     
     /**
      * Sync orders from Pancake to Thi Yen
      */
     @Transactional
     public int syncFromPancake() {
-        if (!config.getSync().getEnabled() || 
-            (!config.getSync().getDirection().equals("FROM_PANCAKE") && 
-             !config.getSync().getDirection().equals("BIDIRECTIONAL"))) {
+        return syncFromPancake(false).imported();
+    }
+
+    /**
+     * @param forceResync when {@code true}, re-import orders even if {@code pancake_imported=true}
+     */
+    @Transactional
+    public PancakeOrderSyncBatchResult syncFromPancake(boolean forceResync) {
+        if (!config.getSync().getEnabled()
+                || !PancakeIntegrationConstants.isSyncFromPancakeEnabled(config.getSync().getDirection())) {
             log.info("Sync from Pancake is disabled");
-            return 0;
+            return new PancakeOrderSyncBatchResult(0, 0, 0);
         }
-        
+
         try {
             List<PancakeOrderDto> pancakeOrders = pancakeApiClient.getOrders().block();
             if (pancakeOrders == null || pancakeOrders.isEmpty()) {
                 log.info("No orders found in Pancake");
-                return 0;
+                return new PancakeOrderSyncBatchResult(0, 0, 0);
             }
-            
-            int syncedCount = 0;
+
+            int imported = 0;
+            int skipped = 0;
+            int failed = 0;
             for (PancakeOrderDto pancakeOrder : pancakeOrders) {
+                if (pancakeOrder.getId() == null || pancakeOrder.getId().isBlank()) {
+                    continue;
+                }
+                if (shouldSkipPancakeImport(pancakeOrder.getId(), forceResync)) {
+                    skipped++;
+                    log.debug("Skipping already imported Pancake order id={}", pancakeOrder.getId());
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_ORDER, pancakeOrder.getId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_FROM_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_SKIPPED,
+                            PancakeIntegrationConstants.SYNC_SKIP_REASON_ALREADY_IMPORTED);
+                    continue;
+                }
                 try {
-                    syncOrderFromPancake(pancakeOrder);
-                    syncedCount++;
-                    logSync("ORDER", pancakeOrder.getId(), "FROM_PANCAKE", "SUCCESS", null);
+                    syncOrderFromPancake(pancakeOrder, forceResync);
+                    imported++;
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_ORDER, pancakeOrder.getId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_FROM_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_SUCCESS, null);
                 } catch (Exception e) {
+                    failed++;
                     log.error("Error syncing order {} from Pancake: {}", pancakeOrder.getId(), e.getMessage());
-                    logSync("ORDER", pancakeOrder.getId(), "FROM_PANCAKE", "FAILED", e.getMessage());
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_ORDER, pancakeOrder.getId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_FROM_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_FAILED, e.getMessage());
                 }
             }
-            
-            log.info("Synced {} orders from Pancake", syncedCount);
-            return syncedCount;
+
+            log.info("Pancake order import: imported={}, skipped={}, failed={}", imported, skipped, failed);
+            return new PancakeOrderSyncBatchResult(imported, skipped, failed);
         } catch (Exception e) {
             log.error("Error syncing orders from Pancake: {}", e.getMessage());
-            return 0;
+            return new PancakeOrderSyncBatchResult(0, 0, 0);
         }
     }
     
@@ -79,9 +111,8 @@ public class PancakeOrderSyncService {
      */
     @Transactional
     public int syncToPancake() {
-        if (!config.getSync().getEnabled() || 
-            (!config.getSync().getDirection().equals("TO_PANCAKE") && 
-             !config.getSync().getDirection().equals("BIDIRECTIONAL"))) {
+        if (!config.getSync().getEnabled()
+                || !PancakeIntegrationConstants.isSyncToPancakeEnabled(config.getSync().getDirection())) {
             log.info("Sync to Pancake is disabled");
             return 0;
         }
@@ -101,10 +132,14 @@ public class PancakeOrderSyncService {
                 try {
                     syncOrderToPancake(order);
                     syncedCount++;
-                    logSync("ORDER", order.getOrderId(), "TO_PANCAKE", "SUCCESS", null);
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_ORDER, order.getOrderId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_TO_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_SUCCESS, null);
                 } catch (Exception e) {
                     log.error("Error syncing order {} to Pancake: {}", order.getOrderId(), e.getMessage());
-                    logSync("ORDER", order.getOrderId(), "TO_PANCAKE", "FAILED", e.getMessage());
+                    logSync(PancakeIntegrationConstants.SYNC_ENTITY_ORDER, order.getOrderId(),
+                            PancakeIntegrationConstants.SYNC_DIRECTION_TO_PANCAKE,
+                            PancakeIntegrationConstants.SYNC_LOG_STATUS_FAILED, e.getMessage());
                 }
             }
             
@@ -121,38 +156,68 @@ public class PancakeOrderSyncService {
      */
     @Transactional
     public Order syncOrderFromPancake(PancakeOrderDto pancakeOrder) {
-        // Check if order already exists by pancake_order_id
-        Optional<Order> existingOrderOpt = orderRepository.findByPancakeOrderId(pancakeOrder.getId());
-        
+        return syncOrderFromPancake(pancakeOrder, false);
+    }
+
+    @Transactional
+    public Order syncOrderFromPancake(PancakeOrderDto pancakeOrder, boolean forceResync) {
+        String pancakeOrderId = pancakeOrder.getId();
+        if (pancakeOrderId != null && shouldSkipPancakeImport(pancakeOrderId, forceResync)) {
+            return orderRepository.findByPancakeOrderIdWithItems(pancakeOrderId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Pancake order already imported: " + pancakeOrderId));
+        }
+
+        pancakeOrder = enrichOrderFromPancakeApi(pancakeOrder);
+        Product unmappedLineProduct = requireUnmappedLineProduct();
+
+        Optional<Order> existingOrderOpt = orderRepository.findByPancakeOrderIdWithItems(pancakeOrder.getId());
+
         Order order;
         if (existingOrderOpt.isPresent()) {
-            // Update existing order
             order = existingOrderOpt.get();
             orderMapper.updateThiYenOrder(order, pancakeOrder);
+            if (pancakeOrder.getItems() != null && !pancakeOrder.getItems().isEmpty()) {
+                orderMapper.replaceOrderItemsFromPancake(
+                        order,
+                        pancakeOrder.getItems(),
+                        this::resolveProductForLine,
+                        unmappedLineProduct);
+            }
         } else {
-            // Check mapping table
             Optional<PancakeOrderMapping> mappingOpt = mappingRepository.findByPancakeOrderId(pancakeOrder.getId());
             if (mappingOpt.isPresent()) {
-                order = mappingOpt.get().getLocalOrder();
+                Long localOrderId = mappingOpt.get().getLocalOrder().getId();
+                order = orderRepository.findByIdWithItems(localOrderId)
+                        .orElseThrow(() -> new IllegalStateException(
+                                "Pancake mapping references missing order id=" + localOrderId));
                 orderMapper.updateThiYenOrder(order, pancakeOrder);
+                if (pancakeOrder.getItems() != null && !pancakeOrder.getItems().isEmpty()) {
+                    orderMapper.replaceOrderItemsFromPancake(
+                            order,
+                            pancakeOrder.getItems(),
+                            this::resolveProductForLine,
+                            unmappedLineProduct);
+                }
             } else {
-                // Create new order
                 order = orderMapper.toThiYenOrder(pancakeOrder);
-                
-                // Create order items
+
                 if (pancakeOrder.getItems() != null && !pancakeOrder.getItems().isEmpty()) {
                     List<OrderItem> orderItems = orderMapper.createOrderItemsFromPancake(
-                            order, 
+                            order,
                             pancakeOrder.getItems(),
-                            this::findProductByPancakeId
-                    );
+                            this::resolveProductForLine,
+                            unmappedLineProduct);
                     order.setItems(orderItems);
                 }
             }
         }
         
+        order.setPancakeOrderId(pancakeOrder.getId());
+        order.setPancakeImported(true);
+        order.setPancakeSyncedAt(LocalDateTime.now());
         order = orderRepository.save(order);
-        
+
         // Update or create mapping
         Optional<PancakeOrderMapping> mappingOpt = mappingRepository.findByLocalOrderId(order.getId());
         PancakeOrderMapping mapping;
@@ -206,8 +271,87 @@ public class PancakeOrderSyncService {
         return pancakeOrder;
     }
     
-    private Product findProductByPancakeId(String pancakeProductId) {
-        return productRepository.findByPancakeProductId(pancakeProductId).orElse(null);
+    /**
+     * List endpoint often returns summary rows without customer/items — load detail when needed.
+     */
+    private PancakeOrderDto enrichOrderFromPancakeApi(PancakeOrderDto summary) {
+        if (summary == null || summary.getId() == null || summary.getId().isBlank()) {
+            return summary;
+        }
+        boolean needsDetail = !orderMapper.hasCustomerPayload(summary)
+                || summary.getItems() == null
+                || summary.getItems().isEmpty();
+        if (!needsDetail) {
+            return summary;
+        }
+        try {
+            PancakeOrderDto detail = pancakeApiClient.getOrderById(summary.getId()).block();
+            if (detail != null) {
+                return orderMapper.mergeOrderDetail(summary, detail);
+            }
+        } catch (Exception e) {
+            log.warn("Could not load Pancake order detail for id={}: {}", summary.getId(), e.getMessage());
+        }
+        return summary;
+    }
+
+    /**
+     * Match POS line to local catalog: variation SKU first (Pancake variant id), then base product id.
+     */
+    private Product resolveProductForLine(PancakeOrderDto.PancakeOrderItem line) {
+        String variationId = line.getVariationId() != null ? line.getVariationId().trim() : "";
+        String productId = line.getProductId() != null ? line.getProductId().trim() : "";
+
+        if (!variationId.isBlank()) {
+            Optional<Product> byVariation = productRepository.findByPancakeProductId(variationId);
+            if (byVariation.isPresent()) {
+                return byVariation.get();
+            }
+        }
+        if (!productId.isBlank()) {
+            Optional<Product> byProduct = productRepository.findByPancakeProductId(productId);
+            if (byProduct.isPresent()) {
+                return byProduct.get();
+            }
+        }
+
+        String shopId = config.getApi().getShopId();
+        if (shopId != null && !shopId.isBlank()) {
+            shopId = shopId.trim();
+            Optional<PancakeCatalogEntry> catalogHit = Optional.empty();
+            if (!variationId.isBlank() && !productId.isBlank()) {
+                catalogHit = catalogEntryRepository.findFirstByShopIdAndPancakeProductIdAndPancakeVariationId(
+                        shopId, productId, variationId);
+            }
+            if (catalogHit.isEmpty() && !variationId.isBlank()) {
+                catalogHit = catalogEntryRepository.findFirstByShopIdAndPancakeVariationId(shopId, variationId);
+            }
+            if (catalogHit.isPresent() && catalogHit.get().getLocalProduct() != null) {
+                return catalogHit.get().getLocalProduct();
+            }
+        }
+        return null;
+    }
+
+    private boolean shouldSkipPancakeImport(String pancakeOrderId, boolean forceResync) {
+        if (forceResync) {
+            return false;
+        }
+        if (!Boolean.TRUE.equals(config.getSync().getSkipAlreadyImportedOrders())) {
+            return false;
+        }
+        return orderRepository.findByPancakeOrderId(pancakeOrderId)
+                .map(order -> Boolean.TRUE.equals(order.getPancakeImported()))
+                .orElse(false);
+    }
+
+    private Product requireUnmappedLineProduct() {
+        return productRepository
+                .findByPancakeProductId(PancakeCatalogConstants.UNMAPPED_LINE_PANCAKE_PRODUCT_ID)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Missing placeholder product pancake_product_id="
+                                + PancakeCatalogConstants.UNMAPPED_LINE_PANCAKE_PRODUCT_ID
+                                + "; apply Flyway migration V17"));
     }
     
     private void logSync(String entityType, String entityId, String direction, String status, String errorMessage) {
