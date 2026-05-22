@@ -36,8 +36,16 @@ Hướng dẫn tích hợp với Pancake POS:
 - Chạy test tích hợp
 - Troubleshooting
 
-### 5. [Tích hợp MISA MeInvoice (Thiyen)](./05-meinvoice-integration-conclusion.md)
-Luồng V1 nháp + V2 phát hành (HSM/MTT), cấu hình `application-*.yml`, API admin, đối chiếu MISA UI. Spec gốc: [V1](./Tài%20liệu%20API%20Tạp%20hóa%20đơn%20Misa.md) · [V2](./Tài%20liệu%20API%20Tạo%20hóa%20đơn%20Misa_V2.md).
+### 5. [Tích hợp MISA MeInvoice — tóm tắt kỹ thuật](./05-meinvoice-integration-conclusion.md)
+Cheatsheet vận hành: config, endpoint, checklist QA.
+
+### 6. [Đặc tả nghiệp vụ MeInvoice (BA)](./06-meinvoice-functional-specification.md)
+Tài liệu đầy đủ: phạm vi, luồng, quy tắc nghiệp vụ, UAT, ánh xạ dữ liệu, UI admin.
+
+### 7. [Detail Design MeInvoice (phát triển)](./07-meinvoice-detail-design.md)
+Kiến trúc, package, sequence, DB, REST contract, MISA API mapping, validation, mở rộng.
+
+**Spec gốc MISA:** [V1 WebApp](./Tài%20liệu%20API%20Tạp%20hóa%20đơn%20Misa.md) · [V2 Phát hành](./Tài%20liệu%20API%20Tạo%20hóa%20đơn%20Misa_V2.md) · [Postman](./API%20AIO%20WEB%20APP_MISA.postman_collection.json)
 
 ### 6. [Báo cáo đồ án Lập trình Java](./BAO-CAO-DO-AN-LAP-TRINH-JAVA.md)
 Mẫu báo cáo đồ án (Markdown chuẩn Pandoc → DOCX, font Times New Roman 13pt, line spacing 1.5) — nộp môn Java.

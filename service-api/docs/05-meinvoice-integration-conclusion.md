@@ -1,5 +1,8 @@
 # Tích hợp MISA MeInvoice — Thiyen (service-api)
 
+> **Tài liệu đầy đủ:** [Đặc tả nghiệp vụ (BA)](./06-meinvoice-functional-specification.md) · [Detail Design](./07-meinvoice-detail-design.md)  
+> File này là **bản tóm tắt nhanh** cho dev/ops.
+
 Tài liệu **triển khai thực tế** trong repo. Spec gốc MISA:
 
 | Tài liệu | Phạm vi |
