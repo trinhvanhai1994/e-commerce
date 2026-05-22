@@ -3,7 +3,6 @@ package com.dragun.ecommerce.integration.meinvoice.client;
 import com.dragun.ecommerce.integration.meinvoice.MeinvoiceIntegrationConstants;
 import com.dragun.ecommerce.integration.meinvoice.config.MeinvoiceIntegrationConfig;
 import com.dragun.ecommerce.integration.meinvoice.dto.MeinvoiceInvoiceData;
-import com.dragun.ecommerce.integration.meinvoice.dto.MeinvoicePagingRequest;
 import com.dragun.ecommerce.integration.meinvoice.dto.MeinvoiceTemplateListRequest;
 import com.dragun.ecommerce.integration.meinvoice.service.MeinvoiceAuthService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,10 +61,6 @@ public class MeinvoiceApiClient {
 
     public JsonNode getInvoicesByRefIds(boolean invoiceWithCode, List<String> refIds) {
         return authorizedPost(MeinvoiceIntegrationConstants.API_PATH_GET_LIST, invoiceWithCode, refIds).block();
-    }
-
-    public JsonNode pagingInvoices(boolean invoiceWithCode, MeinvoicePagingRequest pagingRequest) {
-        return authorizedPost(MeinvoiceIntegrationConstants.API_PATH_PAGING, invoiceWithCode, pagingRequest).block();
     }
 
     public byte[] fetchInvoicePdfBytesByViewRefId(boolean invoiceWithCode, String refId) {

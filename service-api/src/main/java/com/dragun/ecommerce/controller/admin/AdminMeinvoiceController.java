@@ -2,6 +2,8 @@ package com.dragun.ecommerce.controller.admin;
 
 import com.dragun.ecommerce.integration.meinvoice.MeinvoiceIntegrationConstants;
 import com.dragun.ecommerce.integration.meinvoice.config.MeinvoiceIntegrationConfig;
+import com.dragun.ecommerce.integration.meinvoice.publish.MeinvoicePublishConstants;
+import com.dragun.ecommerce.integration.meinvoice.publish.service.MeinvoicePublishService;
 import com.dragun.ecommerce.integration.meinvoice.service.MeinvoiceInvoiceService;
 import com.dragun.ecommerce.model.dto.response.ApiResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,8 +46,13 @@ public class AdminMeinvoiceController {
     private static final String MESSAGE_LOOKUP_FAILED_FORMAT = "Lookup failed: %s";
     private static final String MESSAGE_DELETE_OK = "Draft invoice deleted on MeInvoice";
     private static final String MESSAGE_DELETE_FAILED_FORMAT = "Delete draft invoice failed: %s";
+    private static final String MESSAGE_PUBLISH_OK = "Invoice published on MeInvoice";
+    private static final String MESSAGE_PUBLISH_FAILED_FORMAT = "Publish invoice failed: %s";
+    private static final String MESSAGE_STATUS_OK = "Invoice status synced";
+    private static final String MESSAGE_STATUS_FAILED_FORMAT = "Failed to sync invoice status: %s";
 
     private final MeinvoiceInvoiceService meinvoiceInvoiceService;
+    private final MeinvoicePublishService meinvoicePublishService;
     private final MeinvoiceIntegrationConfig meinvoiceIntegrationConfig;
 
     @PostMapping("/test-connection")
@@ -200,6 +207,111 @@ public class AdminMeinvoiceController {
         }
     }
 
+    @PostMapping("/orders/{orderId}/publish-invoice")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> publishInvoice(
+            @PathVariable String orderId,
+            @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
+        try {
+            Map<String, Object> data = meinvoicePublishService.publishDraftInvoiceForOrder(
+                    orderId,
+                    isLookupByPancake(by));
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(true)
+                    .data(data)
+                    .message(MESSAGE_PUBLISH_OK)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .message(String.format(Locale.ROOT, MESSAGE_PUBLISH_FAILED_FORMAT, e.getMessage()))
+                    .build());
+        }
+    }
+
+    @PostMapping("/orders/{orderId}/invoice-status")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> syncInvoiceStatus(
+            @PathVariable String orderId,
+            @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
+        try {
+            Map<String, Object> data = meinvoicePublishService.syncPublishStatusForOrder(
+                    orderId,
+                    isLookupByPancake(by));
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(true)
+                    .data(data)
+                    .message(MESSAGE_STATUS_OK)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .message(String.format(Locale.ROOT, MESSAGE_STATUS_FAILED_FORMAT, e.getMessage()))
+                    .build());
+        }
+    }
+
+    /**
+     * Preview published PDF for admin popup (base64 JSON — same auth path as {@code invoice-preview}).
+     */
+    @PostMapping("/invoices/published-preview")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> previewPublishedInvoicePdf(
+            @RequestParam String transactionId,
+            @RequestParam(required = false) String refId) {
+        if (!StringUtils.hasText(transactionId)) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.<Map<String, Object>>builder()
+                            .success(false)
+                            .message(MeinvoicePublishConstants.ERROR_TRANSACTION_ID_REQUIRED)
+                            .build());
+        }
+        try {
+            Map<String, Object> data = meinvoicePublishService.previewPublishedPdfBase64(
+                    transactionId.trim(),
+                    refId);
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(true)
+                    .data(data)
+                    .message(MESSAGE_PDF_OK)
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                    .success(false)
+                    .message(String.format(Locale.ROOT, MESSAGE_PDF_FAILED_FORMAT, e.getMessage()))
+                    .build());
+        }
+    }
+
+    /**
+     * Download published PDF via V2 {@code POST /invoice/download} (requires {@code transactionId}).
+     */
+    @GetMapping(value = "/invoices/published-pdf", produces = MeinvoiceIntegrationConstants.MIME_TYPE_APPLICATION_PDF)
+    public ResponseEntity<?> downloadPublishedInvoicePdf(@RequestParam String transactionId) {
+        if (!StringUtils.hasText(transactionId)) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.builder()
+                            .success(false)
+                            .message(MeinvoicePublishConstants.ERROR_TRANSACTION_ID_REQUIRED)
+                            .build());
+        }
+        try {
+            byte[] pdf = meinvoicePublishService.downloadPublishedPdfBytes(transactionId);
+            String safeName = transactionId.replaceAll(
+                    MeinvoiceIntegrationConstants.REF_ID_FILENAME_SAFE_PATTERN,
+                    "_");
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(MeinvoiceIntegrationConstants.MIME_TYPE_APPLICATION_PDF))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, String.format(
+                            Locale.ROOT,
+                            MeinvoiceIntegrationConstants.CONTENT_DISPOSITION_ATTACHMENT_FILENAME_FORMAT,
+                            safeName))
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.builder()
+                    .success(false)
+                    .message(String.format(Locale.ROOT, MESSAGE_PDF_FAILED_FORMAT, e.getMessage()))
+                    .build());
+        }
+    }
+
     @PostMapping("/lookup-by-ref-ids")
     public ResponseEntity<ApiResponse<JsonNode>> lookupByRefIds(
             @RequestParam(required = false) Boolean invoiceWithCode,
@@ -226,6 +338,6 @@ public class AdminMeinvoiceController {
     }
 
     private static boolean isLookupByPancake(String by) {
-        return MeinvoiceIntegrationConstants.LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+        return MeinvoiceIntegrationConstants.isLookupByPancake(by);
     }
 }

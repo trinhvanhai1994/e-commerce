@@ -1,5 +1,9 @@
 Tài liệu hướng dẫn tích hợp API MISA MeInvoice (Tạo hóa đơn từ ERP)
 
+> **Thiyen (`service-api`)** — tài liệu spec gốc MISA. Triển khai V1 trong repo dùng các API mục **2–8** (`/webapp/token`, `/webapp/templates`, `/webapp/preview`, `/webapp/insert`, `/webapp/getlist`, `/webapp/viewrefid`, `/webapp/delete`).  
+> Luồng đầy đủ (V1 nháp + V2 phát hành, MTT, cấu hình, endpoint admin): **[05-meinvoice-integration-conclusion.md](./05-meinvoice-integration-conclusion.md)**.  
+> Phát hành HSM/MTT: **[Tài liệu API Tạo hóa đơn Misa_V2.md](./Tài%20liệu%20API%20Tạo%20hóa%20đơn%20Misa_V2.md)**.
+
 [**1\. Giới thiệu 2**](#_8mwx4pxd1ujs)
 
 [1.1. Thông tin cần trước khi kết nối 2](#_icgpjhvxyzfy)

@@ -28,6 +28,12 @@ public class OrderResponse {
     private Boolean meinvoiceInvoiced;
     /** Draft removed on MeInvoice; RefID retained for preview/download only. */
     private Boolean meinvoiceDraftDeleted;
+    /** Published on MeInvoice via V2 {@code POST /invoice}. */
+    private Boolean meinvoicePublished;
+    private java.time.LocalDateTime meinvoicePublishedAt;
+    private String meinvoiceTransactionId;
+    private String meinvoiceInvNo;
+    private Integer meinvoiceSendTaxStatus;
     /** Latest successful {@code meinvoice_submissions.ref_id} for this order. */
     private String misaInvoiceRef;
     private LocalDateTime createdAt;

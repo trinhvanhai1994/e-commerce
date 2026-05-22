@@ -186,7 +186,9 @@ public class OrderService {
     private OrderResponse mapToResponse(Order order, String misaInvoiceRef) {
         String resolvedRef = resolveMisaInvoiceRef(order, misaInvoiceRef);
         boolean draftDeleted = Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted());
+        boolean meinvoicePublished = Boolean.TRUE.equals(order.getMeinvoicePublished());
         boolean meinvoiceInvoiced = !draftDeleted
+                && !meinvoicePublished
                 && (Boolean.TRUE.equals(order.getMeinvoiceInvoiced()) || StringUtils.hasText(resolvedRef));
         OrderResponse.CustomerInfo customerInfo = OrderResponse.CustomerInfo.builder()
             .name(order.getCustomerName())
@@ -220,6 +222,11 @@ public class OrderService {
             .pancakeOrderId(order.getPancakeOrderId())
             .meinvoiceInvoiced(meinvoiceInvoiced)
             .meinvoiceDraftDeleted(draftDeleted)
+            .meinvoicePublished(meinvoicePublished)
+            .meinvoicePublishedAt(order.getMeinvoicePublishedAt())
+            .meinvoiceTransactionId(order.getMeinvoiceTransactionId())
+            .meinvoiceInvNo(order.getMeinvoiceInvNo())
+            .meinvoiceSendTaxStatus(order.getMeinvoiceSendTaxStatus())
             .misaInvoiceRef(resolvedRef)
             .createdAt(order.getCreatedAt())
             .build();

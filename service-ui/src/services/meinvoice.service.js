@@ -1,11 +1,11 @@
 import { httpClient } from './http/client.js'
 import {
-  LOCAL_STORAGE_AUTH_TOKEN,
   MEINVOICE_API_BASE,
   MEINVOICE_LOOKUP_BY_ORDER,
   MEINVOICE_LOOKUP_BY_PANCAKE,
   MIME_TYPE_APPLICATION_PDF,
   MSG_PDF_DOWNLOAD_FAILED,
+  MSG_PDF_UNAUTHORIZED,
   MSG_PDF_EMPTY,
   MSG_PDF_NOT_PDF_BYTES,
   PDF_DOWNLOAD_FILENAME_FORMAT,
@@ -16,6 +16,7 @@ import {
   PDF_MIN_HEADER_LENGTH,
   QUERY_PARAM_ORDER_ID,
   QUERY_PARAM_REF_ID,
+  QUERY_PARAM_TRANSACTION_ID,
   RESPONSE_FIELD_PDF_BASE64,
 } from '../constants/meinvoice.constants.js'
 
@@ -86,6 +87,27 @@ function isPdfArrayBuffer(buffer) {
   )
 }
 
+/**
+ * GET PDF/binary via ServiceApiAdapter (Authorization + interceptors).
+ * @param {string} path - path under service-api, e.g. /api/thiyen/admin/integration/meinvoice/invoices/pdf
+ * @param {Object} params - query params
+ * @returns {Promise<ArrayBuffer>}
+ */
+async function fetchMeinvoicePdfArrayBuffer(path, params) {
+  const adapter = httpClient.getAdapter()
+  if (!adapter?.fetchBinary) {
+    throw new Error(MSG_PDF_DOWNLOAD_FAILED)
+  }
+  try {
+    return await adapter.fetchBinary(path, params, MIME_TYPE_APPLICATION_PDF)
+  } catch (err) {
+    if (err?.status === 401) {
+      throw new Error(MSG_PDF_UNAUTHORIZED)
+    }
+    throw err
+  }
+}
+
 function triggerBrowserPdfDownload(blob, filename) {
   const objectUrl = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -103,37 +125,73 @@ function triggerBrowserPdfDownload(blob, filename) {
  * @param {string} refId
  */
 export async function downloadInvoicePdf(refId) {
-  const adapter = httpClient.getAdapter()
-  if (!adapter?.buildUrl || !adapter?.buildQueryString) {
-    throw new Error(MSG_PDF_DOWNLOAD_FAILED)
-  }
-  const url = `${adapter.buildUrl(`${MEINVOICE_API_BASE}/invoices/pdf`)}${adapter.buildQueryString({
+  const buffer = await fetchMeinvoicePdfArrayBuffer(`${MEINVOICE_API_BASE}/invoices/pdf`, {
     [QUERY_PARAM_REF_ID]: refId,
-  })}`
-  const token = localStorage.getItem(LOCAL_STORAGE_AUTH_TOKEN)
-  const headers = { Accept: MIME_TYPE_APPLICATION_PDF }
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-  const response = await fetch(url, { method: 'GET', headers })
-  const contentType = response.headers.get('content-type') || ''
-  if (!response.ok) {
-    if (contentType.includes('json')) {
-      const body = await response.json()
-      throw new Error(body?.message || MSG_PDF_DOWNLOAD_FAILED)
-    }
-    throw new Error(MSG_PDF_DOWNLOAD_FAILED)
-  }
-  if (contentType.includes('json')) {
-    const body = await response.json()
-    throw new Error(body?.message || MSG_PDF_DOWNLOAD_FAILED)
-  }
-  const buffer = await response.arrayBuffer()
+  })
   if (!isPdfArrayBuffer(buffer)) {
     throw new Error(MSG_PDF_NOT_PDF_BYTES)
   }
   const safeRef = String(refId).replace(/[^a-zA-Z0-9-]/g, '_')
   const filename = PDF_DOWNLOAD_FILENAME_FORMAT.replace('%s', safeRef)
+  triggerBrowserPdfDownload(new Blob([buffer], { type: MIME_TYPE_APPLICATION_PDF }), filename)
+}
+
+/**
+ * Publish draft via V2 POST /invoice (HSM SignType 2).
+ * @param {string} orderKey
+ * @param {typeof MEINVOICE_LOOKUP_BY_ORDER | typeof MEINVOICE_LOOKUP_BY_PANCAKE} by
+ */
+export async function publishDraftInvoice(orderKey, by = MEINVOICE_LOOKUP_BY_ORDER) {
+  return httpClient.post(
+    `${MEINVOICE_API_BASE}/orders/${encodeURIComponent(orderKey)}/publish-invoice${buildLookupQuery(by)}`,
+    {}
+  )
+}
+
+/**
+ * Sync publish/CQT status from MeInvoice.
+ */
+export async function syncInvoicePublishStatus(orderKey, by = MEINVOICE_LOOKUP_BY_ORDER) {
+  return httpClient.post(
+    `${MEINVOICE_API_BASE}/orders/${encodeURIComponent(orderKey)}/invoice-status${buildLookupQuery(by)}`,
+    {}
+  )
+}
+
+/**
+ * Download published PDF (V2 /invoice/download).
+ * @param {string} transactionId
+ */
+/**
+ * Fetch published PDF bytes for PDF.js viewer.
+ * @param {string} transactionId
+ * @returns {Promise<ArrayBuffer>}
+ */
+export async function fetchPublishedInvoicePdfArrayBuffer(transactionId, refId = null) {
+  const params = new URLSearchParams()
+  params.set(QUERY_PARAM_TRANSACTION_ID, transactionId)
+  if (refId) {
+    params.set(QUERY_PARAM_REF_ID, refId)
+  }
+  const data = await httpClient.post(
+    `${MEINVOICE_API_BASE}/invoices/published-preview?${params.toString()}`,
+    {}
+  )
+  const pdfBase64 = data?.[RESPONSE_FIELD_PDF_BASE64]
+  if (!pdfBase64) {
+    throw new Error(MSG_PDF_EMPTY)
+  }
+  const buffer = base64ToArrayBuffer(pdfBase64)
+  if (!isPdfArrayBuffer(buffer)) {
+    throw new Error(MSG_PDF_NOT_PDF_BYTES)
+  }
+  return buffer
+}
+
+export async function downloadPublishedInvoicePdf(transactionId, refId = null) {
+  const buffer = await fetchPublishedInvoicePdfArrayBuffer(transactionId, refId)
+  const safeId = String(transactionId).replace(/[^a-zA-Z0-9-]/g, '_')
+  const filename = PDF_DOWNLOAD_FILENAME_FORMAT.replace('%s', safeId)
   triggerBrowserPdfDownload(new Blob([buffer], { type: MIME_TYPE_APPLICATION_PDF }), filename)
 }
 
@@ -150,5 +208,9 @@ export default {
   createDraftInvoice,
   deleteDraftInvoice,
   downloadInvoicePdf,
+  downloadPublishedInvoicePdf,
+  fetchPublishedInvoicePdfArrayBuffer,
   previewInvoicePdfArrayBuffer,
+  publishDraftInvoice,
+  syncInvoicePublishStatus,
 }

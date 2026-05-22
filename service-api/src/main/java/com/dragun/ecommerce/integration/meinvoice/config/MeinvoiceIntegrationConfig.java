@@ -17,6 +17,8 @@ public class MeinvoiceIntegrationConfig {
 
     private Defaults defaults = new Defaults();
 
+    private Publish publish = new Publish();
+
     @Data
     public static class Api {
         private String baseUrl = "https://testapi.meinvoice.vn/api/integration";
@@ -28,6 +30,20 @@ public class MeinvoiceIntegrationConfig {
         private String taxcode = "";
         private String username = "";
         private String password = "";
+        /** V2 {@code POST /auth/token} — {@code appid} field. */
+        private String appId = "";
+    }
+
+    @Data
+    public static class Publish {
+        private boolean enabled = false;
+        /** HSM / thường (ký tự thứ 5 của InvSeries = T). */
+        private int signType = 2;
+        /** Hóa đơn máy tính tiền (ký tự thứ 5 = M). MISA doc: SignType 5. */
+        private int signTypeMtt = 5;
+        private String certificateSn = "";
+        private long sequentialDelayMs = 3000L;
+        private boolean sendEmail = false;
     }
 
     @Data
@@ -51,5 +67,9 @@ public class MeinvoiceIntegrationConfig {
          * When true, OrderItem.price is treated as unit price excluding VAT.
          */
         private boolean assumePricesExcludeVat = true;
+        /**
+         * {@code invoiceCalcu} for V2 status/download. {@code null} = auto from {@link #invSeries} (M at char 5).
+         */
+        private Boolean invoiceCalculatingMachine;
     }
 }

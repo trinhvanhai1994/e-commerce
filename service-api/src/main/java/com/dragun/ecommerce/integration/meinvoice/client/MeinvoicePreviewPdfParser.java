@@ -29,12 +29,35 @@ public final class MeinvoicePreviewPdfParser {
                     MeinvoiceIntegrationConstants.ERROR_OPERATION_EMPTY_DATA_FORMAT,
                     operation));
         }
+        if (data.isArray() && !data.isEmpty()) {
+            for (JsonNode item : data) {
+                byte[] fromItem = tryExtractBase64FromNode(item);
+                if (fromItem != null) {
+                    return fromItem;
+                }
+            }
+            throw new IllegalStateException(String.format(
+                    Locale.ROOT,
+                    MeinvoiceIntegrationConstants.ERROR_OPERATION_UNSUPPORTED_DATA_FORMAT,
+                    operation,
+                    data.getNodeType()));
+        }
         if (data.isTextual()) {
             String raw = data.asText().trim();
-            if (raw.startsWith(MeinvoiceIntegrationConstants.JSON_PREFIX_OBJECT)) {
+            if (raw.startsWith(MeinvoiceIntegrationConstants.JSON_PREFIX_OBJECT)
+                    || raw.startsWith(MeinvoiceIntegrationConstants.JSON_PREFIX_ARRAY)) {
                 try {
                     ObjectMapper mapper = new ObjectMapper();
-                    return parsePdfBytesFromApiJson(mapper.readTree(raw), operation);
+                    JsonNode parsed = mapper.readTree(raw);
+                    if (parsed.isArray() && !parsed.isEmpty()) {
+                        for (JsonNode item : parsed) {
+                            byte[] fromItem = tryExtractBase64FromNode(item);
+                            if (fromItem != null) {
+                                return fromItem;
+                            }
+                        }
+                    }
+                    return parsePdfBytesFromApiJson(parsed, operation);
                 } catch (JsonProcessingException ignored) {
                     // nested JSON string failed — treat as base64 text
                 }
@@ -63,6 +86,33 @@ public final class MeinvoicePreviewPdfParser {
                 MeinvoiceIntegrationConstants.ERROR_OPERATION_UNSUPPORTED_DATA_FORMAT,
                 operation,
                 data.getNodeType()));
+    }
+
+    private static byte[] tryExtractBase64FromNode(JsonNode item) {
+        if (item == null || item.isNull()) {
+            return null;
+        }
+        String base64 = item.path("Data").asText(null);
+        if (!StringUtils.hasText(base64)) {
+            base64 = item.path("data").asText(null);
+        }
+        if (!StringUtils.hasText(base64)) {
+            for (String fieldName : MeinvoiceIntegrationConstants.JSON_DATA_PDF_FIELD_NAMES) {
+                JsonNode nested = item.get(fieldName);
+                if (nested != null && nested.isTextual() && StringUtils.hasText(nested.asText())) {
+                    base64 = nested.asText().trim();
+                    break;
+                }
+            }
+        }
+        if (!StringUtils.hasText(base64)) {
+            return null;
+        }
+        try {
+            return decodeBase64Pdf(stripDataUrlPrefix(base64.trim()));
+        } catch (IllegalStateException e) {
+            return null;
+        }
     }
 
     private static byte[] decodeBase64Pdf(String base64) {

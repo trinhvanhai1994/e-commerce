@@ -29,9 +29,6 @@ public class MeinvoiceInvoiceData {
     @JsonProperty("InvDate")
     private String invDate;
 
-    @JsonProperty("AccountObjectTaxCode")
-    private String accountObjectTaxCode;
-
     @JsonProperty("AccountObjectName")
     private String accountObjectName;
 
@@ -40,9 +37,6 @@ public class MeinvoiceInvoiceData {
 
     @JsonProperty("ContactName")
     private String contactName;
-
-    @JsonProperty("ReceiverEmail")
-    private String receiverEmail;
 
     @JsonProperty("ReceiverMobile")
     private String receiverMobile;

@@ -1,9 +1,10 @@
-package com.dragun.ecommerce.integration.meinvoice.service;
+package com.dragun.ecommerce.integration.meinvoice.publish.service;
 
 import com.dragun.ecommerce.integration.meinvoice.MeinvoiceIntegrationConstants;
 import com.dragun.ecommerce.integration.meinvoice.client.MeinvoiceApiErrorParser;
 import com.dragun.ecommerce.integration.meinvoice.config.MeinvoiceIntegrationConfig;
-import com.dragun.ecommerce.integration.meinvoice.dto.MeinvoiceLoginRequest;
+import com.dragun.ecommerce.integration.meinvoice.publish.MeinvoicePublishConstants;
+import com.dragun.ecommerce.integration.meinvoice.publish.dto.MeinvoicePublishLoginRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -18,12 +20,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Caches MeInvoice access token (doc: TTL ~14 days; refresh conservatively before expiry).
- */
 @Service
 @Slf4j
-public class MeinvoiceAuthService {
+public class MeinvoicePublishAuthService {
 
     private static final int TOKEN_REFRESH_SAFETY_HOURS = 6;
 
@@ -31,17 +30,17 @@ public class MeinvoiceAuthService {
     private final WebClient meinvoiceWebClient;
     private final ObjectMapper objectMapper;
 
-    public MeinvoiceAuthService(MeinvoiceIntegrationConfig config,
-                                @Qualifier("meinvoiceWebClient") WebClient meinvoiceWebClient,
-                                ObjectMapper objectMapper) {
+    private final Object tokenLock = new Object();
+    private String cachedAccessToken;
+    private Instant cachedValidUntil = Instant.EPOCH;
+
+    public MeinvoicePublishAuthService(MeinvoiceIntegrationConfig config,
+                                       @Qualifier("meinvoiceWebClient") WebClient meinvoiceWebClient,
+                                       ObjectMapper objectMapper) {
         this.config = config;
         this.meinvoiceWebClient = meinvoiceWebClient;
         this.objectMapper = objectMapper;
     }
-
-    private final Object tokenLock = new Object();
-    private String cachedAccessToken;
-    private Instant cachedValidUntil = Instant.EPOCH;
 
     public String getAccessToken() {
         synchronized (tokenLock) {
@@ -61,16 +60,22 @@ public class MeinvoiceAuthService {
     }
 
     private void refreshTokenLocked() {
-        MeinvoiceLoginRequest body = MeinvoiceLoginRequest.builder()
+        if (!StringUtils.hasText(config.getCredentials().getAppId())) {
+            throw new IllegalStateException(MeinvoicePublishConstants.ERROR_APP_ID_REQUIRED);
+        }
+        MeinvoicePublishLoginRequest body = MeinvoicePublishLoginRequest.builder()
+                .appId(config.getCredentials().getAppId().trim())
                 .taxcode(config.getCredentials().getTaxcode())
                 .username(config.getCredentials().getUsername())
                 .password(config.getCredentials().getPassword())
                 .build();
 
-        long timeoutMs = Math.max(1_000L, config.getApi().getTimeoutMs());
+        long timeoutMs = Math.max(
+                MeinvoiceIntegrationConstants.MIN_REQUEST_TIMEOUT_MS,
+                config.getApi().getTimeoutMs());
 
         JsonNode root = meinvoiceWebClient.post()
-                .uri(MeinvoiceIntegrationConstants.API_PATH_TOKEN)
+                .uri(MeinvoicePublishConstants.API_PATH_AUTH_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body)
                 .retrieve()
@@ -79,47 +84,77 @@ public class MeinvoiceAuthService {
                                 .defaultIfEmpty("")
                                 .flatMap(errBody -> Mono.error(new IllegalStateException(
                                         MeinvoiceApiErrorParser.formatHttpError(
-                                                MeinvoiceIntegrationConstants.OPERATION_TOKEN,
-                                                MeinvoiceIntegrationConstants.API_PATH_TOKEN,
+                                                MeinvoicePublishConstants.OPERATION_AUTH_TOKEN,
+                                                MeinvoicePublishConstants.API_PATH_AUTH_TOKEN,
                                                 response.statusCode(),
                                                 errBody)))))
                 .bodyToMono(JsonNode.class)
                 .timeout(Duration.ofMillis(timeoutMs))
                 .block();
 
-        if (root == null
-                || !root.path(MeinvoiceIntegrationConstants.JSON_FIELD_SUCCESS).asBoolean(false)) {
+        if (!isSuccess(root)) {
             throw new IllegalStateException(MeinvoiceApiErrorParser.formatApiFailure(
                     root,
-                    MeinvoiceIntegrationConstants.OPERATION_TOKEN));
+                    MeinvoicePublishConstants.OPERATION_AUTH_TOKEN));
         }
 
         String token;
         try {
-            token = extractAccessTokenFromData(root.get("data"));
+            token = extractAccessTokenFromData(resolveDataNode(root));
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("MeInvoice token: data is not valid JSON string/object", e);
+            throw new IllegalStateException("MeInvoice publish token: invalid data JSON", e);
         }
-        if (token == null || token.isBlank()) {
-            throw new IllegalStateException("MeInvoice token response missing data.access_token (see Postman: JSON.parse(res.data))");
+        if (!StringUtils.hasText(token)) {
+            throw new IllegalStateException(MeinvoicePublishConstants.ERROR_PUBLISH_TOKEN_MISSING);
         }
 
         cachedAccessToken = token;
         cachedValidUntil = Instant.now().plus(13, ChronoUnit.DAYS).minus(TOKEN_REFRESH_SAFETY_HOURS, ChronoUnit.HOURS);
-        log.info("MeInvoice access token refreshed (cached until {})", cachedValidUntil);
+        log.info("MeInvoice publish access token refreshed (cached until {})", cachedValidUntil);
+    }
+
+    private static boolean isSuccess(JsonNode root) {
+        if (root == null) {
+            return false;
+        }
+        if (root.path("success").asBoolean(false)) {
+            return true;
+        }
+        return root.path("Success").asBoolean(false);
+    }
+
+    private static JsonNode resolveDataNode(JsonNode root) {
+        if (root == null) {
+            return null;
+        }
+        JsonNode data = root.get("data");
+        if (data == null || data.isMissingNode() || data.isNull()) {
+            data = root.get("Data");
+        }
+        return data;
     }
 
     /**
-     * Postman collection parses token via {@code JSON.parse(res.data)} — {@code data} is often a
-     * <strong>string</strong> containing JSON, not a nested object.
+     * V2 {@code /auth/token}: {@code data} is often the Bearer JWT string directly.
+     * V1 {@code /webapp/token}: {@code data} may be a JSON string containing {@code access_token}.
      */
     private String extractAccessTokenFromData(JsonNode dataNode) throws JsonProcessingException {
         if (dataNode == null || dataNode.isNull() || dataNode.isMissingNode()) {
             return null;
         }
         if (dataNode.isTextual()) {
-            JsonNode parsed = objectMapper.readTree(dataNode.asText());
-            return parsed.path("access_token").asText(null);
+            String text = dataNode.asText().trim();
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            if (text.startsWith("{")) {
+                JsonNode parsed = objectMapper.readTree(text);
+                String nested = parsed.path("access_token").asText(null);
+                if (StringUtils.hasText(nested)) {
+                    return nested.trim();
+                }
+            }
+            return text;
         }
         if (dataNode.isObject()) {
             return dataNode.path("access_token").asText(null);

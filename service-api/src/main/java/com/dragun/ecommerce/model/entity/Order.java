@@ -99,6 +99,26 @@ public class Order {
     @Column(name = "meinvoice_draft_deleted", nullable = false)
     @Builder.Default
     private Boolean meinvoiceDraftDeleted = false;
+
+    /** {@code true} after V2 {@code POST /invoice} publish succeeded. */
+    @Column(name = "meinvoice_published", nullable = false)
+    @Builder.Default
+    private Boolean meinvoicePublished = false;
+
+    @Column(name = "meinvoice_published_at")
+    private LocalDateTime meinvoicePublishedAt;
+
+    @Column(name = "meinvoice_transaction_id", length = 64)
+    private String meinvoiceTransactionId;
+
+    @Column(name = "meinvoice_inv_no", length = 32)
+    private String meinvoiceInvNo;
+
+    @Column(name = "meinvoice_publish_error_code", length = 128)
+    private String meinvoicePublishErrorCode;
+
+    @Column(name = "meinvoice_send_tax_status")
+    private Integer meinvoiceSendTaxStatus;
     
     @PrePersist
     protected void onCreate() {

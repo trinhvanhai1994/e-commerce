@@ -182,7 +182,15 @@
                 <td class="px-3 py-2 font-semibold align-top whitespace-nowrap">{{ formatPrice(order.total) }}</td>
                 <td class="px-3 py-2 align-top" @click.stop>
                   <span
-                    v-if="isMeinvoiceDraftDeleted(order)"
+                    v-if="isMeinvoicePublished(order)"
+                    class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-indigo-50 border-indigo-300 text-indigo-900"
+                    :title="getMeinvoicePublishedTitle(order)"
+                  >
+                    {{ LABEL_INVOICE_PUBLISHED }}
+                    <span v-if="order[RESPONSE_FIELD_MEINVOICE_INV_NO]" class="ml-1 font-mono">#{{ order[RESPONSE_FIELD_MEINVOICE_INV_NO] }}</span>
+                  </span>
+                  <span
+                    v-else-if="isMeinvoiceDraftDeleted(order)"
                     class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-amber-50 border-amber-300 text-amber-900"
                     :title="TITLE_DRAFT_DELETED_ON_MISA"
                   >
@@ -207,7 +215,7 @@
                 </td>
                 <td class="px-3 py-2 align-top" @click.stop>
                   <div
-                    v-if="getMisaInvoiceRef(order)"
+                    v-if="hasMisaInvoiceArchive(order)"
                     class="flex items-center justify-center gap-0.5"
                   >
                     <button
@@ -226,11 +234,11 @@
                       type="button"
                       class="p-1.5 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition disabled:opacity-50"
                       title="Tải PDF hóa đơn về máy"
-                      :disabled="draftInvoicePdfDownloadRefId === getMisaInvoiceRef(order) || draftInvoiceDeleteRefId === getMisaInvoiceRef(order)"
+                      :disabled="draftInvoicePdfDownloadRefId === getInvoicePdfBusyKey(order) || draftInvoiceDeleteRefId === getMisaInvoiceRef(order)"
                       @click="handleDownloadInvoicePdf(order)"
                     >
                       <svg
-                        v-if="draftInvoicePdfDownloadRefId !== getMisaInvoiceRef(order)"
+                        v-if="draftInvoicePdfDownloadRefId !== getInvoicePdfBusyKey(order)"
                         class="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
@@ -245,7 +253,30 @@
                       />
                     </button>
                     <button
-                      v-if="!isMeinvoiceDraftDeleted(order)"
+                      v-if="canPublishDraftInvoice(order)"
+                      type="button"
+                      class="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition disabled:opacity-50"
+                      title="Phát hành hóa đơn trên MeInvoice (HSM)"
+                      :disabled="draftInvoicePublishRefId === getMisaInvoiceRef(order)"
+                      @click="openPublishDraftInvoiceConfirm(order)"
+                    >
+                      <svg
+                        v-if="draftInvoicePublishRefId !== getMisaInvoiceRef(order)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span
+                        v-else
+                        class="w-5 h-5 block border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"
+                      />
+                    </button>
+                    <button
+                      v-if="!isMeinvoiceDraftDeleted(order) && !isMeinvoicePublished(order)"
                       type="button"
                       class="p-1.5 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
                       title="Xóa hóa đơn nháp trên MeInvoice"
@@ -381,6 +412,57 @@
         </div>
       </div>
 
+      <!-- Publish draft invoice confirmation -->
+      <div
+        v-if="showPublishInvoiceModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]"
+        @click.self="cancelPublishDraftInvoice"
+      >
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="publish-invoice-modal-title">
+          <div class="flex items-center mb-4">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 id="publish-invoice-modal-title" class="text-lg font-medium text-gray-900">{{ MSG_PUBLISH_MODAL_TITLE }}</h3>
+            </div>
+          </div>
+          <div class="mb-6 space-y-3">
+            <p class="text-sm text-gray-600">{{ MSG_PUBLISH_MODAL_BODY }}</p>
+            <div class="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-600 shrink-0">Mã đơn:</span>
+                <strong class="text-gray-900 text-right">{{ pendingPublishInvoice.orderId }}</strong>
+              </div>
+              <div>
+                <span class="text-gray-600">Ref MeInvoice:</span>
+                <p class="mt-1 font-mono text-xs text-gray-800 break-all leading-snug">{{ pendingPublishInvoice.refId }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 disabled:opacity-50"
+              :disabled="!!draftInvoicePublishRefId"
+              @click="cancelPublishDraftInvoice"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50"
+              :disabled="!!draftInvoicePublishRefId"
+              @click="confirmPublishDraftInvoice"
+            >
+              {{ draftInvoicePublishRefId ? 'Đang phát hành...' : 'Phát hành' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Delete draft invoice confirmation -->
       <div
         v-if="showDeleteInvoiceModal"
@@ -500,7 +582,19 @@
                 </div>
                 <div>
                   <label class="text-sm font-medium text-gray-600">Hóa đơn MISA:</label>
-                  <div v-if="isMeinvoiceDraftDeleted(selectedOrder)" class="mt-1 space-y-1">
+                  <div v-if="isMeinvoicePublished(selectedOrder)" class="mt-1 space-y-1">
+                    <span
+                      class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-indigo-50 border-indigo-300 text-indigo-900"
+                      :title="getMeinvoicePublishedTitle(selectedOrder)"
+                    >
+                      {{ LABEL_INVOICE_PUBLISHED }}
+                    </span>
+                    <p class="text-xs text-indigo-800">{{ getMeinvoicePublishedTitle(selectedOrder) }}</p>
+                    <p v-if="getMisaInvoiceRef(selectedOrder)" class="text-xs font-mono text-gray-700 break-all">
+                      Ref: {{ getMisaInvoiceRef(selectedOrder) }}
+                    </p>
+                  </div>
+                  <div v-else-if="isMeinvoiceDraftDeleted(selectedOrder)" class="mt-1 space-y-1">
                     <span
                       class="inline-flex items-center px-2 py-1 rounded border text-xs font-semibold bg-amber-50 border-amber-300 text-amber-900"
                     >
@@ -546,14 +640,34 @@
                       </svg>
                     </button>
                     <button
+                      v-if="canPublishDraftInvoice(selectedOrder)"
+                      type="button"
+                      class="p-2 rounded-lg text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition disabled:opacity-50"
+                      title="Phát hành hóa đơn trên MeInvoice (HSM)"
+                      :disabled="draftInvoicePublishRefId === getMisaInvoiceRef(selectedOrder)"
+                      @click="openPublishDraftInvoiceConfirm(selectedOrder)"
+                    >
+                      <svg
+                        v-if="draftInvoicePublishRefId !== getMisaInvoiceRef(selectedOrder)"
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span v-else class="w-5 h-5 block border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                    </button>
+                    <button
                       type="button"
                       class="p-2 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition disabled:opacity-50"
                       title="Tải PDF hóa đơn về máy"
-                      :disabled="draftInvoicePdfDownloadRefId === getMisaInvoiceRef(selectedOrder) || draftInvoiceDeleteRefId === getMisaInvoiceRef(selectedOrder)"
+                      :disabled="draftInvoicePdfDownloadRefId === getInvoicePdfBusyKey(selectedOrder) || draftInvoiceDeleteRefId === getMisaInvoiceRef(selectedOrder)"
                       @click="handleDownloadInvoicePdf(selectedOrder)"
                     >
                       <svg
-                        v-if="draftInvoicePdfDownloadRefId !== getMisaInvoiceRef(selectedOrder)"
+                        v-if="draftInvoicePdfDownloadRefId !== getInvoicePdfBusyKey(selectedOrder)"
                         class="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
@@ -568,7 +682,7 @@
                       />
                     </button>
                     <button
-                      v-if="!isMeinvoiceDraftDeleted(selectedOrder)"
+                      v-if="!isMeinvoiceDraftDeleted(selectedOrder) && !isMeinvoicePublished(selectedOrder)"
                       type="button"
                       class="p-2 rounded-lg text-red-600 bg-red-50 border border-red-200 hover:text-red-800 hover:bg-red-100 hover:border-red-300 transition disabled:opacity-50"
                       title="Xóa hóa đơn nháp trên MeInvoice"
@@ -749,7 +863,10 @@ import {
   createDraftInvoice,
   deleteDraftInvoice,
   downloadInvoicePdf,
+  downloadPublishedInvoicePdf,
+  fetchPublishedInvoicePdfArrayBuffer,
   previewInvoicePdfArrayBuffer,
+  publishDraftInvoice,
 } from '../services/meinvoice.service.js'
 import MeinvoicePdfViewer from '../components/MeinvoicePdfViewer.vue'
 import {
@@ -771,9 +888,21 @@ import {
   ORDER_SOURCE_LABELS,
   ORDER_TYPE_PANCAKE,
   LABEL_DRAFT_DELETED_ON_MISA,
+  LABEL_INVOICE_PUBLISHED,
   MSG_DRAFT_ALREADY_DELETED,
+  MSG_PUBLISH_ALREADY_PUBLISHED,
+  MSG_PUBLISH_FAILED,
+  MSG_PUBLISH_MODAL_BODY,
+  MSG_PUBLISH_MODAL_TITLE,
+  MSG_PUBLISH_SUCCESS,
   RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED,
+  RESPONSE_FIELD_MEINVOICE_INV_NO,
   RESPONSE_FIELD_MEINVOICE_INVOICED,
+  RESPONSE_FIELD_MEINVOICE_PUBLISHED,
+  RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID,
+  RESPONSE_FIELD_PUBLISH_INV_NO,
+  RESPONSE_FIELD_PUBLISH_TRANSACTION_ID,
+  TITLE_INVOICE_PUBLISHED,
   RESPONSE_FIELD_MEINVOICE_REF_ID,
   TITLE_DRAFT_DELETED_ON_MISA,
   RESPONSE_FIELD_MISA_INVOICE_REF,
@@ -794,6 +923,9 @@ const PLACEHOLDER_PRODUCT_IMAGE = getImageUrlFromApi('/images/products/Combo-mix
 const orders = ref([])
 const draftInvoiceLoadingKey = ref(null)
 const draftInvoiceDeleteRefId = ref(null)
+const draftInvoicePublishRefId = ref(null)
+const showPublishInvoiceModal = ref(false)
+const pendingPublishInvoice = ref({ orderId: '', refId: '' })
 const draftInvoicePdfDownloadRefId = ref(null)
 const showInvoicePdfModal = ref(false)
 const invoicePdfLoading = ref(false)
@@ -889,15 +1021,46 @@ function isMeinvoiceDraftDeleted(order) {
   return order?.[RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED] === true
 }
 
+function isMeinvoicePublished(order) {
+  return order?.[RESPONSE_FIELD_MEINVOICE_PUBLISHED] === true
+}
+
 function isMeinvoiceCreated(order) {
-  if (isMeinvoiceDraftDeleted(order)) {
+  if (isMeinvoiceDraftDeleted(order) || isMeinvoicePublished(order)) {
     return false
   }
   return order?.[RESPONSE_FIELD_MEINVOICE_INVOICED] === true
 }
 
+function canPublishDraftInvoice(order) {
+  return isMeinvoiceCreated(order) && !isMeinvoiceDraftDeleted(order) && !isMeinvoicePublished(order)
+}
+
+function getMeinvoiceTransactionId(order) {
+  return order?.[RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID] || null
+}
+
+function getMeinvoicePublishedTitle(order) {
+  const invNo = order?.[RESPONSE_FIELD_MEINVOICE_INV_NO]
+  const txn = getMeinvoiceTransactionId(order)
+  if (invNo && txn) {
+    return `${TITLE_INVOICE_PUBLISHED} Số HĐ: ${invNo}. Mã tra cứu: ${txn}`
+  }
+  if (invNo) {
+    return `${TITLE_INVOICE_PUBLISHED} Số HĐ: ${invNo}`
+  }
+  return TITLE_INVOICE_PUBLISHED
+}
+
 function hasMisaInvoiceArchive(order) {
-  return !!getMisaInvoiceRef(order)
+  return !!getMisaInvoiceRef(order) || (isMeinvoicePublished(order) && !!getMeinvoiceTransactionId(order))
+}
+
+function getInvoicePdfBusyKey(order) {
+  if (isMeinvoicePublished(order) && getMeinvoiceTransactionId(order)) {
+    return getMeinvoiceTransactionId(order)
+  }
+  return getMisaInvoiceRef(order)
 }
 
 function truncateMisaRef(ref) {
@@ -1005,7 +1168,106 @@ async function confirmDeleteDraftInvoice() {
   }
 }
 
+function applyMeinvoicePublishedToOrder(orderId, publishData) {
+  const idx = orders.value.findIndex((o) => getOrderId(o) === orderId)
+  if (idx < 0) return
+  const updated = {
+    ...orders.value[idx],
+    [RESPONSE_FIELD_MEINVOICE_PUBLISHED]: true,
+    [RESPONSE_FIELD_MEINVOICE_INVOICED]: true,
+    [RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED]: false,
+    [RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID]:
+      publishData?.[RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID]
+      || publishData?.[RESPONSE_FIELD_PUBLISH_TRANSACTION_ID]
+      || orders.value[idx][RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID],
+    [RESPONSE_FIELD_MEINVOICE_INV_NO]:
+      publishData?.[RESPONSE_FIELD_MEINVOICE_INV_NO]
+      || publishData?.[RESPONSE_FIELD_PUBLISH_INV_NO]
+      || orders.value[idx][RESPONSE_FIELD_MEINVOICE_INV_NO],
+    [RESPONSE_FIELD_MISA_INVOICE_REF]:
+      publishData?.refId || orders.value[idx][RESPONSE_FIELD_MISA_INVOICE_REF],
+    [RESPONSE_FIELD_MEINVOICE_REF_ID]:
+      publishData?.refId || orders.value[idx][RESPONSE_FIELD_MEINVOICE_REF_ID],
+  }
+  orders.value[idx] = updated
+  if (selectedOrder.value && getOrderId(selectedOrder.value) === orderId) {
+    selectedOrder.value = updated
+  }
+}
+
+function openPublishDraftInvoiceConfirm(order) {
+  if (isMeinvoicePublished(order)) {
+    showErrorPopup(MSG_PUBLISH_ALREADY_PUBLISHED)
+    return
+  }
+  if (!canPublishDraftInvoice(order)) {
+    showErrorPopup(MSG_ORDER_NO_MISA_REF)
+    return
+  }
+  const refId = getMisaInvoiceRef(order)
+  pendingPublishInvoice.value = { orderId: getOrderId(order), refId }
+  showPublishInvoiceModal.value = true
+}
+
+function cancelPublishDraftInvoice() {
+  if (draftInvoicePublishRefId.value) return
+  showPublishInvoiceModal.value = false
+  pendingPublishInvoice.value = { orderId: '', refId: '' }
+}
+
+async function confirmPublishDraftInvoice() {
+  const { orderId, refId } = pendingPublishInvoice.value
+  if (!orderId || !refId) return
+  draftInvoicePublishRefId.value = refId
+  try {
+    const order = orders.value.find((o) => getOrderId(o) === orderId)
+    const data = await publishDraftInvoice(getDraftInvoiceOrderKey(order), getDraftInvoiceBy(order))
+    applyMeinvoicePublishedToOrder(orderId, data)
+    showPublishInvoiceModal.value = false
+    pendingPublishInvoice.value = { orderId: '', refId: '' }
+    const invNo = data?.[RESPONSE_FIELD_MEINVOICE_INV_NO] || data?.[RESPONSE_FIELD_PUBLISH_INV_NO]
+    const txn =
+      data?.[RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID] || data?.[RESPONSE_FIELD_PUBLISH_TRANSACTION_ID]
+    const invCode = data?.invCode
+    let publishMsg = MSG_PUBLISH_SUCCESS
+    if (invNo || txn || invCode) {
+      const parts = []
+      if (invNo) parts.push(`Số HĐ: ${invNo}`)
+      if (invCode) parts.push(`Mã CQT: ${invCode}`)
+      if (txn) parts.push(`Mã tra cứu: ${txn}`)
+      publishMsg = `${MSG_PUBLISH_SUCCESS} ${parts.join('. ')}`
+    }
+    showSuccessPopup(publishMsg)
+    await loadOrders()
+  } catch (err) {
+    const msg =
+      (err instanceof Error ? err.message : null) ||
+      (err && typeof err === 'object' && err.message) ||
+      MSG_PUBLISH_FAILED
+    showErrorPopup(msg)
+  } finally {
+    if (draftInvoicePublishRefId.value === refId) {
+      draftInvoicePublishRefId.value = null
+    }
+  }
+}
+
 async function handleDownloadInvoicePdf(order) {
+  const transactionId = getMeinvoiceTransactionId(order)
+  if (isMeinvoicePublished(order) && transactionId) {
+    draftInvoicePdfDownloadRefId.value = transactionId
+    try {
+      await downloadPublishedInvoicePdf(transactionId, getMisaInvoiceRef(order))
+    } catch (err) {
+      const msg = (err instanceof Error ? err.message : null) || err?.message || MSG_PDF_DOWNLOAD_FAILED
+      showErrorPopup(msg)
+    } finally {
+      if (draftInvoicePdfDownloadRefId.value === transactionId) {
+        draftInvoicePdfDownloadRefId.value = null
+      }
+    }
+    return
+  }
   const refId = getMisaInvoiceRef(order)
   if (!refId) {
     showErrorPopup(MSG_ORDER_NO_MISA_REF)
@@ -1026,8 +1288,9 @@ async function handleDownloadInvoicePdf(order) {
 }
 
 async function handleViewInvoicePdf(order) {
+  const transactionId = getMeinvoiceTransactionId(order)
   const refId = getMisaInvoiceRef(order)
-  if (!refId) {
+  if (!refId && !transactionId) {
     showErrorPopup(MSG_ORDER_NO_MISA_REF)
     return
   }
@@ -1035,13 +1298,20 @@ async function handleViewInvoicePdf(order) {
   invoicePdfLoading.value = true
   invoicePdfData.value = null
   invoicePdfError.value = ''
-  invoicePdfRefLabel.value = refId
+  invoicePdfRefLabel.value = refId || transactionId
   try {
-    invoicePdfData.value = await previewInvoicePdfArrayBuffer(
-      getDraftInvoiceOrderKey(order),
-      refId,
-      getDraftInvoiceBy(order)
-    )
+    if (isMeinvoicePublished(order) && transactionId) {
+      invoicePdfData.value = await fetchPublishedInvoicePdfArrayBuffer(
+        transactionId,
+        getMisaInvoiceRef(order)
+      )
+    } else {
+      invoicePdfData.value = await previewInvoicePdfArrayBuffer(
+        getDraftInvoiceOrderKey(order),
+        refId,
+        getDraftInvoiceBy(order)
+      )
+    }
   } catch (err) {
     invoicePdfError.value =
       (err instanceof Error ? err.message : null) || err?.message || MSG_PDF_LOAD_FAILED

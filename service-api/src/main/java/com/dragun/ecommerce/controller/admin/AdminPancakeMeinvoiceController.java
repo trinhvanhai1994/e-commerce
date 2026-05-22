@@ -50,7 +50,7 @@ public class AdminPancakeMeinvoiceController {
             @PathVariable String orderKey,
             @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
         try {
-            boolean byPancake = MeinvoiceIntegrationConstants.LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+            boolean byPancake = MeinvoiceIntegrationConstants.isLookupByPancake(by);
             Map<String, Object> data = meinvoiceInvoiceService.buildInvoiceMappingPreview(orderKey, byPancake);
             boolean ready = Boolean.TRUE.equals(((Map<?, ?>) data.get("validation")).get("ready"));
             return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
@@ -71,7 +71,7 @@ public class AdminPancakeMeinvoiceController {
             @PathVariable String orderKey,
             @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
         try {
-            boolean byPancake = MeinvoiceIntegrationConstants.LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+            boolean byPancake = MeinvoiceIntegrationConstants.isLookupByPancake(by);
             Map<String, Object> data = meinvoiceInvoiceService.previewInvoiceOnMeinvoice(orderKey, byPancake);
             boolean ok = Boolean.TRUE.equals(data.get("meinvoiceSuccess"));
             return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
@@ -92,7 +92,7 @@ public class AdminPancakeMeinvoiceController {
             @PathVariable String orderKey,
             @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
         try {
-            boolean byPancake = MeinvoiceIntegrationConstants.LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+            boolean byPancake = MeinvoiceIntegrationConstants.isLookupByPancake(by);
             Map<String, Object> data = meinvoiceInvoiceService.createDraftInvoiceForOrder(orderKey, byPancake);
             boolean recorded = Boolean.TRUE.equals(data.get("recordedSuccess"));
             return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
@@ -110,7 +110,7 @@ public class AdminPancakeMeinvoiceController {
             @PathVariable String orderKey,
             @RequestParam(required = false, defaultValue = MeinvoiceIntegrationConstants.LOOKUP_BY_ORDER) String by) {
         try {
-            boolean byPancake = MeinvoiceIntegrationConstants.LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+            boolean byPancake = MeinvoiceIntegrationConstants.isLookupByPancake(by);
             return ResponseEntity.ok(ApiResponse.success(
                     meinvoiceInvoiceService.listSubmissionsForOrder(orderKey, byPancake),
                     "MeInvoice submissions for order"));

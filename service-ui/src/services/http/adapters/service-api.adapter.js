@@ -100,8 +100,89 @@ export class ServiceApiAdapter extends BaseAdapter {
    * @returns {string|null} Auth token
    */
   getAuthToken() {
-    // Get token from localStorage or cookie
-    return localStorage.getItem('authToken') || null
+    const raw = localStorage.getItem('authToken')
+    if (!raw) {
+      return null
+    }
+    let token = String(raw).trim()
+    if (token.startsWith('"') && token.endsWith('"') && token.length > 1) {
+      token = token.slice(1, -1).trim()
+    }
+    if (token.toLowerCase().startsWith('bearer ')) {
+      token = token.slice(7).trim()
+    }
+    return token || null
+  }
+
+  /**
+   * GET binary response (PDF, etc.) with the same auth + interceptors as {@link #request}.
+   * @param {string} endpoint
+   * @param {Object} [params] - Query parameters
+   * @param {string} [accept] - Accept header
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async fetchBinary(endpoint, params = {}, accept = 'application/octet-stream') {
+    const token = this.getAuthToken()
+    if (!token) {
+      const error = new Error('Phiên đăng nhập admin đã hết hạn. Vui lòng đăng nhập lại.')
+      error.status = 401
+      throw error
+    }
+
+    const url = this.buildUrl(endpoint) + this.buildQueryString(params)
+    let requestOptions = this.prepareRequestOptions({
+      method: 'GET',
+      headers: {
+        Accept: accept,
+      },
+    })
+    delete requestOptions.headers['Content-Type']
+
+    requestOptions = await applyRequestInterceptors({
+      url,
+      ...requestOptions,
+    })
+
+    const response = await fetch(requestOptions.url, {
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+    })
+
+    const modifiedResponse = await applyResponseInterceptors(response)
+    const contentType = modifiedResponse.headers.get('content-type') || ''
+
+    if (!modifiedResponse.ok) {
+      let errorData = {}
+      try {
+        const text = await modifiedResponse.text()
+        if (text) {
+          errorData = JSON.parse(text)
+        }
+      } catch {
+        errorData = { message: modifiedResponse.statusText }
+      }
+      const error = new Error(
+        errorData.message || `HTTP error! status: ${modifiedResponse.status}`
+      )
+      error.status = modifiedResponse.status
+      error.data = errorData
+      throw error
+    }
+
+    if (contentType.includes('json')) {
+      let errorData = {}
+      try {
+        errorData = await modifiedResponse.json()
+      } catch {
+        /* ignore */
+      }
+      const error = new Error(errorData.message || 'Unexpected JSON response')
+      error.status = modifiedResponse.status
+      error.data = errorData
+      throw error
+    }
+
+    return modifiedResponse.arrayBuffer()
   }
 
   /**

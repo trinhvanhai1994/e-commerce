@@ -8,6 +8,9 @@ import com.dragun.ecommerce.integration.meinvoice.dto.MeinvoiceInvoiceDetail;
 import com.dragun.ecommerce.integration.meinvoice.model.MeinvoiceSubmission;
 import com.dragun.ecommerce.integration.meinvoice.repository.MeinvoiceSubmissionRepository;
 import com.dragun.ecommerce.integration.meinvoice.MeinvoiceIntegrationConstants;
+import com.dragun.ecommerce.integration.meinvoice.MeinvoiceInvSeriesHelper;
+import com.dragun.ecommerce.integration.meinvoice.MeinvoicePublishOptions;
+import com.dragun.ecommerce.integration.meinvoice.MeinvoiceVatMath;
 import com.dragun.ecommerce.integration.pancake.PancakeCatalogConstants;
 import com.dragun.ecommerce.model.entity.Order;
 import com.dragun.ecommerce.model.entity.OrderItem;
@@ -137,6 +140,13 @@ public class MeinvoiceInvoiceService {
         out.put("tokenOk", true);
         out.put("templateCount", templateCount);
         out.put("rawSuccess", true);
+        out.put("apiBaseUrl", config.getApi().getBaseUrl());
+        out.put("taxcode", config.getCredentials().getTaxcode());
+        out.put("invSeries", config.getDefaults().getInvSeries());
+        out.put("invoiceTemplateId", config.getDefaults().getInvoiceTemplateId());
+        out.put("invoiceCalculatingMachine", MeinvoicePublishOptions.invoiceCalculatingMachine(config));
+        out.put("publishSignType", MeinvoicePublishOptions.signType(config));
+        out.put("publishSendEmail", config.getPublish().isSendEmail());
         return out;
     }
 
@@ -269,11 +279,6 @@ public class MeinvoiceInvoiceService {
         }
     }
 
-  @Transactional
-    public Map<String, Object> createDraftInvoiceForOrder(String orderKey) {
-        return createDraftInvoiceForOrder(orderKey, false);
-    }
-
     @Transactional
     public Map<String, Object> createDraftInvoiceForOrder(String orderKey, boolean lookupByPancakeOrderId) {
         requireEnabledAndCredentials();
@@ -292,12 +297,17 @@ public class MeinvoiceInvoiceService {
         assertOrderNotYetInvoiced(order);
 
         String refId = UUID.randomUUID().toString();
-        MeinvoiceInvoiceData invoiceData = buildInvoiceData(order, refId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("refId", refId);
         result.put("orderBusinessId", orderBusinessId);
         result.put("pancakeOrderId", order.getPancakeOrderId());
+
+        if (MeinvoiceInvSeriesHelper.isCalculatingMachineSeries(config.getDefaults().getInvSeries())) {
+            return createMttLocalDraftRef(order, orderBusinessId, refId, result);
+        }
+
+        MeinvoiceInvoiceData invoiceData = buildInvoiceData(order, refId);
 
         try {
             JsonNode response = meinvoiceApiClient.insertInvoices(List.of(invoiceData));
@@ -333,6 +343,36 @@ public class MeinvoiceInvoiceService {
                     .build());
             throw e;
         }
+    }
+
+    /**
+     * MTT ({@code InvSeries} char 5 = M): V1 {@code /webapp/insert} often fails or only creates unnumbered rows.
+     * Keep RefID locally; actual issue happens on V2 {@code POST /invoice} (SignType 5).
+     */
+    private Map<String, Object> createMttLocalDraftRef(
+            Order order,
+            String orderBusinessId,
+            String refId,
+            Map<String, Object> result) {
+        markOrderInvoiced(order, refId);
+        orderRepository.save(order);
+        submissionRepository.save(MeinvoiceSubmission.builder()
+                .refId(refId)
+                .orderBusinessId(orderBusinessId)
+                .success(true)
+                .lastMessage("MTT local ref — publish via V2 /invoice")
+                .build());
+        result.put("recordedSuccess", true);
+        result.put(MeinvoiceIntegrationConstants.RESPONSE_FIELD_DRAFT_SOURCE,
+                MeinvoiceIntegrationConstants.DRAFT_SOURCE_MTT_V2_PUBLISH);
+        result.put("meinvoiceSuccess", true);
+        result.put("meinvoiceInvoiced", order.getMeinvoiceInvoiced());
+        result.put("meinvoiceRefId", order.getMeinvoiceRefId());
+        log.info(
+                "MeInvoice MTT draft: skipped V1 insert for order {}, refId={} — use Phát hành (V2)",
+                orderBusinessId,
+                refId);
+        return result;
     }
 
     private void requireEnabledAndCredentials() {
@@ -375,6 +415,22 @@ public class MeinvoiceInvoiceService {
                                 Locale.ROOT,
                                 MeinvoiceIntegrationConstants.ERROR_ORDER_NOT_FOUND_FORMAT,
                                 key))));
+    }
+
+    public void requireIntegrationReady() {
+        requireEnabledAndCredentials();
+        requireTemplateConfigured();
+    }
+
+    public Order resolveOrderForIntegration(String orderKey, boolean lookupByPancakeOrderId) {
+        return resolveOrder(orderKey, lookupByPancakeOrderId);
+    }
+
+    /**
+     * Validation before V2 publish — draft must already exist; do not treat {@code meinvoice_invoiced} as blocking.
+     */
+    public List<String> collectPublishValidationIssues(Order order) {
+        return collectInvoiceValidationIssues(order, false);
     }
 
     private List<String> collectInvoiceValidationIssues(Order order) {
@@ -435,6 +491,9 @@ public class MeinvoiceInvoiceService {
     public boolean isOrderInvoicedOnMeinvoice(Order order) {
         if (order == null || Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted())) {
             return false;
+        }
+        if (Boolean.TRUE.equals(order.getMeinvoicePublished())) {
+            return true;
         }
         if (Boolean.TRUE.equals(order.getMeinvoiceInvoiced())) {
             return true;
@@ -508,6 +567,9 @@ public class MeinvoiceInvoiceService {
         m.put("createdAt", order.getCreatedAt());
         m.put("meinvoiceInvoiced", isOrderInvoicedOnMeinvoice(order));
         m.put("meinvoiceDraftDeleted", Boolean.TRUE.equals(order.getMeinvoiceDraftDeleted()));
+        m.put("meinvoicePublished", Boolean.TRUE.equals(order.getMeinvoicePublished()));
+        m.put("meinvoiceTransactionId", order.getMeinvoiceTransactionId());
+        m.put("meinvoiceInvNo", order.getMeinvoiceInvNo());
         m.put("meinvoiceRefId", order.getMeinvoiceRefId());
         m.put("meinvoiceInvoicedAt", order.getMeinvoiceInvoicedAt());
         List<String> issues = collectInvoiceValidationIssues(order);
@@ -640,7 +702,7 @@ public class MeinvoiceInvoiceService {
     private MeinvoiceInvoiceData buildInvoiceData(Order order, String refId) {
         var defaults = config.getDefaults();
         int vatRatePercent = defaults.getDefaultVatRate();
-        validateVatRateForLines(vatRatePercent);
+        MeinvoiceVatMath.validateVatRatePercent(vatRatePercent);
         String unitName = defaults.getDefaultUnitName();
         boolean priceExcludesVat = defaults.isAssumePricesExcludeVat();
         BigDecimal exchangeRate = BigDecimal.ONE;
@@ -652,9 +714,9 @@ public class MeinvoiceInvoiceService {
             BigDecimal unitPriceInput = item.getPrice().setScale(6, RoundingMode.HALF_UP);
             BigDecimal unitPrice = priceExcludesVat
                     ? unitPriceInput.setScale(4, RoundingMode.HALF_UP)
-                    : unitPriceExcludingVat(unitPriceInput, vatRatePercent);
+                    : MeinvoiceVatMath.unitPriceExcludingVat(unitPriceInput, vatRatePercent);
             BigDecimal amountOC = qty.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal vatAmountOC = computeVatAmount(amountOC, vatRatePercent);
+            BigDecimal vatAmountOC = MeinvoiceVatMath.computeVatAmount(amountOC, vatRatePercent);
 
             details.add(MeinvoiceInvoiceDetail.builder()
                     .inventoryItemType(0)
@@ -666,13 +728,13 @@ public class MeinvoiceInvoiceService {
                     .quantity(qty)
                     .unitPrice(unitPrice)
                     .amountOC(amountOC)
-                    .amount(scale2(amountOC.multiply(exchangeRate)))
+                    .amount(MeinvoiceVatMath.scale2(amountOC.multiply(exchangeRate)))
                     .discountRate(BigDecimal.ZERO)
                     .discountAmountOC(BigDecimal.ZERO)
                     .discountAmount(BigDecimal.ZERO)
                     .vatRate(BigDecimal.valueOf(vatRatePercent))
                     .vatAmountOC(vatAmountOC)
-                    .vatAmount(scale2(vatAmountOC.multiply(exchangeRate)))
+                    .vatAmount(MeinvoiceVatMath.scale2(vatAmountOC.multiply(exchangeRate)))
                     .build());
             sort++;
         }
@@ -681,9 +743,9 @@ public class MeinvoiceInvoiceService {
             BigDecimal shippingInput = order.getShippingFee().setScale(6, RoundingMode.HALF_UP);
             BigDecimal amountOC = (priceExcludesVat
                     ? shippingInput
-                    : unitPriceExcludingVat(shippingInput, vatRatePercent))
+                    : MeinvoiceVatMath.unitPriceExcludingVat(shippingInput, vatRatePercent))
                     .setScale(2, RoundingMode.HALF_UP);
-            BigDecimal vatAmountOC = computeVatAmount(amountOC, vatRatePercent);
+            BigDecimal vatAmountOC = MeinvoiceVatMath.computeVatAmount(amountOC, vatRatePercent);
             details.add(MeinvoiceInvoiceDetail.builder()
                     .inventoryItemType(0)
                     .description(MeinvoiceIntegrationConstants.SHIPPING_LINE_DESCRIPTION)
@@ -694,13 +756,13 @@ public class MeinvoiceInvoiceService {
                     .quantity(BigDecimal.ONE)
                     .unitPrice(amountOC)
                     .amountOC(amountOC)
-                    .amount(scale2(amountOC.multiply(exchangeRate)))
+                    .amount(MeinvoiceVatMath.scale2(amountOC.multiply(exchangeRate)))
                     .discountRate(BigDecimal.ZERO)
                     .discountAmountOC(BigDecimal.ZERO)
                     .discountAmount(BigDecimal.ZERO)
                     .vatRate(BigDecimal.valueOf(vatRatePercent))
                     .vatAmountOC(vatAmountOC)
-                    .vatAmount(scale2(vatAmountOC.multiply(exchangeRate)))
+                    .vatAmount(MeinvoiceVatMath.scale2(vatAmountOC.multiply(exchangeRate)))
                     .build());
         }
 
@@ -736,14 +798,14 @@ public class MeinvoiceInvoiceService {
                 .vatRate(masterVatRate)
                 .discountRate(BigDecimal.ZERO)
                 .exchangeRate(exchangeRate)
-                .totalSaleAmountOC(scale2(totalSaleAmountOC))
-                .totalSaleAmount(scale2(totalSaleAmountOC.multiply(exchangeRate)))
-                .totalDiscountAmountOC(scale2(totalDiscountOC))
-                .totalDiscountAmount(scale2(totalDiscountOC.multiply(exchangeRate)))
-                .totalVatAmountOC(scale2(totalVatAmountOC))
-                .totalVatAmount(scale2(totalVatAmountOC.multiply(exchangeRate)))
-                .totalAmountOC(scale2(totalAmountOC))
-                .totalAmount(scale2(totalAmountOC.multiply(exchangeRate)))
+                .totalSaleAmountOC(MeinvoiceVatMath.scale2(totalSaleAmountOC))
+                .totalSaleAmount(MeinvoiceVatMath.scale2(totalSaleAmountOC.multiply(exchangeRate)))
+                .totalDiscountAmountOC(MeinvoiceVatMath.scale2(totalDiscountOC))
+                .totalDiscountAmount(MeinvoiceVatMath.scale2(totalDiscountOC.multiply(exchangeRate)))
+                .totalVatAmountOC(MeinvoiceVatMath.scale2(totalVatAmountOC))
+                .totalVatAmount(MeinvoiceVatMath.scale2(totalVatAmountOC.multiply(exchangeRate)))
+                .totalAmountOC(MeinvoiceVatMath.scale2(totalAmountOC))
+                .totalAmount(MeinvoiceVatMath.scale2(totalAmountOC.multiply(exchangeRate)))
                 .createdDate(formatInvDate(now))
                 .modifiedDate(formatInvDate(now))
                 .invoiceDetails(details)
@@ -754,38 +816,6 @@ public class MeinvoiceInvoiceService {
     private static String formatInvDate(LocalDateTime local) {
         OffsetDateTime odt = local.atZone(VN_ZONE).toOffsetDateTime();
         return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(odt);
-    }
-
-    private static void validateVatRateForLines(int vatRatePercent) {
-        if (vatRatePercent < -3 || vatRatePercent > 100) {
-            throw new IllegalStateException(
-                    "meinvoice.defaults.default-vat-rate must be between -3 and 100 (MeInvoice line VATRate semantics).");
-        }
-    }
-
-    /**
-     * Converts a VAT-inclusive unit amount to exclusive VAT using rate R%: net = gross * 100 / (100 + R).
-     */
-    private static BigDecimal unitPriceExcludingVat(BigDecimal grossAmount, int vatRatePercent) {
-        if (vatRatePercent <= 0) {
-            return grossAmount.setScale(4, RoundingMode.HALF_UP);
-        }
-        BigDecimal hundred = BigDecimal.valueOf(100);
-        BigDecimal divisor = hundred.add(BigDecimal.valueOf(vatRatePercent));
-        return grossAmount.multiply(hundred).divide(divisor, 4, RoundingMode.HALF_UP);
-    }
-
-    private static BigDecimal computeVatAmount(BigDecimal amountBeforeVat, int vatRatePercent) {
-        if (vatRatePercent < 0) {
-            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        }
-        return amountBeforeVat
-                .multiply(BigDecimal.valueOf(vatRatePercent))
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-    }
-
-    private static BigDecimal scale2(BigDecimal v) {
-        return v.setScale(2, RoundingMode.HALF_UP);
     }
 
     /**

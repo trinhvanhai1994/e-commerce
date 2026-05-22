@@ -40,6 +40,8 @@ export const MSG_PDF_LOAD_FAILED =
   'Không thể tải PDF hóa đơn. Kiểm tra MeInvoice và đăng nhập admin.'
 export const MSG_PDF_DOWNLOAD_FAILED =
   'Không thể tải xuống PDF hóa đơn. Kiểm tra MeInvoice và đăng nhập admin.'
+export const MSG_PDF_UNAUTHORIZED =
+  'Phiên đăng nhập admin đã hết hạn. Vui lòng đăng nhập lại rồi xem PDF.'
 export const PDF_DOWNLOAD_FILENAME_FORMAT = 'meinvoice-%s.pdf'
 export const MSG_PDF_VIEWER_FAILED = 'Không hiển thị được PDF'
 export const MSG_PDF_INVALID_OR_EMPTY = 'File PDF trống hoặc không hợp lệ'
@@ -73,3 +75,20 @@ export const RESPONSE_FIELD_REF_ID = 'refId'
 export const RESPONSE_FIELD_MISA_INVOICE_REF = 'misaInvoiceRef'
 export const RESPONSE_FIELD_MEINVOICE_INVOICED = 'meinvoiceInvoiced'
 export const RESPONSE_FIELD_MEINVOICE_DRAFT_DELETED = 'meinvoiceDraftDeleted'
+export const RESPONSE_FIELD_MEINVOICE_PUBLISHED = 'meinvoicePublished'
+export const RESPONSE_FIELD_MEINVOICE_PUBLISHED_AT = 'meinvoicePublishedAt'
+export const RESPONSE_FIELD_MEINVOICE_TRANSACTION_ID = 'meinvoiceTransactionId'
+export const RESPONSE_FIELD_MEINVOICE_INV_NO = 'meinvoiceInvNo'
+/** Keys in publish-invoice API response body (before reload). */
+export const RESPONSE_FIELD_PUBLISH_TRANSACTION_ID = 'transactionId'
+export const RESPONSE_FIELD_PUBLISH_INV_NO = 'invNo'
+
+export const LABEL_INVOICE_PUBLISHED = 'Đã phát hành'
+export const TITLE_INVOICE_PUBLISHED = 'Hóa đơn đã phát hành trên MeInvoice (CQT).'
+export const MSG_PUBLISH_SUCCESS = 'Đã phát hành hóa đơn trên MeInvoice.'
+export const MSG_PUBLISH_FAILED = 'Không thể phát hành hóa đơn. Kiểm tra MeInvoice, HSM và quyền admin.'
+export const MSG_PUBLISH_MODAL_TITLE = 'Phát hành hóa đơn MeInvoice'
+export const MSG_PUBLISH_MODAL_BODY =
+  'Hóa đơn sẽ được phát hành trên MeInvoice (không gửi email cho khách hàng). Thao tác không thể hoàn tác.'
+export const MSG_PUBLISH_ALREADY_PUBLISHED = 'Hóa đơn này đã được phát hành trên MeInvoice.'
+export const QUERY_PARAM_TRANSACTION_ID = 'transactionId'

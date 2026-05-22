@@ -19,12 +19,15 @@ public final class MeinvoiceIntegrationConstants {
     public static final String LOOKUP_BY_ORDER = "order";
     public static final String LOOKUP_BY_PANCAKE = "pancake";
 
+    public static boolean isLookupByPancake(String by) {
+        return LOOKUP_BY_PANCAKE.equalsIgnoreCase(by);
+    }
+
     public static final String API_PATH_TOKEN = "/webapp/token";
     public static final String API_PATH_TEMPLATES = "/webapp/templates";
     public static final String API_PATH_PREVIEW = "/webapp/preview";
     public static final String API_PATH_INSERT = "/webapp/insert";
     public static final String API_PATH_GET_LIST = "/webapp/getlist";
-    public static final String API_PATH_PAGING = "/webapp/paging";
     public static final String API_PATH_VIEW_REF_ID = "/webapp/viewrefid";
     public static final String API_PATH_DELETE = "/webapp/delete";
 
@@ -58,6 +61,7 @@ public final class MeinvoiceIntegrationConstants {
     public static final String CONTENT_DISPOSITION_ATTACHMENT_FILENAME_FORMAT = "attachment; filename=\"meinvoice-%s.pdf\"";
     public static final String REF_ID_FILENAME_SAFE_PATTERN = "[^a-zA-Z0-9-]";
 
+    public static final String OPERATION_TOKEN = "token";
     public static final String OPERATION_TEMPLATES = "templates";
     public static final String OPERATION_GET_LIST = "getlist";
     public static final String OPERATION_PREVIEW = "preview";
@@ -65,6 +69,9 @@ public final class MeinvoiceIntegrationConstants {
     public static final String OPERATION_DELETE = "delete";
 
     public static final String RESPONSE_FIELD_PDF_BASE64 = "pdfBase64";
+    /** MTT draft: RefID stored locally; V2 publish assigns InvNo / TransactionID / InvCode. */
+    public static final String RESPONSE_FIELD_DRAFT_SOURCE = "draftSource";
+    public static final String DRAFT_SOURCE_MTT_V2_PUBLISH = "mtt-v2-publish";
 
     public static final String ERROR_HTTP_GET_FORMAT = "MeInvoice GET %s HTTP %s: %s";
     public static final String ERROR_HTTP_POST_FORMAT = "MeInvoice POST %s HTTP %s: %s";
@@ -108,6 +115,9 @@ public final class MeinvoiceIntegrationConstants {
     public static final String VALIDATION_MISSING_CUSTOMER_PHONE = "MISSING_CUSTOMER_PHONE";
     public static final String VALIDATION_MISSING_CUSTOMER_ADDRESS = "MISSING_CUSTOMER_ADDRESS";
     public static final String VALIDATION_MEINVOICE_ALREADY_INVOICED = "MEINVOICE_ALREADY_INVOICED";
+    public static final String VALIDATION_MEINVOICE_ALREADY_PUBLISHED = "MEINVOICE_ALREADY_PUBLISHED";
+    public static final String VALIDATION_MEINVOICE_DRAFT_DELETED = "MEINVOICE_DRAFT_DELETED";
+    public static final String VALIDATION_MEINVOICE_NO_DRAFT_REF = "MEINVOICE_NO_DRAFT_REF";
     public static final String VALIDATION_UNMAPPED_CATALOG_LINE_PREFIX = "UNMAPPED_CATALOG_LINE:";
     public static final String VALIDATION_MISSING_ITEM_NAME = "MISSING_ITEM_NAME";
     public static final String VALIDATION_MISSING_ITEM_NAME_FORMAT = "%s:productId=%s";

@@ -23,4 +23,67 @@ logging:
 server:
   port: ${PORT:5678}
 
+pancake:
+  api:
+    # Base URL của Pancake API
+    # Official Pancake POS Open API (see https://api-docs.pancake.biz/)
+    base-url: ${PANCAKE_API_BASE_URL:https://pos.pages.fm/api/v1}
+    # Shop ID: Lấy từ URL sau khi đăng nhập Pancake POS (đã có: 1021175491)
+    shop-id: ${PANCAKE_SHOP_ID:1021175491}
+    # API Key: Lấy từ Cấu hình > Nâng cao > Webhook-API trong Pancake POS
+    # Xem hướng dẫn chi tiết trong file PANCAKE_SETUP.md
+    api-key: ${PANCAKE_API_KEY:cfad4efd4c774a5397478c916662b830}
+    # Warehouse ID: Lấy từ Cấu hình > Cửa hàng > Kho hàng trong Pancake POS
+    # Xem hướng dẫn chi tiết trong file PANCAKE_SETUP.md
+    warehouse-id: ${PANCAKE_WAREHOUSE_ID:22def263-b5cd-41e3-91bd-6f1e929353ed}
+    timeout: ${PANCAKE_API_TIMEOUT:30000}
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+  sync:
+    enabled: ${PANCAKE_SYNC_ENABLED:true}
+    direction: ${PANCAKE_SYNC_DIRECTION:BIDIRECTIONAL}
+    skip-already-imported-orders: ${PANCAKE_SYNC_SKIP_IMPORTED_ORDERS:true}
+    schedule:
+      catalog:
+        enabled: ${PANCAKE_SYNC_CATALOG_ENABLED:true}
+        cron: ${PANCAKE_SYNC_CATALOG_CRON:0 0 */6 * * *}
+      products:
+        enabled: ${PANCAKE_SYNC_PRODUCTS_ENABLED:true}
+        cron: ${PANCAKE_SYNC_PRODUCTS_CRON:0 */30 * * * *}
+      orders:
+        enabled: ${PANCAKE_SYNC_ORDERS_ENABLED:false}
+        cron: ${PANCAKE_SYNC_ORDERS_CRON:0 */15 * * * *}
+
+meinvoice:
+  enabled: ${MEINVOICE_ENABLED:true}
+  api:
+    # Production: https://api.meinvoice.vn — UI https://app3.meinvoice.vn
+    base-url: ${MEINVOICE_API_BASE_URL:https://api.meinvoice.vn/api/integration}
+    timeout-ms: ${MEINVOICE_API_TIMEOUT_MS:60000}
+  credentials:
+    # Thông tin golive Thiyen — override bằng MEINVOICE_TAXCODE / USERNAME / PASSWORD trên server
+    taxcode: ${MEINVOICE_TAXCODE:008300006641}
+    username: ${MEINVOICE_USERNAME:thiyen.vietnam@gmail.com}
+    password: ${MEINVOICE_PASSWORD:Ms.ThiYen@@1}
+    app-id: ${MEINVOICE_APP_ID:6e92a1b7-07cb-4694-b81d-89da5473155e}
+  publish:
+    enabled: ${MEINVOICE_PUBLISH_ENABLED:true}
+    sign-type: ${MEINVOICE_PUBLISH_SIGN_TYPE:2}
+    sign-type-mtt: ${MEINVOICE_PUBLISH_SIGN_TYPE_MTT:5}
+    certificate-sn: ${MEINVOICE_CERTIFICATE_SN:}
+    sequential-delay-ms: ${MEINVOICE_PUBLISH_SEQUENTIAL_DELAY_MS:3000}
+    # false = không gửi email khách (giống MISA UI: bỏ chọn "Gửi hóa đơn cho khách hàng")
+    send-email: ${MEINVOICE_PUBLISH_SEND_EMAIL:false}
+  defaults:
+    invoice-with-code: ${MEINVOICE_INVOICE_WITH_CODE:true}
+    # HĐ bán hàng MTT prod (ký hiệu 2C26MYY — lấy từ mẫu đang dùng trên app3.meinvoice.vn)
+    invoice-template-id: ${MEINVOICE_TEMPLATE_ID:4ae1095d-409c-4dc1-bfee-776a526034ea}
+    inv-series: ${MEINVOICE_INV_SERIES:2C26MYY}
+    # invoice-calculating-machine: # null = auto từ inv-series (ký tự 5 = M → SignType sign-type-mtt)
+    currency-code: ${MEINVOICE_CURRENCY_CODE:VND}
+    default-vat-rate: ${MEINVOICE_DEFAULT_VAT_RATE:10}
+    default-unit-name: ${MEINVOICE_DEFAULT_UNIT_NAME:Cái}
+    assume-prices-exclude-vat: ${MEINVOICE_ASSUME_PRICES_EXCLUDE_VAT:true}
+
 

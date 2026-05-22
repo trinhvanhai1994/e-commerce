@@ -12,7 +12,7 @@ export const adminService = {
    * @returns {Promise<Object>} Login response
    */
   async login(credentials) {
-    const response = await httpClient.post('/api/dragun/admin/login', credentials)
+    const response = await httpClient.post('/api/thiyen/admin/login', credentials)
     // ServiceApiAdapter extracts data from ApiResponse, so response should be LoginResponse
     // LoginResponse: { token, user: { id, name, email, role } }
     return response
