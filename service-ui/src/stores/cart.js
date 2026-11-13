@@ -47,7 +47,7 @@ export const useCartStore = defineStore('cart', {
         const productWithImage = {
           ...product,
           quantity: qty, // Luôn là number
-          image: getProductImage(product.id)
+          image: getProductImage(product)
         }
         this.items.push(productWithImage)
       }
@@ -82,7 +82,7 @@ export const useCartStore = defineStore('cart', {
         item.price = updatedProduct.price
         item.oldPrice = updatedProduct.oldPrice
         item.name = updatedProduct.name
-        item.image = getProductImage(item.id) // Sử dụng ảnh có sẵn
+        item.image = getProductImage(updatedProduct)
         item.shortDesc = updatedProduct.shortDesc
         item.category = updatedProduct.category
         // KHÔNG cập nhật quantity từ product (vì product.quantity là "500g/lon", không phải số lượng)

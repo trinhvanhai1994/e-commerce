@@ -1,8 +1,8 @@
-# 🚀 Hướng Dẫn Build cho Production với API https://dragun.cloud
+# 🚀 Hướng Dẫn Build cho Production với API https://router.id.vn
 
 ## 📋 Tóm tắt nhanh
 
-Để build `service-ui` gọi API production tại `https://dragun.cloud`:
+Để build `service-ui` gọi API production tại `https://router.id.vn`:
 
 ```bash
 cd service-ui
@@ -15,8 +15,8 @@ npm run build:prod
 
 File `env.production` đã được tạo với cấu hình:
 ```env
-VITE_API_BASE_URL=https://dragun.cloud
-VITE_SERVICE_API_URL=https://dragun.cloud
+VITE_API_BASE_URL=https://router.id.vn
+VITE_SERVICE_API_URL=https://router.id.vn
 ```
 
 ### 2. Build cho Production
@@ -74,7 +74,7 @@ npm run preview
 
 Mở trình duyệt tại `http://localhost:4173` và kiểm tra:
 - ✅ Trang chủ load được
-- ✅ API calls đang gọi đến `https://dragun.cloud`
+- ✅ API calls đang gọi đến `https://router.id.vn`
 - ✅ Không có lỗi trong Console (F12)
 
 ### 5. Deploy lên Server
@@ -97,7 +97,7 @@ grep -r "dragun.cloud" dist/assets/
 2. Mở Developer Tools (F12)
 3. Vào tab **Network**
 4. Reload trang
-5. Kiểm tra các request API có domain `https://dragun.cloud`
+5. Kiểm tra các request API có domain `https://router.id.vn`
 
 ### Cách 3: Kiểm tra trong Console
 Mở Console (F12) và chạy:
@@ -111,8 +111,8 @@ console.log(import.meta.env.VITE_API_BASE_URL)
 ### File env.production
 File này được sử dụng khi build với mode `production`:
 ```env
-VITE_API_BASE_URL=https://dragun.cloud
-VITE_SERVICE_API_URL=https://dragun.cloud
+VITE_API_BASE_URL=https://router.id.vn
+VITE_SERVICE_API_URL=https://router.id.vn
 VITE_APP_TITLE=Thi Yên Store
 VITE_APP_DESCRIPTION=Your trusted source for quality products
 ```
@@ -162,11 +162,11 @@ npm run build:prod
 
 Trước khi deploy, đảm bảo:
 
-- [ ] File `env.production` có `VITE_API_BASE_URL=https://dragun.cloud`
+- [ ] File `env.production` có `VITE_API_BASE_URL=https://router.id.vn`
 - [ ] Đã chạy `npm run build:prod` thành công
 - [ ] Đã kiểm tra thư mục `dist/` có đầy đủ file
 - [ ] Đã test với `npm run preview` (tùy chọn)
-- [ ] Đã kiểm tra API calls trong Network tab gọi đến `https://dragun.cloud`
+- [ ] Đã kiểm tra API calls trong Network tab gọi đến `https://router.id.vn`
 - [ ] Đã upload nội dung `dist/` lên server
 - [ ] Đã test website trên server production
 

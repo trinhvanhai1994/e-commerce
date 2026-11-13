@@ -579,8 +579,8 @@ async function fetchProducts() {
       name: product.name || 'Sản phẩm',
       price: product.price || 299000,
       oldPrice: product.oldPrice || 390000,
-      // Sử dụng mainImage từ API, fallback về getProductImage
-      image: product.mainImage ? getProductImage(product) : getProductImage(product.id),
+      // mainImage → gallery[0] → fallback ID (xem getProductImage)
+      image: getProductImage(product),
       shortDesc: product.shortDesc || 'Mô tả sản phẩm...',
       category: product.category || 'me-den',
       rating: product.rating || 5,

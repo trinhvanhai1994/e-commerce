@@ -832,19 +832,28 @@ import { getProductImage as getProductImageUtil } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
 
 function getProductImage(item) {
-  // Nếu item có mainImage hoặc image, sử dụng utility function
-  if (item.mainImage || item.image) {
-    return getProductImageUtil(item)
+  // Ưu tiên mainImage / image / gallery[0] qua utility (kể cả khi mainImage trống)
+  if (item && typeof item === 'object') {
+    const fromUtil = getProductImageUtil(item)
+    // Nếu util đã resolve từ main/gallery (không chỉ fallback theo id cứng khi object có gallery),
+    // hoặc item có mainImage/image/gallery hợp lệ — trả về kết quả util.
+    const hasOwnImage =
+      (typeof item.mainImage === 'string' && item.mainImage.trim() !== '')
+      || (typeof item.image === 'string' && item.image.trim() !== '')
+      || (Array.isArray(item.gallery) && item.gallery.some((p) => typeof p === 'string' && p.trim() !== ''))
+    if (hasOwnImage) {
+      return fromUtil
+    }
   }
-  
+
   // Nếu có imageUrl từ API và hợp lệ
-  if (item.imageUrl && item.imageUrl.trim() !== '') {
+  if (item?.imageUrl && item.imageUrl.trim() !== '') {
     return item.imageUrl
   }
-  
-  // Fallback: sử dụng utility function với ID
-  const productId = item.id || item.productId
-  return getProductImageUtil(productId)
+
+  // Fallback: utility với object hoặc ID
+  const productId = item?.id || item?.productId
+  return getProductImageUtil(item && typeof item === 'object' ? item : productId)
 }
 
 function getDefaultProductImage(productId) {
