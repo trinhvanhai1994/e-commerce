@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Component
 public class JwtTokenProvider {
     
-    @Value("${jwt.secret:ThiYenEcommerceSecretKey2024ForJWTTokenGeneration}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
     
     @Value("${jwt.expiration:86400000}")

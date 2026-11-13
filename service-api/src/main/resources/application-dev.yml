@@ -1,9 +1,10 @@
 spring:
   # Database configuration cho môi trường DEV
+  # Credentials lấy từ biến môi trường / file .env (không hardcode)
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ecommerce}
-    username: ${SPRING_DATASOURCE_USERNAME:dragun}
-    password: ${SPRING_DATASOURCE_PASSWORD:Picachu@123}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   
   jpa:
     hibernate:
@@ -22,5 +23,3 @@ logging:
     org.springframework.security: WARN
     org.hibernate.SQL: OFF
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
-

@@ -8,8 +8,8 @@ Project sử dụng PostgreSQL với Flyway để quản lý database migration.
 
 | Môi trường | Database | Username | Password | File Config |
 |-----------|----------|----------|----------|-------------|
-| **DEV** | `ecommerce_dev` | `dragun` | `Picachu@123` | `application-dev.yml` |
-| **TEST** | `ecommerce_test` | `postgres` | `123456` | `application-test.yml` |
+| **DEV** | `ecommerce` (hoặc theo `.env`) | `$SPRING_DATASOURCE_USERNAME` | `$SPRING_DATASOURCE_PASSWORD` | `application-dev.yml` + `.env` |
+| **TEST** | theo `.env` | `$SPRING_DATASOURCE_USERNAME` | `$SPRING_DATASOURCE_PASSWORD` | `application-test.yml` + `.env` |
 | **PROD** | `ecommerce_prod` | (env var) | (env var) | `application-prod.yml` |
 
 ## 1. Tạo Database
@@ -51,7 +51,7 @@ CREATE DATABASE ecommerce_prod;
 
 ```sql
 -- Tạo user (nếu chưa có)
-CREATE USER dragun WITH PASSWORD 'Picachu@123';
+CREATE USER dragun WITH PASSWORD '<set-in-env-POSTGRES_PASSWORD>';
 
 -- Cấp quyền
 GRANT ALL PRIVILEGES ON DATABASE ecommerce_dev TO dragun;
@@ -61,7 +61,7 @@ GRANT ALL PRIVILEGES ON DATABASE ecommerce_dev TO dragun;
 
 ```sql
 -- Sử dụng user postgres mặc định hoặc tạo user riêng
-CREATE USER test_user WITH PASSWORD '123456';
+CREATE USER test_user WITH PASSWORD '<set-in-env>';
 GRANT ALL PRIVILEGES ON DATABASE ecommerce_test TO test_user;
 ```
 
@@ -95,15 +95,15 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```bash
 # DEV
 mvn flyway:migrate \
-  -Dflyway.url=jdbc:postgresql://localhost:5432/ecommerce_dev \
-  -Dflyway.user=dragun \
-  -Dflyway.password=Picachu@123
+  -Dflyway.url="$SPRING_DATASOURCE_URL" \
+  -Dflyway.user="$SPRING_DATASOURCE_USERNAME" \
+  -Dflyway.password="$SPRING_DATASOURCE_PASSWORD"
 
 # TEST
 mvn flyway:migrate \
-  -Dflyway.url=jdbc:postgresql://localhost:5432/ecommerce_test \
-  -Dflyway.user=postgres \
-  -Dflyway.password=123456
+  -Dflyway.url="$SPRING_DATASOURCE_URL" \
+  -Dflyway.user="$SPRING_DATASOURCE_USERNAME" \
+  -Dflyway.password="$SPRING_DATASOURCE_PASSWORD"
 
 # PROD
 mvn flyway:migrate \

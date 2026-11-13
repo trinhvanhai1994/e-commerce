@@ -137,17 +137,13 @@ mvn spring-boot:run
 
 ### DEV Environment
 
-- **Database**: `ecommerce_dev`
-- **Username**: `dragun`
-- **Password**: `Picachu@123`
+- **Database / Username / Password**: lấy từ `.env` (`SPRING_DATASOURCE_*`)
 - **Config file**: `application-dev.yml`
 - **Mặc định**: Profile này được active mặc định
 
 ### TEST Environment
 
-- **Database**: `ecommerce_test`
-- **Username**: `postgres`
-- **Password**: `123456`
+- **Database / Username / Password**: lấy từ `.env` (`SPRING_DATASOURCE_*`)
 - **Config file**: `application-test.yml`
 
 ### PRODUCTION Environment
