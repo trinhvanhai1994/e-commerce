@@ -1,28 +1,23 @@
 <template>
   <div>
-    <!-- Hero Section - Outside container -->
-    <section class="hero-section relative w-full overflow-hidden">
+    <!-- Hero Section - Outside container (CMS story/hero) -->
+    <section v-if="visible('hero')" class="hero-section relative w-full overflow-hidden">
       <!-- Background Image -->
-      <img 
-        :src="getImageUrlFromApi('/images/me/banner.jpg')" 
-        alt="Thi Yên Banner" 
+      <img
+        :src="imageOf('hero', extra('hero'))"
+        alt="Thi Yên Banner"
         class="w-full h-auto object-cover"
         @error="handleBannerError"
       />
-      
+
       <!-- Content Overlay -->
       <div class="absolute inset-0 flex items-center justify-center">
         <div class="text-center" data-aos="fade-up">
-            <!-- <div class="logo-container mb-3 md:mb-6 lg:mb-8">
-              <div class="circle-logo bg-white rounded-full w-10 h-10 sm:w-12 sm:h-12 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto flex items-center justify-center shadow-lg">
-                <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 object-contain transition-transform hover:scale-105" />
-            </div>
-            </div> -->
           <h3 class="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-4 lg:mb-4" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            CÂU CHUYỆN THƯƠNG HIỆU
+            {{ extra('hero').title }}
           </h3>
           <p class="text-xs sm:text-sm md:text-2xl lg:text-4xl text-teal-500 font-medium tracking-wider leading-relaxed transform hover:scale-105 transition-all duration-300 ease-in-out drop-shadow-sm px-4" style="font-family: 'Great Vibes', cursive;">
-            <span class="text-white text-sm sm:text-base md:text-2xl lg:text-4xl">Từ một bữa ăn nhỏ – đến thói quen sống lành mỗi ngày</span>
+            <span class="text-white text-sm sm:text-base md:text-2xl lg:text-4xl">{{ extra('hero').subtitle }}</span>
           </p>
         </div>
       </div>
@@ -30,13 +25,13 @@
 
     <div class="veyo-page" style="background-color: #fefce8;">
 
-    <!-- Story Section -->
-    <section class="story-section py-8">
+    <!-- Story Section (CMS story/intro, story/feature_1, story/feature_2) -->
+    <section v-if="visible('intro') || visible('feature_1') || visible('feature_2')" class="story-section py-8">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
-          <div class="text-center mb-8" data-aos="fade-up">
+          <div v-if="visible('intro')" class="text-center mb-8" data-aos="fade-up">
             <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">
-              CÂU CHUYỆN THI YÊN
+              {{ extra('intro').title }}
             </h2>
             <div class="w-24 h-1 bg-green-500 mx-auto"></div>
           </div>
@@ -46,84 +41,63 @@
             data-aos="fade-up"
             data-aos-delay="200"
           >
-            <div class="mb-6">
-              Giữa nhịp sống hiện đại, không khó để bắt gặp những bữa sáng qua loa,
-              bữa trưa ăn vội, hay những ngày dài khép lại trong cảm giác mệt mỏi
-              không tên. Người trẻ cuốn vào công việc, người lớn tuổi thì ngày càng
-              cần chọn lọc kỹ hơn, vì cơ thể dần trở nên nhạy cảm với những thực
-              phẩm kém lành. Nhưng ở mọi độ tuổi, cơ thể đều cần được nuôi dưỡng một
-              cách nhẹ nhàng, đều đặn và tự nhiên.
-            </div>
-
-            <div class="mb-6">
-              Thi Yên được tạo nên từ chính những điều giản dị ấy, như một nhịp thở
-              chậm giữa guồng quay vội, một cách dịu dàng để cơ thể được yêu thương
-              mỗi ngày.
-            </div>
-
-            <div class="text-gray-700 mb-4">
-              Lấy cảm hứng từ triết lý dưỡng sinh thuần thực vật kết hợp cùng dinh
-              dưỡng hiện đại, Thi Yên mang đến những bữa ăn nhỏ, đủ chất, tiện lợi,
-              giúp bạn bắt đầu hành trình sống lành từ những điều đơn giản nhất.
-            </div>
+            <template v-if="visible('intro')">
+              <div
+                v-for="(text, idx) in paragraphs('intro')"
+                :key="`intro-${idx}`"
+                :class="idx === paragraphs('intro').length - 1 ? 'text-gray-700 mb-4' : 'mb-6'"
+                v-html="renderRichText(text)"
+              ></div>
+            </template>
 
             <!-- Block với ảnh bên phải -->
-            <div class="flex flex-col md:flex-row items-start gap-6">
+            <div v-if="visible('feature_1')" class="flex flex-col md:flex-row items-start gap-6">
               <!-- Nội dung bên trái -->
               <div class="flex-1">
                 <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-4 mb-4">
-                  Trọn vị tự nhiên - Cân bằng dưỡng chất
+                  {{ extra('feature_1').title }}
                 </h4>
-                <div class="text-gray-700 mb-4 text-base md:text-lg">
-                  Với Thi Yên, giá trị của một sản phẩm tốt không chỉ nằm ở công
-                  thức, mà bắt đầu từ sự chắt lọc cẩn thận từng nguyên liệu, giữ lại
-                  những gì nguyên bản, trọn vị và thật sự nuôi dưỡng cơ thể.
-                </div>
-                <div class="mb-6 text-base md:text-lg">
-                  Mỗi loại hạt được chọn vì giá trị tinh túy vốn có, chế biến nhẹ
-                  nhàng để giữ nguyên dưỡng chất và hương vị tự nhiên, đặc biệt khi
-                  kết hợp cùng nhau, có thể tạo nên những bữa ăn bổ dưỡng, thơm ngon
-                  và tiện lợi.
-                </div>
+                <div
+                  v-for="(text, idx) in paragraphs('feature_1')"
+                  :key="`f1-${idx}`"
+                  :class="idx === 0 ? 'text-gray-700 mb-4 text-base md:text-lg' : 'mb-6 text-base md:text-lg'"
+                  v-html="renderRichText(text)"
+                ></div>
               </div>
 
               <!-- Ảnh bên phải -->
-              <div class="w-full md:w-64 shrink-0">
+              <div v-if="imageOf('feature_1', extra('feature_1'))" class="w-full md:w-64 shrink-0">
                 <img
-                  :src="getImageUrlFromApi('/images/me/COMBO-MIX.png')"
-                  alt="Hình minh họa"
+                  :src="imageOf('feature_1', extra('feature_1'))"
+                  :alt="extra('feature_1').imageAlt"
                   class="rounded-lg shadow-lg w-full cursor-pointer hover:opacity-90 transition-opacity duration-300"
-                  @click="openImageModal(getImageUrlFromApi('/images/me/COMBO-MIX.png'), 'Hình minh họa - Trọn vị tự nhiên')"
+                  @click="openImageModal(imageOf('feature_1', extra('feature_1')), `${extra('feature_1').imageAlt} - ${extra('feature_1').title}`)"
                 />
               </div>
             </div>
 
             <!-- Block với ảnh bên trái desktop, dưới mobile -->
-            <div class="flex flex-col md:flex-row items-start gap-6">
+            <div v-if="visible('feature_2')" class="flex flex-col md:flex-row items-start gap-6">
               <!-- Nội dung bên phải (desktop) / trên (mobile) -->
               <div class="flex-1 order-1 md:order-2">
                 <h4 class="text-xl md:text-2xl font-bold text-gray-800 mt-4 mb-4">
-              Khác biệt trong cách làm
+                  {{ extra('feature_2').title }}
                 </h4>
-            <div class="mb-6 text-base md:text-lg">
-              Giữa thị trường ngày càng bão hòa bởi thực phẩm siêu chế biến, Thi Yên
-              chọn một hướng đi chậm hơn: không ngũ cốc công nghiệp, không thành
-              phần pha sẵn, không phụ gia đánh lừa vị giác.
-            </div>
-            <div class="text-base md:text-lg">
-              Chúng tôi tin vào hương vị thực sự đến từ tự nhiên và sự kết hợp tối
-              giản mà vẫn đủ đầy cho nhu cầu cơ thể, bởi lẽ "Chăm sóc bản thân không
-              cần phức tạp, chỉ cần đều đặn và đủ lành."
-            </div>
+                <div
+                  v-for="(text, idx) in paragraphs('feature_2')"
+                  :key="`f2-${idx}`"
+                  :class="idx === paragraphs('feature_2').length - 1 ? 'text-base md:text-lg' : 'mb-6 text-base md:text-lg'"
+                  v-html="renderRichText(text)"
+                ></div>
               </div>
 
               <!-- Ảnh bên trái (desktop) / dưới (mobile) -->
-              <div class="w-full md:w-64 shrink-0 order-2 md:order-1">
+              <div v-if="imageOf('feature_2', extra('feature_2'))" class="w-full md:w-64 shrink-0 order-2 md:order-1">
                 <img
-                  :src="getImageUrlFromApi('/images/me/item4.png')"
-                  alt="Sản phẩm Thi Yên"
+                  :src="imageOf('feature_2', extra('feature_2'))"
+                  :alt="extra('feature_2').imageAlt"
                   class="rounded-lg shadow-lg w-full cursor-pointer hover:opacity-90 transition-opacity duration-300"
-                  @click="openImageModal(getImageUrlFromApi('/images/me/item4.png'), 'Sản phẩm Thi Yên')"
+                  @click="openImageModal(imageOf('feature_2', extra('feature_2')), extra('feature_2').imageAlt)"
                 />
               </div>
             </div>
@@ -132,48 +106,44 @@
       </div>
     </section>
 
-    <!-- Vision Section -->
-    <section class="vision-section py-4">
+    <!-- Vision Section (CMS story/vision) -->
+    <section v-if="visible('vision')" class="vision-section py-4">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-2">TẦM NHÌN</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-2">{{ extra('vision').title }}</h2>
             <div class="w-24 h-1 bg-green-500 mx-auto"></div>
           </div>
-          
+
           <div class="bg-gray-50 rounded-lg shadow-lg p-8" data-aos="fade-up" data-aos-delay="200">
             <div class="mx-auto text-gray-700 leading-relaxed text-base md:text-lg">
-              <div class="mb-6">
-                Thi Yên hướng đến trở thành thương hiệu thực phẩm dưỡng sinh đồng hành cùng người Việt trong hành trình sống khỏe, từ người trẻ bận rộn đến người trung niên cần lựa chọn nhẹ nhàng mà bồi bổ.
-              </div>
-              <div>
-                Dù là bữa sáng nhanh, bữa phụ sau giờ làm, hay khoảnh khắc thư giãn mỗi chiều, chúng tôi mong mỗi sản phẩm đều có thể góp phần nuôi dưỡng một lối sống đủ lành, đủ chậm và đủ yêu thương.
-              </div>
+              <div
+                v-for="(text, idx) in paragraphs('vision')"
+                :key="`vision-${idx}`"
+                :class="idx === paragraphs('vision').length - 1 ? '' : 'mb-6'"
+                v-html="renderRichText(text)"
+              ></div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Mission Section -->
-    <section class="mission-section py-4">
+    <!-- Mission Section (CMS story/mission) -->
+    <section v-if="visible('mission')" class="mission-section py-4">
       <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-2">SỨ MỆNH</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-2">{{ extra('mission').title }}</h2>
             <div class="w-24 h-1 bg-green-500 mx-auto"></div>
           </div>
-          
+
           <div class="bg-gray-50 rounded-lg shadow-lg p-8" data-aos="fade-up" data-aos-delay="200">
             <div class="mx-auto text-gray-700 leading-relaxed text-base md:text-lg">
-              <div class="mb-6">
-                Chúng tôi mong muốn đưa dinh dưỡng thuần khiết trở lại nhịp sống hiện đại bằng những sản phẩm tiện lợi, dễ tiếp cận, nhưng vẫn giữ trọn giá trị tự nhiên.
-              </div>
-              <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">Thi Yên cam kết:</h3>
+              <div v-if="extra('mission').intro" class="mb-6" v-html="renderRichText(extra('mission').intro)"></div>
+              <h3 v-if="extra('mission').commitTitle" class="text-xl md:text-2xl font-bold text-gray-800 mb-2">{{ extra('mission').commitTitle }}</h3>
               <ul class="space-y-2 text-gray-700 text-base md:text-lg">
-                <li>• Thành phần rõ ràng, tối giản, dễ dùng mỗi ngày</li>
-                <li>• Không phụ gia, không đường tinh luyện, không thành phần nhân tạo</li>
-                <li>• Giữ lại trọn vẹn dưỡng chất và hương vị nguyên bản trong từng bước chế biến</li>
+                <li v-for="(item, idx) in extra('mission').items || []" :key="idx">• {{ item }}</li>
               </ul>
             </div>
           </div>
@@ -181,112 +151,58 @@
       </div>
     </section>
 
-    <!-- Core Values Section -->
-    <section class="core-values-section py-4">
+    <!-- Core Values Section (CMS story/values) -->
+    <section v-if="visible('values')" class="core-values-section py-4">
       <div class="container mx-auto px-4">
         <div class="text-center mb-8" data-aos="fade-up">
-          <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">GIÁ TRỊ CỐT LÕI</h2>
+          <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">{{ extra('values').title }}</h2>
           <div class="w-24 h-1 bg-green-500 mx-auto"></div>
         </div>
-        
+
         <div class="grid md:grid-cols-3 gap-8">
-          <!-- Value 1 -->
-          <div class="value-card bg-white rounded-lg shadow-lg p-8" data-aos="fade-up" data-aos-delay="100">
+          <div
+            v-for="(item, idx) in extra('values').items || []"
+            :key="idx"
+            class="value-card bg-white rounded-lg shadow-lg p-8"
+            data-aos="fade-up"
+            :data-aos-delay="(idx + 1) * 100"
+          >
             <div class="text-center mb-6">
               <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
                 <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img :src="getImageUrlFromApi('/images/icons/tu-nhien.png')" alt="Thuần tự nhiên" class="w-32 h-32 object-contain relative z-10" />
-                </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Thuần tự nhiên</h3>
+                <img :src="imageOf('values', item, idx)" :alt="item.title" class="w-32 h-32 object-contain relative z-10" />
               </div>
-            <div class="text-gray-700 leading-relaxed text-base md:text-lg">
-                  Nguyên liệu được chọn lọc kỹ lưỡng, không phụ gia tổng hợp, không đường tinh luyện, không bổ sung dưỡng chất nhân tạo. Mỗi thành phần đều được lựa chọn với sự tử tế và minh bạch.
+              <h3 class="text-xl font-bold text-gray-800 mb-4">{{ item.title }}</h3>
             </div>
-          </div>
-
-          <!-- Value 2 -->
-          <div class="value-card bg-white rounded-lg shadow-lg p-8" data-aos="fade-up" data-aos-delay="200">
-            <div class="text-center mb-6">
-              <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
-                <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img :src="getImageUrlFromApi('/images/icons/can-bang.png')" alt="Cân bằng & Bền vững" class="w-32 h-32 object-contain relative z-10" />
-                </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Cân bằng & Bền vững</h3>
-              </div>
             <div class="text-gray-700 leading-relaxed text-base md:text-lg">
-               Kết hợp giữa dưỡng chất hiện đại và tinh thần dưỡng sinh, hài hòa giữa khoa học và truyền thống để phù hợp với thể trạng Á Đông.
-             </div>
-          </div>
-
-          <!-- Value 3 -->
-          <div class="value-card bg-white rounded-lg shadow-lg p-8" data-aos="fade-up" data-aos-delay="300">
-            <div class="text-center mb-6">
-              <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
-                <div class="w-24 h-24 bg-green-50 rounded-full absolute"></div>
-                <img :src="getImageUrlFromApi('/images/icons/tien-loi.png')" alt="Tiện lợi & Ngon miệng" class="w-32 h-32 object-contain relative z-10" />
-                </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-4">Tiện lợi & Ngon miệng</h3>
-              </div>
-            <div class="text-gray-700 leading-relaxed text-base md:text-lg">
-               Pha nhanh trong 1 phút nhưng đủ để no lâu, đủ chất, dễ trở thành một phần trong cuộc sống thường ngày.
-             </div>
+              {{ item.body }}
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Nutritional Values Section -->
-    <section class="nutrition-section py-4">
+    <!-- Nutritional Values Section (CMS story/nutrition) -->
+    <section v-if="visible('nutrition')" class="nutrition-section py-4">
       <div class="container mx-auto px-4">
         <div class="text-center mb-8" data-aos="fade-up">
-          <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">Dinh dưỡng vàng từ thực vật</h2>
+          <h2 class="text-3xl md:text-4xl font-bold text-green-600 mb-4">{{ extra('nutrition').title }}</h2>
           <div class="w-24 h-1 bg-green-500 mx-auto"></div>
         </div>
-        
+
         <div class="grid md:grid-cols-5 gap-6">
-          <!-- Value 1 -->
-          <div class="nutrition-card text-center" data-aos="zoom-in" data-aos-delay="100">
+          <div
+            v-for="(item, idx) in extra('nutrition').items || []"
+            :key="idx"
+            class="nutrition-card text-center"
+            data-aos="zoom-in"
+            :data-aos-delay="(idx + 1) * 100"
+          >
             <div class="nutrition-icon w-20 h-20 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-3xl">❤️</span>
+              <span class="text-3xl">{{ item.icon }}</span>
             </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Không cholesterol</h3>
-              <p class="text-sm text-gray-600">Tốt cho tim mạch</p>
-          </div>
-
-          <!-- Value 2 -->
-          <div class="nutrition-card text-center" data-aos="zoom-in" data-aos-delay="200">
-            <div class="nutrition-icon w-20 h-20 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-3xl">🌱</span>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">100% đạm từ thực vật</h3>
-              <p class="text-sm text-gray-600">Dinh dưỡng thuần chay</p>
-          </div>
-
-          <!-- Value 3 -->
-          <div class="nutrition-card text-center" data-aos="zoom-in" data-aos-delay="300">
-            <div class="nutrition-icon w-20 h-20 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-3xl">⚖️</span>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Chất béo bão hòa thấp</h3>
-              <p class="text-sm text-gray-600">Tốt cho sức khỏe</p>
-          </div>
-
-          <!-- Value 4 -->
-          <div class="nutrition-card text-center" data-aos="zoom-in" data-aos-delay="400">
-            <div class="nutrition-icon w-20 h-20 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-3xl">🧬</span>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Không biến đổi gen</h3>
-              <p class="text-sm text-gray-600">An toàn tự nhiên</p>
-          </div>
-
-          <!-- Value 5 -->
-          <div class="nutrition-card text-center" data-aos="zoom-in" data-aos-delay="500">
-            <div class="nutrition-icon w-20 h-20 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span class="text-3xl">🥛</span>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Không Lactose</h3>
-              <p class="text-sm text-gray-600">Phù hợp mọi người</p>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ item.title }}</h3>
+            <p class="text-sm text-gray-600">{{ item.subtitle }}</p>
           </div>
         </div>
       </div>
@@ -613,6 +529,8 @@ import 'swiper/css';
 import { useRouter } from 'vue-router';
 import { navigateToMainDomain, navigateToSubdomain } from '../utils/domainUtils';
 import { getImageUrlFromApi } from '../utils/imageUtils.js';
+import { usePageContent } from '../composables/usePageContent.js';
+import { renderRichText } from '../utils/richText.js';
 
 export default {
   name: 'Me',
@@ -650,12 +568,21 @@ export default {
     
     // Swiper modules
     const modules = [Autoplay];
-    
+
+    // Story sections editable in admin (Câu chuyện Thi Yên); falls back to packaged content
+    const { extra, visible, imageOf } = usePageContent('story');
+    const paragraphs = (key) => extra(key).paragraphs || [];
+
     return {
       goToProducts,
       goToProductDetail,
       modules,
-      getImageUrlFromApi
+      getImageUrlFromApi,
+      extra,
+      visible,
+      imageOf,
+      paragraphs,
+      renderRichText
     };
   },
   data() {

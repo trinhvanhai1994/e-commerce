@@ -1,30 +1,25 @@
 <template>
   <div class="min-h-screen" style="background-color: #fefce8;">
     <!-- Banner Section: PC, Tablet & Mobile -->
-    <section class="hero-section relative w-full overflow-hidden" data-aos="fade-down">
-      <!-- Banner mobile & tablet -->
-      <img :src="getImageUrlFromApi('/images/banner-mobile.png')" alt="Banner mobile" class="w-full object-contain drop-shadow-xl block lg:hidden cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/banner-mobile.png'), 'Banner mobile')" />
-      <!-- Banner desktop (chỉ hiển thị từ lg trở lên) -->
-      <img :src="getImageUrlFromApi('/images/banner.png')" alt="Banner PC" class="w-full h-auto object-cover drop-shadow-xl hidden lg:block cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/banner.png'), 'Banner PC')" />
+    <section v-if="sectionEnabled('hero')" class="hero-section relative w-full overflow-hidden" data-aos="fade-down">
+      <img v-if="heroMobileUrl" :src="heroMobileUrl" alt="Banner mobile" class="w-full object-contain drop-shadow-xl block lg:hidden cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(heroMobileUrl, 'Banner mobile')" />
+      <img v-if="heroDesktopUrl" :src="heroDesktopUrl" alt="Banner PC" class="w-full h-auto object-cover drop-shadow-xl hidden lg:block cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(heroDesktopUrl, 'Banner PC')" />
     </section>
 
-    <!-- GIỮ TRỌN DƯỠNG CHẤT & HƯƠNG VỊ NGUYÊN BẢN -->
-    <section class="max-w-7xl mx-auto w-full px-4 md:px-4 py-8 grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
+    <section v-if="sectionEnabled('story')" class="max-w-7xl mx-auto w-full px-4 md:px-4 py-8 grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
       <div class="md:col-span-3 w-full" data-aos="fade-right">
-        <h2 class="font-bold text-xl md:text-2xl mb-2 gradient-text-green">GIỮ TRỌN DƯỠNG CHẤT<br />VÀ HƯƠNG VỊ NGUYÊN BẢN</h2>
-        <div class="text-gray-700 mb-4">
-          Một bữa ăn nhẹ, nhưng đủ đầy.<br />
-          Một cách chăm sóc bản thân, nhưng không cầu kỳ.<br />
-          Một thói quen nhỏ, nhưng nuôi dưỡng cơ thể mỗi ngày.<br /><br />
-          Với Thi Yên, giá trị của một sản phẩm tốt không chỉ nằm ở công thức, mà bắt đầu từ sự chắt lọc cẩn thận từng nguyên liệu, giữ lại những gì nguyên bản,  trọn vị và thật sự nuôi dưỡng cơ thể.<br /><br />
-          Mỗi sản phẩm là sự giao thoa giữa công thức dưỡng sinh cổ truyền thuần thực vật và tư duy dinh dưỡng hiện đại tạo nên những bữa ăn tiện lợi, phù hợp với nhịp sống ngày nay.
-        </div>
-        <router-link to="/me" class="inline-block bg-green-500 text-white font-bold rounded-full px-6 py-2 shadow hover:bg-green-600 transition-all duration-300 hover:scale-105">Khám phá câu chuyện Thi Yên</router-link>
+        <h2 class="font-bold text-xl md:text-2xl mb-2 gradient-text-green whitespace-pre-line">{{ sections.story?.title }}</h2>
+        <div class="text-gray-700 mb-4 whitespace-pre-line">{{ sections.story?.body }}</div>
+        <component
+          :is="isInternalLink(storyCtaLink) ? 'router-link' : 'a'"
+          v-bind="linkAttrs(storyCtaLink)"
+          class="inline-block bg-green-500 text-white font-bold rounded-full px-6 py-2 shadow hover:bg-green-600 transition-all duration-300 hover:scale-105"
+        >{{ sections.story?.ctaText || 'Khám phá câu chuyện Thi Yên' }}</component>
       </div>
       <div class="md:col-span-2 flex justify-center w-full" data-aos="fade-left">
-        <img :src="getImageUrlFromApi('/images/baner-second.png')" alt="Hướng dẫn sử dụng Mè Đen" 
+        <img v-if="storyImageUrl" :src="storyImageUrl" alt="Hướng dẫn sử dụng Mè Đen" 
             class="w-full max-w-lg h-auto object-contain rounded-2xl cursor-pointer hover:opacity-90 transition-opacity duration-300" 
-            @click="openImageModal(getImageUrlFromApi('/images/baner-second.png'), 'Hướng dẫn sử dụng Mè Đen')" />
+            @click="openImageModal(storyImageUrl, 'Hướng dẫn sử dụng Mè Đen')" />
       </div>
     </section>
 
@@ -125,40 +120,36 @@
       </div>
     </section>
 
-    <!-- TIÊU CHUẨN CHẤT LƯỢNG -->
-    <section class="max-w-5xl mx-auto px-4 py-8">
-      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">TIÊU CHUẨN CHẤT LƯỢNG</h2>
+    <section v-if="sectionEnabled('quality')" class="max-w-5xl mx-auto px-4 py-8">
+      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">{{ sections.quality?.title || 'TIÊU CHUẨN CHẤT LƯỢNG' }}</h2>
       <div class="flex flex-col gap-4 md:gap-6">
-        <div class="flex flex-row items-center gap-3 md:gap-4 quality-card" data-aos="fade-right">
-          <img :src="getImageUrlFromApi('/images/iso.png')" alt="ISO" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/iso.png'), 'TIÊU CHUẨN ISO 22000:2018')" />
+        <div
+          v-for="(item, qIdx) in qualityItems"
+          :key="qIdx"
+          class="flex flex-row items-center gap-3 md:gap-4 quality-card"
+          :data-aos="qIdx % 2 === 0 ? 'fade-right' : 'fade-left'"
+        >
+          <img v-if="item.iconUrl" :src="item.iconUrl" :alt="item.title" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(item.iconUrl, item.title)" />
           <div>
-            <div class="font-bold text-sm md:text-base mb-1">TIÊU CHUẨN ISO 22000:2018</div>
-            <div class="text-gray-700 text-xs md:text-sm">Nhà máy sản xuất có hệ thống quản lý tốt an toàn vệ sinh thực phẩm và đảm bảo cung cấp các sản phẩm thực phẩm an toàn, chất lượng cho người tiêu dùng.</div>
-          </div>
-        </div>
-        <div class="flex flex-row items-center gap-3 md:gap-4 quality-card" data-aos="fade-left">
-          <img :src="getImageUrlFromApi('/images/gmp.png')" alt="GMP" class="w-12 h-12 md:w-16 md:h-16 object-contain quality-icon cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(getImageUrlFromApi('/images/gmp.png'), 'CHỨNG NHẬN GMP – Codex')" />
-          <div>
-            <div class="font-bold text-sm md:text-base mb-1">Chứng nhận GMP Codex (TCVN 5603:2023)</div>
-            <div class="text-gray-700 text-xs md:text-sm">Do TQC cấp theo lĩnh vực thực phẩm.<br />Nhà máy đảm bảo toàn bộ quy trình sản xuất tuân thủ Thực hành sản xuất tốt (Good Manufacturing Practice - GMP)</div>
+            <div class="font-bold text-sm md:text-base mb-1">{{ item.title }}</div>
+            <div class="text-gray-700 text-xs md:text-sm whitespace-pre-line">{{ item.body }}</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- DINH DƯỠNG THUẦN THỰC VẬT -->
-    <section class="max-w-8xl mx-auto px-4 py-8" data-aos="fade-up">
-      <!-- Four Home Image -->
+    <section v-if="sectionEnabled('meal_gallery')" class="max-w-8xl mx-auto px-4 py-8" data-aos="fade-up">
       <div class="flex justify-center mb-8" data-aos="fade-up" data-aos-delay="100">
         <img 
-          :src="getImageUrlFromApi('/images/four-home.png')" 
+          v-if="mealBannerUrl"
+          :src="mealBannerUrl" 
           alt="Four Home" 
           class="w-full max-w-4xl h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity duration-300" 
-          @click="openImageModal(getImageUrlFromApi('/images/four-home.png'), 'Four Home')"
+          @click="openImageModal(mealBannerUrl, 'Four Home')"
         />
       </div>
       
-      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG</h2>
+      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">{{ mealTitle }}</h2>
       <!-- Desktop: ảnh vuông to, ẩn trên mobile -->
       <div class="hidden md:grid md:grid-cols-4 md:gap-6">
         <img
@@ -202,13 +193,13 @@
     </section>
 
     <!-- BÀI VIẾT NỔI BẬT -->
-    <section class="max-w-7xl mx-auto px-4 py-4">
+    <section v-if="blogPosts.length" class="max-w-7xl mx-auto px-4 py-4">
       <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-8 text-center gradient-text-green" data-aos="fade-up">BÀI VIẾT NỔI BẬT</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
         <div v-for="(post, index) in blogPosts" :key="post.id" :data-aos="'fade-up'" :data-aos-delay="index * 150" class="bg-white rounded-xl shadow p-3 md:p-4 flex flex-col items-center blog-card">
           <!-- Ảnh với 2 tùy chọn: click để phóng to hoặc click để xem bài viết -->
           <div class="relative w-full">
-            <img :src="post.image" :alt="post.title" class="w-full h-32 md:h-40 object-cover rounded mb-3 cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(post.image, post.title)" />
+            <img :src="postCover(post)" :alt="post.title" class="w-full h-32 md:h-40 object-cover rounded mb-3 cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(postCover(post), post.title)" />
             <!-- Nút xem bài viết trên ảnh -->
             <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 rounded mb-3 flex items-center justify-center">
               <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug } }" class="opacity-0 hover:opacity-100 transition-opacity duration-300 bg-white text-green-600 px-3 py-1 rounded-full text-xs font-semibold">
@@ -233,12 +224,12 @@
       style="top:66%;transform:translateY(-50%);"
       data-aos="fade-left" data-aos-delay="1000"
     >
-      <a href="https://m.me/yourpage" target="_blank" rel="noopener" class="bg-blue-500 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shadow-lg hover:bg-blue-600 transition-all duration-300 hover:scale-110 floating-btn">
+      <a v-if="sectionEnabled('floating_chat')" :href="messengerUrl" target="_blank" rel="noopener" class="bg-blue-500 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shadow-lg hover:bg-blue-600 transition-all duration-300 hover:scale-110 floating-btn">
         <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2C6.477 2 2 6.016 2 11.01c0 2.49 1.01 4.77 2.77 6.53V22l2.52-1.39c1.13.31 2.33.48 3.71.48 5.523 0 10-4.016 10-9.01S17.523 2 12 2zm.25 13.5l-2.25-2.4-4.25 2.4 5.5-6 2.25 2.4 4.25-2.4-5.5 6z"/>
         </svg>
       </a>
-      <a href="https://zalo.me/yourzalo" target="_blank" rel="noopener" class="bg-green-500 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shadow-lg hover:bg-green-600 transition-all duration-300 font-bold text-sm md:text-lg text-white hover:scale-110 floating-btn">ZALO</a>
+      <a v-if="sectionEnabled('floating_chat')" :href="zaloUrl" target="_blank" rel="noopener" class="bg-green-500 rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shadow-lg hover:bg-green-600 transition-all duration-300 font-bold text-sm md:text-lg text-white hover:scale-110 floating-btn">ZALO</a>
     </div>
 
     <!-- Success Popup -->
@@ -300,6 +291,9 @@ import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
+import { contentService } from '../services/content.service.js'
+import { defaultHomepage, resolveCmsImage, resolveSlotImage, DEFAULT_IMAGE_PATHS } from '../content/homeDefaults.js'
+import { isInternalLink, linkAttrs } from '../utils/links.js'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -317,68 +311,94 @@ const showImageModal = ref(false)
 const zoomedImageSrc = ref("")
 const zoomedImageAlt = ref("")
 
-const images = [
-  { src: getImageUrlFromApi('/images/struct/1.png'), alt: 'Thêm mô tả 1' },
-  { src: getImageUrlFromApi('/images/struct/2.png'), alt: 'Thêm mô tả 2' },
-  { src: getImageUrlFromApi('/images/struct/3.png'), alt: 'Thêm mô tả 3' },
-  { src: getImageUrlFromApi('/images/struct/4.png'), alt: 'Thêm mô tả 4' },
-];
+const sections = ref({ ...defaultHomepage.sections })
+const storyCtaLink = computed(() => sections.value.story?.ctaLink || '/me')
+// Featured posts come only from the API: a packaged copy could show posts the admin has edited or unpublished
+const blogPosts = ref([])
 
-// Computed property để tự động tắt loop nếu không đủ slides
-// Loop cần ít nhất 2 * slidesPerView slides để hoạt động đúng
+const cmsImg = (path) => resolveCmsImage(path)
+const sectionEnabled = (key) => sections.value[key]?.enabled !== false
+
+const heroDesktopUrl = computed(() =>
+  resolveSlotImage({
+    useDefault: sections.value.hero?.useDefaultDesktop,
+    path: sections.value.hero?.imageDesktop,
+    defaultPath: DEFAULT_IMAGE_PATHS.hero.imageDesktop,
+  })
+)
+const heroMobileUrl = computed(() =>
+  resolveSlotImage({
+    useDefault: sections.value.hero?.useDefaultMobile,
+    path: sections.value.hero?.imageMobile,
+    defaultPath: DEFAULT_IMAGE_PATHS.hero.imageMobile,
+  })
+)
+const storyImageUrl = computed(() =>
+  resolveSlotImage({
+    useDefault: sections.value.story?.useDefaultDesktop,
+    path: sections.value.story?.imageDesktop,
+    defaultPath: DEFAULT_IMAGE_PATHS.story.imageDesktop,
+  })
+)
+
+const qualityItems = computed(() => {
+  const items = sections.value.quality?.extraJson?.items || []
+  return items.map((item, idx) => ({
+    ...item,
+    iconUrl: resolveSlotImage({
+      useDefault: item.useDefaultIcon,
+      path: item.icon,
+      defaultPath: DEFAULT_IMAGE_PATHS.quality.icons[idx],
+    }),
+  }))
+})
+
+const mealBannerUrl = computed(() => {
+  const extra = sections.value.meal_gallery?.extraJson || {}
+  return resolveSlotImage({
+    useDefault: extra.useDefaultBanner,
+    path: extra.banner,
+    defaultPath: DEFAULT_IMAGE_PATHS.meal_gallery.banner,
+  })
+})
+const mealTitle = computed(() => sections.value.meal_gallery?.extraJson?.title || 'BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG')
+const images = computed(() => {
+  const tiles = sections.value.meal_gallery?.extraJson?.tiles || []
+  return tiles
+    .map((t, idx) => ({
+      src: resolveSlotImage({
+        useDefault: t.useDefault,
+        path: t.src,
+        defaultPath: DEFAULT_IMAGE_PATHS.meal_gallery.tiles[idx],
+      }),
+      alt: t.alt || '',
+    }))
+    .filter((t) => !!t.src)
+})
+const messengerUrl = computed(() => sections.value.floating_chat?.extraJson?.messengerUrl || 'https://m.me/yourpage')
+const zaloUrl = computed(() => sections.value.floating_chat?.extraJson?.zaloUrl || 'https://zalo.me/yourzalo')
+const postCover = (post) => cmsImg(post.coverImage || post.image)
+
 const shouldLoop = computed(() => {
-  const minSlidesForLoop = 2 * 2.5 // 2 * slidesPerView
-  return images.length >= minSlidesForLoop
+  const minSlidesForLoop = 2 * 2.5
+  return images.value.length >= minSlidesForLoop
 })
 
-// Featured product data
-const featuredProduct = ref({
-  id: 1,
-  name: 'Premium Product',
-  description: 'Experience the ultimate quality with our flagship product. Designed for excellence and built to last.',
-  price: 299.99,
-  image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60',
-  features: [
-    'Premium Quality Materials',
-    'Advanced Technology',
-    'Lifetime Warranty',
-    'Free Shipping'
-  ]
-})
-
-// Product reviews data
-const productReviews = ref([
-  {
-    id: 1,
-    title: 'Why Our Premium Product is Worth Every Penny',
-    excerpt: 'An in-depth review of our flagship product, exploring its features, benefits, and real-world applications.',
-    author: 'John Smith',
-    date: 'March 15, 2024',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60',
-    category: 'Product Review',
-    readTime: '5 min read'
-  },
-  {
-    id: 2,
-    title: 'Comparing Our Bundles: Which One is Right for You?',
-    excerpt: 'A comprehensive comparison of our different product bundles to help you make the right choice.',
-    author: 'Sarah Johnson',
-    date: 'March 12, 2024',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=60',
-    category: 'Comparison',
-    readTime: '7 min read'
-  },
-  {
-    id: 3,
-    title: 'Customer Success Stories: Real Results with Our Products',
-    excerpt: 'Read about how our customers are achieving their goals with our premium products.',
-    author: 'Mike Wilson',
-    date: 'March 10, 2024',
-    image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&auto=format&fit=crop&q=60',
-    category: 'Success Stories',
-    readTime: '6 min read'
+async function fetchHomepageContent() {
+  try {
+    const data = await contentService.getHomepage()
+    if (data?.sections) {
+      sections.value = { ...defaultHomepage.sections, ...data.sections }
+    }
+    if (Array.isArray(data?.featuredPosts)) {
+      blogPosts.value = data.featuredPosts
+    }
+  } catch (e) {
+    console.warn('CMS homepage fallback:', e.message)
+    sections.value = { ...defaultHomepage.sections }
+    blogPosts.value = []
   }
-])
+}
 
 import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
 
@@ -519,49 +539,6 @@ watch(() => cartStore.items, (newCart) => {
 // Dữ liệu mẫu best sellers
 const bestSellers = ref([])
 
-// Dữ liệu mẫu blog
-const blogPosts = ref([
-  {
-    id: 1,
-    title: 'Dinh Dưỡng Đen Nguyên Bản Từ 5 Loại Hạt Trong Bột Ngũ Hắc Mè Đen',
-    excerpt: 'Bột ngũ hắc mè đen Thi Yên là bữa ăn thay thế dinh dưỡng từ 5 loại hạt đen nguyên bản, phù hợp với lối sống lành mạnh và hiện đại. Dưỡng sinh dễ dàng cho cơ thể khỏe mạnh.',
-    image: getImageUrlFromApi('/images/blogs/blog1/avatar1.png'),
-    slug: 'blog1'
-  },
-  {
-    id: 2,
-    title: 'Hiểu Cơ Bản Về Dưỡng Sinh: Cân Bằng Âm Dương & Thuận Tự Nhiên',
-    excerpt: 'Khám phá triết lý dưỡng sinh của Thi Yên, kết hợp tinh hoa dưỡng sinh cổ truyền và dinh dưỡng hiện đại. Mỗi sản phẩm là bữa ăn tiện lợi, cân bằng âm dương, thuận theo ngũ hành, nuôi dưỡng cơ thể, giấc ngủ, dưỡng nhan và hỗ trợ sức khỏe toàn diện',
-    image: getImageUrlFromApi('/images/blogs/blog2/avatar2.png'),
-    slug: 'blog2'
-  },
-  {
-    id: 3,
-    title: 'Dưỡng Sinh Hiện Đại Là Gì? Vì Sao Người Trẻ Nên Nuôi Cơ Thể Từ Gốc Mỗi Ngày?',
-    excerpt: 'Khám phá dưỡng sinh hiện đại với Thi Yên: Bột ngũ hắc mè đen và bột ngũ sắc hồng đậu giúp nuôi dưỡng cơ thể từ bên trong, cải thiện giấc ngủ, dưỡng nhan, dinh dưỡng cho tóc. Sản phẩm thuần tự nhiên, tiện lợi, phù hợp cho người trẻ và lối sống lành mạnh.',
-    image: getImageUrlFromApi('/images/blogs/blog3/avatar3.png'),
-    slug: 'blog3'
-  }
-])
-
-// Danh mục sản phẩm nổi bật
-const categories = ref([
-  {
-    id: 1,
-    name: 'Thực phẩm bổ dưỡng',
-    icon: getImageUrlFromApi('/images/products/me-den.jpg'),
-    desc: 'Mè đen và hồng đậu tự nhiên, bổ dưỡng.',
-    link: '/products?cat=food'
-  }
-])
-
-// Feedback khách hàng (ảnh mẫu)
-const feedbackImages = [
-  getImageUrlFromApi('/images/review/koc1.jpg'),
-  getImageUrlFromApi('/images/review/koc2.jpg'),
-  getImageUrlFromApi('/images/review/koc3.jpg'),
-  getImageUrlFromApi('/images/review/koc4.jpg'),
-]
 
 async function fetchProducts() {
   isLoading.value = true
@@ -663,6 +640,7 @@ async function fetchProducts() {
 }
 
 onMounted(() => {
+  fetchHomepageContent()
   fetchProducts()
 
   // Add keyboard event listener

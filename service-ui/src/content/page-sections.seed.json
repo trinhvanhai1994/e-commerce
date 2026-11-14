@@ -1,0 +1,171 @@
+[
+  {
+    "page_key": "story",
+    "section_key": "hero",
+    "sort_order": 1,
+    "extra_json": {
+      "title": "CÂU CHUYỆN THƯƠNG HIỆU",
+      "subtitle": "Từ một bữa ăn nhỏ – đến thói quen sống lành mỗi ngày",
+      "image": null,
+      "useDefaultImage": true
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "intro",
+    "sort_order": 2,
+    "extra_json": {
+      "title": "CÂU CHUYỆN THI YÊN",
+      "paragraphs": [
+        "Giữa nhịp sống hiện đại, không khó để bắt gặp những bữa sáng qua loa, bữa trưa ăn vội, hay những ngày dài khép lại trong cảm giác mệt mỏi không tên. Người trẻ cuốn vào công việc, người lớn tuổi thì ngày càng cần chọn lọc kỹ hơn, vì cơ thể dần trở nên nhạy cảm với những thực phẩm kém lành. Nhưng ở mọi độ tuổi, cơ thể đều cần được nuôi dưỡng một cách nhẹ nhàng, đều đặn và tự nhiên.",
+        "Thi Yên được tạo nên từ chính những điều giản dị ấy, như một nhịp thở chậm giữa guồng quay vội, một cách dịu dàng để cơ thể được yêu thương mỗi ngày.",
+        "Lấy cảm hứng từ triết lý dưỡng sinh thuần thực vật kết hợp cùng dinh dưỡng hiện đại, Thi Yên mang đến những bữa ăn nhỏ, đủ chất, tiện lợi, giúp bạn bắt đầu hành trình sống lành từ những điều đơn giản nhất."
+      ]
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "feature_1",
+    "sort_order": 3,
+    "extra_json": {
+      "title": "Trọn vị tự nhiên - Cân bằng dưỡng chất",
+      "paragraphs": [
+        "Với Thi Yên, giá trị của một sản phẩm tốt không chỉ nằm ở công thức, mà bắt đầu từ sự chắt lọc cẩn thận từng nguyên liệu, giữ lại những gì nguyên bản, trọn vị và thật sự nuôi dưỡng cơ thể.",
+        "Mỗi loại hạt được chọn vì giá trị tinh túy vốn có, chế biến nhẹ nhàng để giữ nguyên dưỡng chất và hương vị tự nhiên, đặc biệt khi kết hợp cùng nhau, có thể tạo nên những bữa ăn bổ dưỡng, thơm ngon và tiện lợi."
+      ],
+      "imageAlt": "Hình minh họa",
+      "image": null,
+      "useDefaultImage": true
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "feature_2",
+    "sort_order": 4,
+    "extra_json": {
+      "title": "Khác biệt trong cách làm",
+      "paragraphs": [
+        "Giữa thị trường ngày càng bão hòa bởi thực phẩm siêu chế biến, Thi Yên chọn một hướng đi chậm hơn: không ngũ cốc công nghiệp, không thành phần pha sẵn, không phụ gia đánh lừa vị giác.",
+        "Chúng tôi tin vào hương vị thực sự đến từ tự nhiên và sự kết hợp tối giản mà vẫn đủ đầy cho nhu cầu cơ thể, bởi lẽ \"Chăm sóc bản thân không cần phức tạp, chỉ cần đều đặn và đủ lành.\""
+      ],
+      "imageAlt": "Sản phẩm Thi Yên",
+      "image": null,
+      "useDefaultImage": true
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "vision",
+    "sort_order": 5,
+    "extra_json": {
+      "title": "TẦM NHÌN",
+      "paragraphs": [
+        "Thi Yên hướng đến trở thành thương hiệu thực phẩm dưỡng sinh đồng hành cùng người Việt trong hành trình sống khỏe, từ người trẻ bận rộn đến người trung niên cần lựa chọn nhẹ nhàng mà bồi bổ.",
+        "Dù là bữa sáng nhanh, bữa phụ sau giờ làm, hay khoảnh khắc thư giãn mỗi chiều, chúng tôi mong mỗi sản phẩm đều có thể góp phần nuôi dưỡng một lối sống đủ lành, đủ chậm và đủ yêu thương."
+      ]
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "mission",
+    "sort_order": 6,
+    "extra_json": {
+      "title": "SỨ MỆNH",
+      "intro": "Chúng tôi mong muốn đưa dinh dưỡng thuần khiết trở lại nhịp sống hiện đại bằng những sản phẩm tiện lợi, dễ tiếp cận, nhưng vẫn giữ trọn giá trị tự nhiên.",
+      "commitTitle": "Thi Yên cam kết:",
+      "items": [
+        "Thành phần rõ ràng, tối giản, dễ dùng mỗi ngày",
+        "Không phụ gia, không đường tinh luyện, không thành phần nhân tạo",
+        "Giữ lại trọn vẹn dưỡng chất và hương vị nguyên bản trong từng bước chế biến"
+      ]
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "values",
+    "sort_order": 7,
+    "extra_json": {
+      "title": "GIÁ TRỊ CỐT LÕI",
+      "items": [
+        { "title": "Thuần tự nhiên", "body": "Nguyên liệu được chọn lọc kỹ lưỡng, không phụ gia tổng hợp, không đường tinh luyện, không bổ sung dưỡng chất nhân tạo. Mỗi thành phần đều được lựa chọn với sự tử tế và minh bạch.", "image": null, "useDefaultImage": true },
+        { "title": "Cân bằng & Bền vững", "body": "Kết hợp giữa dưỡng chất hiện đại và tinh thần dưỡng sinh, hài hòa giữa khoa học và truyền thống để phù hợp với thể trạng Á Đông.", "image": null, "useDefaultImage": true },
+        { "title": "Tiện lợi & Ngon miệng", "body": "Pha nhanh trong 1 phút nhưng đủ để no lâu, đủ chất, dễ trở thành một phần trong cuộc sống thường ngày.", "image": null, "useDefaultImage": true }
+      ]
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "nutrition",
+    "sort_order": 8,
+    "extra_json": {
+      "title": "Dinh dưỡng vàng từ thực vật",
+      "items": [
+        { "icon": "❤️", "title": "Không cholesterol", "subtitle": "Tốt cho tim mạch" },
+        { "icon": "🌱", "title": "100% đạm từ thực vật", "subtitle": "Dinh dưỡng thuần chay" },
+        { "icon": "⚖️", "title": "Chất béo bão hòa thấp", "subtitle": "Tốt cho sức khỏe" },
+        { "icon": "🧬", "title": "Không biến đổi gen", "subtitle": "An toàn tự nhiên" },
+        { "icon": "🥛", "title": "Không Lactose", "subtitle": "Phù hợp mọi người" }
+      ]
+    }
+  },
+  {
+    "page_key": "philosophy",
+    "section_key": "hero",
+    "sort_order": 1,
+    "extra_json": {
+      "title": "TRIẾT LÝ DƯỠNG SINH",
+      "subtitle": "Dưỡng sinh - lối sống thuận tự nhiên từ ngàn xưa",
+      "image": null,
+      "useDefaultImage": true
+    }
+  },
+  {
+    "page_key": "philosophy",
+    "section_key": "article",
+    "sort_order": 2,
+    "extra_json": {
+      "title": "TRIẾT LÝ DƯỠNG SINH",
+      "blocks": [
+        { "type": "h4", "text": "Dưỡng sinh - lối sống thuận tự nhiên từ ngàn xưa" },
+        { "type": "p", "text": "Từ hơn hai ngàn năm trước, trong nền y học cổ phương Đông, dưỡng sinh đã hình thành như một lối sống thấm đẫm triết lý âm dương, ngũ hành với niềm tin rằng: muốn thân vững, tâm phải yên; muốn sống khỏe phải thuận theo đất trời. Toàn bộ triết lý dưỡng sinh Đông phương cổ đại đều xoay quanh một điều cốt lõi: **sức khỏe không nằm ở thứ tìm bên ngoài, mà ở cách ta sống mỗi ngày.**" },
+        { "type": "p", "text": "Mỗi hành động trong ngày, mỗi lựa chọn nhỏ đều là một phần của dưỡng sinh: ăn uống điều độ, sinh hoạt theo mùa, làm việc có chừng, giữ tâm yên, lòng thanh." },
+        { "type": "p", "text": "Và trong lối sống ấy, **thực phẩm không chỉ là cái ăn**, mà là cái nuôi: nuôi thân, nuôi khí, điều hòa tạng phủ. Mỗi loại hạt, mỗi loại đậu đều mang một tính chất riêng: ấm hay mát, bổ khí hay dưỡng huyết, dưỡng nhan để nâng đỡ cơ thể theo từng mùa, từng thể trạng, từng nhịp sống." },
+        { "type": "h4", "text": "Dưỡng sinh trong nếp sống người Việt" },
+        { "type": "p", "text": "Trước cả khi được gọi tên, **dưỡng sinh đã là một phần tự nhiên trong đời sống người Việt**, âm thầm, giản dị nhưng bền bỉ: ăn theo mùa, giữ ấm khi trở gió, dùng gừng nướng lúc cảm hàn, cháo tía tô khi sốt, nước đỗ đen giải nhiệt, hạt sen giúp ngủ ngon… Những điều tưởng chừng bình dị ấy, chính là dưỡng sinh, nuôi thân, an tâm, thuận tự nhiên." },
+        { "type": "h4", "text": "Gieo lại một nếp sống lành từ những điều tưởng chừng đã cũ" },
+        { "type": "p", "text": "Từ nền tảng dưỡng sinh truyền thống, Thi Yên chọn kết hợp cùng những phương pháp hiện đại nhằm giữ trọn dưỡng chất, đồng thời phù hợp hơn với nhịp sống ngày nay." },
+        { "type": "p", "text": "Chúng tôi tin rằng, truyền thống không nằm lại trong quá khứ. Nó sống động khi bước vào đời sống hôm nay trong hình thức mới, nhưng vẫn giữ linh hồn cũ." },
+        { "type": "p", "text": "**Dưỡng sinh không phải là triết lý cao siêu, cũng không chỉ dành riêng cho người lớn tuổi.** Đó là lựa chọn sống lành mà ai cũng có thể bắt đầu từ những điều rất giản dị: ăn một bữa sáng đủ đầy, uống 1 cốc nước ấm, ít đường, chọn thực phẩm nguyên bản, không chế biến quá đà." },
+        { "type": "p", "text": "Chỉ cần vậy ta đã gieo lại cho mình một nếp sống lành - vững bền, mộc mạc và đủ để lan tỏa." }
+      ]
+    }
+  },
+  {
+    "page_key": "philosophy",
+    "section_key": "principles",
+    "sort_order": 3,
+    "extra_json": {
+      "title": "NGUYÊN TẮC DƯỠNG SINH",
+      "items": [
+        { "title": "Thuận tự nhiên", "body": "Sống theo nhịp điệu tự nhiên, ăn theo mùa, nghỉ ngơi đúng giờ, lắng nghe cơ thể và tâm hồn để điều chỉnh lối sống phù hợp.", "image": null, "useDefaultImage": true },
+        { "title": "Điều hòa âm dương", "body": "Cân bằng giữa động và tĩnh, làm việc và nghỉ ngơi, thực phẩm ấm và mát để giữ hài hòa trong cơ thể.", "image": null, "useDefaultImage": true },
+        { "title": "Giản dị bền vững", "body": "Chọn lối sống đơn giản, không cầu kỳ phức tạp, tập trung vào những điều cốt lõi và duy trì lâu dài.", "image": null, "useDefaultImage": true }
+      ]
+    }
+  },
+  {
+    "page_key": "philosophy",
+    "section_key": "food",
+    "sort_order": 4,
+    "extra_json": {
+      "title": "DƯỠNG SINH QUA THỰC PHẨM",
+      "items": [
+        { "icon": "🌾", "title": "Ăn theo mùa", "subtitle": "Chọn thực phẩm phù hợp" },
+        { "icon": "⚖️", "title": "Điều độ", "subtitle": "Không quá nhiều, không quá ít" },
+        { "icon": "🌿", "title": "Nguyên bản", "subtitle": "Ít chế biến, giữ nguyên chất" },
+        { "icon": "🍵", "title": "Ấm bụng", "subtitle": "Thực phẩm ấm, dễ tiêu hóa" },
+        { "icon": "🕐", "title": "Đúng giờ", "subtitle": "Ăn uống theo nhịp sinh học" }
+      ]
+    }
+  }
+]

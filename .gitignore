@@ -1,0 +1,3 @@
+# Local IDE and AI-agent config (machine-specific paths, agent worktrees)
+.idea/
+.claude/

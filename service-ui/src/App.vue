@@ -4,9 +4,24 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from './stores/cart'
 import { navigateToMainDomain, navigateToSubdomain, shouldStayOnSubdomain, shouldChangeDomain } from './utils/domainUtils'
 import { getImageUrlFromApi } from './utils/imageUtils.js'
+import { contentService } from './services/content.service.js'
+import { resolveSlotImage, DEFAULT_IMAGE_PATHS } from './content/homeDefaults.js'
+import SiteFooter from './components/SiteFooter.vue'
 
 const route = useRoute()
 const router = useRouter()
+const siteLogoUseDefault = ref(true)
+const siteLogoPath = ref(null)
+// null → SiteFooter uses its packaged defaults (same text as before CMS)
+const footerContent = ref(null)
+const footerEnabled = ref(true)
+const siteLogoUrl = computed(() =>
+  resolveSlotImage({
+    useDefault: siteLogoUseDefault.value,
+    path: siteLogoPath.value,
+    defaultPath: DEFAULT_IMAGE_PATHS.header_logo.imageDesktop,
+  })
+)
 const isScrolled = ref(false)
 const isMobileMenuOpen = ref(false)
 const openSubMenu = ref(false)
@@ -119,9 +134,28 @@ const handleNavigation = (path, e) => {
   }
 }
 
+async function loadSiteLogo() {
+  try {
+    const data = await contentService.getHomepage()
+    const footerSection = data?.sections?.footer
+    if (footerSection) {
+      footerEnabled.value = footerSection.enabled !== false
+      footerContent.value = footerSection.extraJson || null
+    }
+    const logoSection = data?.sections?.header_logo
+    if (!logoSection) return
+    siteLogoUseDefault.value = logoSection.useDefaultDesktop !== false
+    siteLogoPath.value = logoSection.imageDesktop || null
+  } catch (_) {
+    siteLogoUseDefault.value = true
+    siteLogoPath.value = null
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   cartStore.loadFromStorage()
+  loadSiteLogo()
   
   // Facebook Pixel Code
   !function(f,b,e,v,n,t,s)
@@ -267,7 +301,7 @@ function removeFromCart(item) {
               <div class="flex items-center min-h-[42px] py-0">
                 <!-- Logo + Brand: luôn sát trái -->
                 <a href="#" @click="handleLogoClick" class="flex items-center justify-center header-brand select-none cursor-pointer flex-shrink-0 no-underline" style="text-decoration: none;">
-                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
+                  <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
                 </a>
                 <!-- Menu PC only: căn giữa, flex-1 để menu chiếm không gian giữa, ẩn trên mobile -->
                 <nav class="header-menu hidden md:flex gap-6 items-center flex-1 justify-center">
@@ -448,140 +482,8 @@ function removeFromCart(item) {
               <component :is="Component" />
             </div>
           </main>
-          <!-- Footer -->
-          <footer class="bg-gradient-to-br from-yellow-50 via-white to-yellow-50 font-sans border-t border-yellow-200 mt-4 text-black relative overflow-hidden">
-            <!-- Background decoration -->
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-100/20 to-transparent"></div>
-            
-            <div class="max-w-7xl mx-auto px-4 py-8 relative z-10">
-              <!-- Main footer content -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <!-- Logo + Info -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="h-20 w-auto mb-4 object-contain mx-auto drop-shadow-md" />
-                  <div class="space-y-3 text-gray-700">
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      </svg>
-                      <span class="text-sm">KĐT Khai Sơn City,<br />Phường Bồ Đề, Thành phố Hà Nội, Việt Nam</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                      </svg>
-                      <span class="font-bold text-green-700">0396860584</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                      </svg>
-                      <span class="text-sm">thiyen.vietnam@gmail.com</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Quy định & chính sách -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <div class="text-xl font-bold mb-4 text-green-700 flex items-center justify-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    QUY ĐỊNH VÀ CHÍNH SÁCH
-                  </div>
-                  <ul class="space-y-3">
-                    <li>
-                      <router-link to="/terms" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Điều khoản sử dụng
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/privacy" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách bảo mật
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/returns" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách đổi trả
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/payment" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách thanh toán
-                      </router-link>
-                    </li>
-                  </ul>
-                </div>
-                
-                <!-- Thông tin liên hệ -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <div class="text-xl font-bold mb-4 text-green-700 flex items-center justify-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    THÔNG TIN LIÊN HỆ
-                  </div>
-                  <div class="space-y-3">
-                    <div class="bg-green-100 rounded-lg p-3">
-                      <div class="font-bold text-green-800 text-lg">HOTLINE: 0396860584</div>
-                      <div class="text-sm text-green-700">(Thứ 2 - Thứ 7 (8h - 17h))</div>
-                    </div>
-                    <div>
-                      <router-link to="/faq" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Các câu hỏi thường gặp
-                      </router-link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Social Media Section -->
-              <div class="text-center mb-8">
-                <div class="flex items-center justify-center gap-2 mb-4">
-                  <div class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                  </div>
-                  <span class="text-green-600 font-medium">Kết nối với Thi Yên tại</span>
-                </div>
-                
-                <div class="flex flex-wrap justify-center gap-3">
-                  <!-- Facebook -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">FACEBOOK</span>
-                  </a>
-                  
-                  <!-- TikTok -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">TIKTOK</span>
-                  </a>
-                  
-                  <!-- YouTube -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">YOUTUBE</span>
-                  </a>
-                </div>
-              </div>
-              
-              <!-- Bottom footer -->
-              <div class="border-t border-yellow-200 pt-8">
-                <div class="text-center">
-                  <p class="text-gray-600 text-sm">&copy; 2024 Thi Yên. Tất cả quyền được bảo lưu.</p>
-                </div>
-              </div>
-            </div>
-          </footer>
+          <!-- Footer (CMS section "footer", defaults in content/homeDefaults.js) -->
+          <SiteFooter v-if="footerEnabled" :content="footerContent" :logo-url="siteLogoUrl" />
         </div>
       </transition>
     </router-view>

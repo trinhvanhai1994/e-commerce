@@ -257,13 +257,14 @@
               <h1 class="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
               <div class="flex items-center gap-2 mb-3">
                 <div class="flex items-center">
-                  <span class="text-base md:text-lg font-bold text-gray-900 mr-2">5</span>
+                  <span class="text-base md:text-lg font-bold text-gray-900 mr-2">{{ reviewCount ? averageRating : '' }}</span>
                   <div class="flex text-yellow-400">
-                    <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-current" :class="!reviewCount || i > Math.round(averageRating) ? 'text-gray-300' : ''" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </div>
-                  <span class="ml-2 text-xs text-gray-600">5 trên tổng 5 sao (dựa trên {{ product.reviewCount || 32 }} đánh giá)</span>
+                  <span v-if="reviewCount" class="ml-2 text-xs text-gray-600">{{ averageRating }} trên tổng 5 sao (dựa trên {{ reviewCount }} đánh giá)</span>
+                  <span v-else class="ml-2 text-xs text-gray-600">Chưa có đánh giá</span>
                 </div>
               </div>
             </div>
@@ -396,16 +397,22 @@
             <!-- Customer Reviews -->
             <div class="bg-white rounded-lg p-4 mt-2 shadow-md">
               <div class="flex items-center justify-between mb-2">
-                <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ allReviews.length }})</div>
+                <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ reviewCount }})</div>
                 <div class="flex gap-2">
                   <button @click="showAddReviewForm = true" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors">
                     Viết đánh giá
                   </button>
-                  <button v-if="!showAllReviews && allReviews && allReviews.length > 6" @click="showAllReviews = true" class="text-blue-500 text-xs font-semibold hover:underline">Xem thêm &gt;</button>
+                  <button v-if="!showAllReviews && reviews.length > 6" @click="showAllReviews = true" class="text-blue-500 text-xs font-semibold hover:underline">Xem thêm &gt;</button>
                   <button v-if="showAllReviews" @click="showAllReviews = false" class="text-gray-500 text-xs font-semibold hover:underline">Thu gọn &lt;</button>
                 </div>
               </div>
-              <div class="flex items-center mb-3">
+              <div v-if="reviewsLoading" class="text-sm text-gray-500 py-2">Đang tải đánh giá...</div>
+              <div v-else-if="reviewsError" class="text-sm text-gray-500 py-2">
+                Không tải được đánh giá.
+                <button type="button" class="ml-1 text-green-600 hover:underline font-semibold" @click="loadReviews(product.id)">Thử lại</button>
+              </div>
+              <div v-else-if="!reviewCount" class="text-sm text-gray-500 py-2">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này.</div>
+              <div v-else class="flex items-center mb-3">
                 <span class="text-yellow-500 text-2xl font-bold mr-2">{{ averageRating }}</span>
                 <div class="flex text-yellow-400 mr-2">
                   <svg v-for="i in 5" :key="i" class="w-5 h-5 fill-current" :class="i > Math.round(averageRating) ? 'text-gray-300' : ''" viewBox="0 0 20 20">
@@ -416,19 +423,18 @@
               <div v-for="review in displayedReviews" :key="review.id" class="border-b border-gray-100 pb-4 mb-4 last:mb-0 last:pb-0 last:border-0">
                 <div class="flex items-center mb-2">
                   <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center font-bold text-yellow-700 mr-2 text-base">
-                    {{ review.author.charAt(0).toUpperCase() }}
+                    {{ (review.authorName || '?').charAt(0).toUpperCase() }}
                   </div>
-                  <span class="font-semibold text-gray-800 text-sm mr-2">{{ review.author }}</span>
+                  <span class="font-semibold text-gray-800 text-sm mr-2">{{ review.authorName }}</span>
                   <div class="flex text-yellow-400 ml-1">
                     <svg v-for="i in 5" :key="i" class="w-4 h-4 fill-current" :class="i > review.rating ? 'text-gray-300' : ''" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </div>
-                  <button v-if="!review.isDefault" @click="confirmDeleteReview(review.id)" class="ml-auto text-red-500 text-xs hover:text-red-700">Xóa</button>
                 </div>
-                <div class="text-gray-800 text-sm mb-2">{{ review.content }}</div>
+                <div class="text-gray-800 text-sm mb-2 whitespace-pre-line">{{ review.content }}</div>
                 <div class="flex gap-2 flex-wrap">
-                  <img v-for="(img, idx) in review.images" :key="idx" :src="img" class="w-16 h-16 object-cover rounded-md border border-gray-200" :alt="`Ảnh đánh giá ${idx+1}`" />
+                  <img v-for="(img, idx) in review.images" :key="idx" :src="resolveCmsImage(img)" loading="lazy" class="w-16 h-16 object-cover rounded-md border border-gray-200" :alt="`Ảnh đánh giá ${idx+1}`" />
                 </div>
               </div>
             </div>
@@ -451,6 +457,8 @@
 
           <!-- Form Body -->
           <form @submit.prevent="submitReview" class="p-6 space-y-4">
+            <!-- Honeypot: hidden from people, bots fill it and the server drops the submission -->
+            <input v-model="newReviewForm.website" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" />
             <!-- Tên khách hàng -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-2">Tên của bạn *</label>
@@ -458,6 +466,7 @@
                 v-model="newReviewForm.author"
                 type="text"
                 required
+                maxlength="100"
                 placeholder="Nhập tên của bạn"
                 class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -488,6 +497,8 @@
               <textarea
                 v-model="newReviewForm.content"
                 required
+                minlength="5"
+                maxlength="2000"
                 rows="4"
                 placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
                 class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
@@ -503,28 +514,29 @@
                     ref="imageInput"
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     @change="handleImageUpload"
                     class="hidden"
                   />
                   <button
                     type="button"
+                    :disabled="newReviewForm.images.length >= MAX_REVIEW_IMAGES || processingImages"
                     @click="$refs.imageInput?.click()"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Chọn ảnh
+                    {{ processingImages ? 'Đang xử lý...' : 'Chọn ảnh' }}
                   </button>
-                  <span class="text-xs text-gray-500">Tối đa 5 ảnh, mỗi ảnh tối đa 5MB</span>
+                  <span class="text-xs text-gray-500">Tối đa {{ MAX_REVIEW_IMAGES }} ảnh, ảnh sẽ được cắt vuông</span>
                 </div>
 
                 <!-- Preview ảnh đã chọn -->
-                <div v-if="newReviewForm.imagePreviews.length > 0" class="grid grid-cols-4 gap-2">
-                  <div v-for="(preview, idx) in newReviewForm.imagePreviews" :key="idx" class="relative group">
-                    <img :src="preview" alt="Preview" class="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                <div v-if="newReviewForm.images.length > 0" class="grid grid-cols-4 gap-2">
+                  <div v-for="(img, idx) in newReviewForm.images" :key="img.previewUrl" class="relative group">
+                    <img :src="img.previewUrl" alt="Preview" class="w-full h-24 object-cover rounded-lg border border-gray-200" />
                     <button
                       type="button"
                       @click="removeImagePreview(idx)"
-                      class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity text-xs"
                     >
                       ×
                     </button>
@@ -532,6 +544,8 @@
                 </div>
               </div>
             </div>
+
+            <p class="text-xs text-gray-500">Đánh giá sẽ hiển thị sau khi được Thi Yên duyệt.</p>
 
             <!-- Buttons -->
             <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
@@ -544,7 +558,7 @@
               </button>
               <button
                 type="submit"
-                :disabled="submittingReview"
+                :disabled="submittingReview || processingImages"
                 class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {{ submittingReview ? 'Đang gửi...' : 'Gửi đánh giá' }}
@@ -1253,9 +1267,12 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
-import { getProductImage, getProductGallery } from '../utils/productImage'
+import { getProductImage, getProductGallery, getProductDetailImages } from '../utils/productImage'
 import { getImageUrlFromApi } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
+import { reviewService } from '../services/review.service.js'
+import { processImageForSlot } from '../utils/imageSlotPipeline.js'
+import { resolveCmsImage } from '../content/homeDefaults.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1374,6 +1391,7 @@ async function loadData() {
   const id = parseInt(route.params.id) || (products.value[0]?.id || 1)
   await fetchProductById(id)
   updateProductImages()
+  loadReviews(id)
   // Không cần cache-busting - BE trả về path đúng
 }
 
@@ -1387,7 +1405,6 @@ function handleImageError(event) {
 // Single onMounted hook to avoid conflicts
 onMounted(() => {
   isComponentMounted.value = true
-  loadReviewsFromStorage() // Load reviews từ localStorage khi component mount
   loadData()
   startFlashSaleCountdown()
   if (isAutoPlaying.value) {
@@ -1412,6 +1429,7 @@ onUnmounted(() => {
 })
 
 watch(() => route.params.id, async () => {
+  loadReviews(route.params.id)
   await fetchProductById(route.params.id)
   updateProductImages()
   // Reset currentImageIndex khi chuyển product
@@ -1439,12 +1457,8 @@ function formatFlashSaleTime(sec) {
 // Việc reset currentImageIndex sẽ được xử lý bởi watch bên dưới
 const galleryImages = computed(() => {
   if (!product.value) return []
-  const gallery = getProductGallery(product.value)
-  // Filter null/empty để không hiển thị ảnh khi API trả về null
-  // Không cần cache-busting - BE trả về path đúng và tự xử lý cache
-  return gallery
-    .filter(path => path && path.trim() !== '') // Filter null/empty
-    .map(path => getImageUrlFromApi(path)) // Chỉ convert path thành full URL
+  // mainImage first, then gallery children — consistent with list/Home thumbnails
+  return getProductDetailImages(product.value)
 })
 
 // Watch galleryImages để reset currentImageIndex nếu vượt quá bounds
@@ -1457,239 +1471,104 @@ watch(galleryImages, (newGallery) => {
   }
 }, { immediate: true })
 
-// Reviews mặc định (5 reviews)
-const defaultReviews = [
-  {
-    id: 1,
-    author: 'Thu Quyên',
-    rating: 5,
-    content: 'Giao hàng nhanh, hàng chính hãng, đóng gói bọc xốp cẩn thận, Vị thơm mùi mè, pha nhanh, dễ pha, hợp với người bận rộn như mình.',
-    images: [
-      getImageUrlFromApi('/images/review/comment1/5f70f3785c7bd025896a1.jpg'),
-      getImageUrlFromApi('/images/review/comment1/cba003a9acaa20f479bb2.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 2,
-    author: 'Mai Trân',
-    rating: 5,
-    content: 'Mẫu mã và chất lượng OK ạ. Shop tư vấn nhiệt tình. Hàng đóng gói cẩn thận. Sẽ ủng hộ Shop lâu dài',
-    images: [
-      getImageUrlFromApi('/images/review/comment2/55604d6ae2696e3737789.jpg'),
-      getImageUrlFromApi('/images/review/comment2/c59aea924591c9cf908010.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 3,
-    author: 'Lê Lan',
-    rating: 5,
-    content: 'Shop giao hàng nhanh, đóng gói cẩn thận, bột mè đen mịn, dễ pha, vị mè đen thơm, dễ uống',
-    images: [
-      getImageUrlFromApi('/images/review/comment3/ee0af18a5f89d3d78a9814.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 4,
-    author: 'Quyền Thu',
-    rating: 5,
-    content: 'Bột ngũ hắc thơm mùi mè đen, vị ngon béo ngậy. Bé nhà m cũng thích, chiều đi học về cứ làm cốc là ấm bụng.',
-    images: [
-      getImageUrlFromApi('/images/review/comment4/fbcebb48154b9915c05a13.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 5,
-    author: 'Lê Hà',
-    rating: 5,
-    content: 'cũng dùng thử mấy loại rồi mà chỉ thấy toàn mùi đỗ đen, nay mới thấy loại này ngon và rõ mùi vị của mè đen. Nghe nói tốt lắm, thử dùng xem sao',
-    images: [
-      getImageUrlFromApi('/images/review/comment5/1f973fb291b11def44a018.jpg'),
-      getImageUrlFromApi('/images/review/comment5/f19088b626b5aaebf3a417.jpg')
-    ],
-    isDefault: true
-  }
-]
+// Đánh giá sản phẩm: chỉ đánh giá đã duyệt, kèm điểm trung bình tính ở server (GET /products/{id}/reviews)
+const MAX_REVIEW_IMAGES = 4
+const reviews = ref([])
+const reviewCount = ref(0)
+const averageRating = ref(0)
+const reviewsLoading = ref(false)
+const reviewsError = ref(false)
+let reviewsRequestId = 0
 
-// Reviews từ localStorage
-const storedReviews = ref([])
-
-// Key cho localStorage
-const STORAGE_KEY = 'product_reviews'
-
-// Load reviews từ localStorage
-function loadReviewsFromStorage() {
+async function loadReviews(productId) {
+  const id = parseInt(productId)
+  if (!id) return
+  const requestId = ++reviewsRequestId
+  reviewsLoading.value = true
+  reviewsError.value = false
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      storedReviews.value = JSON.parse(stored)
-    } else {
-      storedReviews.value = []
-    }
+    const data = await reviewService.getProductReviews(id)
+    if (requestId !== reviewsRequestId) return // a newer product was opened meanwhile
+    reviews.value = data?.reviews || []
+    reviewCount.value = data?.reviewCount || 0
+    averageRating.value = data?.averageRating || 0
   } catch (error) {
-    console.error('Error loading reviews from localStorage:', error)
-    storedReviews.value = []
+    if (requestId !== reviewsRequestId) return
+    console.error('Error loading reviews:', error)
+    reviews.value = []
+    reviewCount.value = 0
+    averageRating.value = 0
+    reviewsError.value = true
+  } finally {
+    if (requestId === reviewsRequestId) reviewsLoading.value = false
   }
 }
-
-// Lưu reviews vào localStorage
-function saveReviewsToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(storedReviews.value))
-  } catch (error) {
-    console.error('Error saving reviews to localStorage:', error)
-  }
-}
-
-// Thêm review mới
-function addReview(review) {
-  const newReview = {
-    ...review,
-    id: Date.now(), // Tạo ID duy nhất
-    isDefault: false
-  }
-  storedReviews.value.push(newReview)
-  saveReviewsToStorage()
-}
-
-// Cập nhật review
-function updateReview(reviewId, updatedReview) {
-  const index = storedReviews.value.findIndex(r => r.id === reviewId)
-  if (index !== -1) {
-    storedReviews.value[index] = {
-      ...updatedReview,
-      id: reviewId,
-      isDefault: false
-    }
-    saveReviewsToStorage()
-    return true
-  }
-  return false
-}
-
-// Xóa review (chỉ xóa reviews từ localStorage, không xóa reviews mặc định)
-function deleteReview(reviewId) {
-  const index = storedReviews.value.findIndex(r => r.id === reviewId)
-  if (index !== -1) {
-    storedReviews.value.splice(index, 1)
-    saveReviewsToStorage()
-    return true
-  }
-  return false
-}
-
-// Xác nhận trước khi xóa review
-function confirmDeleteReview(reviewId) {
-  showConfirm('Bạn có chắc muốn xóa đánh giá này?', () => {
-    deleteReview(reviewId)
-    showSuccessPopup('Đã xóa đánh giá thành công!')
-  })
-}
-
-// Load reviews sẽ được gọi trong onMounted
 
 // Form thêm review
 const showAddReviewForm = ref(false)
 const submittingReview = ref(false)
+const processingImages = ref(false)
 const imageInput = ref(null)
-const newReviewForm = ref({
-  author: '',
-  rating: 5,
-  content: '',
-  imagePreviews: []
-})
+const emptyReviewForm = () => ({ author: '', rating: 5, content: '', website: '', images: [] })
+const newReviewForm = ref(emptyReviewForm())
 
-// Xử lý upload ảnh
-function handleImageUpload(event) {
+// Ảnh được cắt vuông và nén ở trình duyệt (slot review_image) trước khi gửi, giống ảnh CMS
+async function handleImageUpload(event) {
   const files = Array.from(event.target.files || [])
+  if (imageInput.value) imageInput.value.value = ''
   if (files.length === 0) return
 
-  // Giới hạn tối đa 5 ảnh
-  const remainingSlots = 5 - newReviewForm.value.imagePreviews.length
-  const filesToProcess = files.slice(0, remainingSlots)
-
-  filesToProcess.forEach(file => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showErrorPopup('Vui lòng chọn file ảnh hợp lệ')
-      return
+  const remaining = MAX_REVIEW_IMAGES - newReviewForm.value.images.length
+  if (files.length > remaining) {
+    showErrorPopup(`Chỉ được chọn tối đa ${MAX_REVIEW_IMAGES} ảnh`)
+  }
+  processingImages.value = true
+  try {
+    for (const file of files.slice(0, Math.max(remaining, 0))) {
+      try {
+        const processed = await processImageForSlot(file, 'review_image')
+        newReviewForm.value.images.push({ file: processed.file, previewUrl: processed.previewUrl })
+      } catch (error) {
+        showErrorPopup(error.message || `Không xử lý được ảnh ${file.name}`)
+      }
     }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showErrorPopup(`File ${file.name} không được lớn hơn 5MB`)
-      return
-    }
-
-    // Convert to base64
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      newReviewForm.value.imagePreviews.push(e.target.result)
-    }
-    reader.onerror = () => {
-      showErrorPopup('Có lỗi xảy ra khi đọc file')
-    }
-    reader.readAsDataURL(file)
-  })
-
-  // Reset input để có thể chọn lại cùng file
-  if (imageInput.value) {
-    imageInput.value.value = ''
+  } finally {
+    processingImages.value = false
   }
 }
 
-// Xóa ảnh preview
 function removeImagePreview(index) {
-  newReviewForm.value.imagePreviews.splice(index, 1)
+  const [removed] = newReviewForm.value.images.splice(index, 1)
+  if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl)
 }
 
-// Đóng form
 function closeAddReviewForm() {
   showAddReviewForm.value = false
-  // Reset form
-  newReviewForm.value = {
-    author: '',
-    rating: 5,
-    content: '',
-    imagePreviews: []
-  }
-  if (imageInput.value) {
-    imageInput.value.value = ''
-  }
+  newReviewForm.value.images.forEach((img) => img.previewUrl && URL.revokeObjectURL(img.previewUrl))
+  newReviewForm.value = emptyReviewForm()
+  if (imageInput.value) imageInput.value.value = ''
 }
 
-// Submit review
-function submitReview() {
-  if (!newReviewForm.value.author || !newReviewForm.value.content) {
-    showErrorPopup('Vui lòng điền đầy đủ thông tin')
+async function submitReview() {
+  const form = newReviewForm.value
+  if (!form.author.trim() || form.content.trim().length < 5) {
+    showErrorPopup('Vui lòng nhập tên và nội dung đánh giá (ít nhất 5 ký tự)')
     return
   }
-
   submittingReview.value = true
-
   try {
-    // Tạo review object
-    const review = {
-      author: newReviewForm.value.author,
-      rating: newReviewForm.value.rating,
-      content: newReviewForm.value.content,
-      images: [...newReviewForm.value.imagePreviews] // Lưu base64 images
-    }
-
-    // Thêm review
-    addReview(review)
-
-    // Hiển thị thông báo thành công
-    showSuccessPopup('Đánh giá của bạn đã được gửi thành công!')
-
-    // Đóng form
+    const { message } = await reviewService.submitReview(product.value.id, {
+      authorName: form.author.trim(),
+      rating: form.rating,
+      content: form.content.trim(),
+      website: form.website,
+      images: form.images.map((img) => img.file),
+    })
     closeAddReviewForm()
+    showSuccessPopup(message || 'Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt.')
   } catch (error) {
     console.error('Error submitting review:', error)
-    showErrorPopup('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
+    showErrorPopup(error.message || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
   } finally {
     submittingReview.value = false
   }
@@ -1836,18 +1715,7 @@ const isAutoPlaying = ref(true)
 
 const showAllReviews = ref(false)
 
-// Kết hợp reviews mặc định và reviews từ localStorage
-const allReviews = computed(() => {
-  return [...defaultReviews, ...storedReviews.value]
-})
-
-const averageRating = computed(() => {
-  if (!allReviews.value.length) return 0
-  const total = allReviews.value.reduce((sum, r) => sum + (r.rating || 0), 0)
-  return (total / allReviews.value.length).toFixed(1)
-})
-
-const displayedReviews = computed(() => showAllReviews.value ? allReviews.value : allReviews.value.slice(0, 6))
+const displayedReviews = computed(() => showAllReviews.value ? reviews.value : reviews.value.slice(0, 6))
 
 const infoItems = [
   {

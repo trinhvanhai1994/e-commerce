@@ -154,6 +154,68 @@ const routes = [
       }
     }
   },
+  {
+    path: '/admin/homepage',
+    name: 'AdminHomepage',
+    component: () => import('../views/AdminHomepage.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    // CMS of the content pages: /admin/pages/story (Câu chuyện Thi Yên), /admin/pages/philosophy (Triết lý dưỡng sinh)
+    path: '/admin/pages/:pageKey(story|philosophy)',
+    name: 'AdminPageContent',
+    component: () => import('../views/AdminPageContent.vue'),
+    props: true,
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/reviews',
+    name: 'AdminProductReviews',
+    component: () => import('../views/AdminProductReviews.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/posts',
+    name: 'AdminBlogList',
+    component: () => import('../views/AdminBlogList.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/posts/:id',
+    name: 'AdminBlogEditor',
+    component: () => import('../views/AdminBlogEditor.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
 ]
 
 const router = createRouter({

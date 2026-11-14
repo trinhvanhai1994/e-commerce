@@ -29,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Skip filter for public endpoints
         return path.startsWith("/api/public/") ||
                path.startsWith("/api/dragun/products/") ||
+               path.startsWith("/api/dragun/content/") ||
                path.startsWith("/api/extend/orders") ||
                path.startsWith("/provinces") ||
                path.startsWith("/districts/") ||

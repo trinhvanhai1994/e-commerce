@@ -1,102 +1,34 @@
-# Thi Yên Store
+# service-ui (Thi Yên Store)
 
-E-commerce application built with Vue.js 3, Vite, and Tailwind CSS.
+Frontend storefront + trang admin: Vue 3 (Composition API), Vite, Vue Router 4, Pinia, Tailwind CSS.
 
-## Environment Configuration
-
-The application uses environment variables to configure API endpoints for different environments.
-
-### Environment Files
-
-- `env.local` - Local development environment
-- `env.production` - Production environment
-
-### Environment Variables
-
-| Variable | Description | Local | Production |
-|----------|-------------|-------|------------|
-| `VITE_API_BASE_URL` | API base URL | `http://localhost:8080` | `https://www.phodem.click` |
-| `VITE_APP_TITLE` | Application title | `Thi Yên Store` | `Thi Yên Store` |
-| `VITE_APP_DESCRIPTION` | Application description | `Your trusted source for quality products` | `Your trusted source for quality products` |
-
-## Development
+## Bắt đầu nhanh
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
+npm run dev        # http://localhost:5173, gọi service-api theo VITE_API_BASE_URL
 ```
 
-## Building for Different Environments
+- Cài đặt, biến môi trường: [docs/setup.md](docs/setup.md)
+- Build và deploy: [docs/build-deploy.md](docs/build-deploy.md)
 
-```bash
-# Build for local environment
-npm run build:local
-
-# Build for production environment
-npm run build:prod
-
-# Build for current environment (default)
-npm run build
-```
-
-## API Configuration
-
-The application uses a centralized API utility (`src/utils/api.js`) that automatically uses the correct base URL based on the environment.
-
-### Available API Functions
-
-#### Product API
-- `productAPI.getProducts()` - Get all products
-- `productAPI.getProduct(id)` - Get product by ID
-- `productAPI.getProductDetails(id)` - Get product details
-
-#### Order API
-- `orderAPI.createOrder(orderData)` - Create new order
-- `orderAPI.getOrders()` - Get all orders
-- `orderAPI.updateOrderStatus(orderId, status)` - Update order status
-
-#### Admin API
-- `adminAPI.login(credentials)` - Admin login
-- `adminAPI.getAdminProducts()` - Get admin products
-- `adminAPI.saveProduct(productData)` - Create/Update product
-- `adminAPI.deleteProduct(productId)` - Delete product
-
-## Project Structure
+## Cấu trúc `src/`
 
 ```
 src/
-├── components/          # Vue components
-├── views/              # Page components
-├── stores/             # Pinia stores
-├── router/             # Vue Router configuration
-├── utils/              # Utility functions
-│   └── api.js         # API utility functions
-└── assets/             # Static assets
+├── main.js, App.vue      # entry, layout chung (header/footer, logo lấy từ CMS)
+├── router/               # route public + /admin/* (guard đăng nhập admin)
+├── views/                # trang public (Home, Products, Blog...) và Admin*.vue
+├── components/           # component dùng lại (ProductCard, ImageSwiper, cms/CmsImageUploader)
+├── services/             # gọi API: http/ (client + interceptors), *.service.js theo domain
+├── stores/               # Pinia: cart, order
+├── content/              # nội dung + ảnh mặc định của trang chủ (fallback khi CMS lỗi)
+├── constants/            # imageSlots (tỷ lệ, kích thước ảnh theo slot CMS)
+└── utils/                # api.js (facade gọi services), xử lý ảnh, domain, sản phẩm
 ```
 
-## Features
+## Quy ước
 
-- 🛍️ Product catalog with detailed views
-- 🛒 Shopping cart functionality
-- 💳 Checkout process
-- 👤 Admin panel with product and order management
-- 📱 Responsive design
-- ⚡ Fast development with Vite
-- 🎨 Modern UI with Tailwind CSS
-
-## Technologies Used
-
-- Vue.js 3 (Composition API)
-- Vite
-- Vue Router 4
-- Pinia (State Management)
-- Tailwind CSS
-- Headless UI
-- FontAwesome Icons
-
-## License
-
-This project is private and proprietary.
+- Gọi API qua `services/*.service.js` (hoặc facade `utils/api.js`), không gọi `fetch` trực tiếp trong view.
+- Nội dung trang chủ và blog do CMS quản lý (`/admin/homepage`, `/admin/blog`), API `/api/dragun/content/*`.
+- Yêu cầu và spec nghiệp vụ: `../docs/req/`.

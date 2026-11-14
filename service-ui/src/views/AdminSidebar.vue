@@ -2,9 +2,11 @@
   <!-- Mobile sidebar - Ẩn hoàn toàn trên mobile khi đóng, luôn hiện trên desktop -->
   <aside 
     :class="[
-      'fixed lg:static inset-y-0 left-0 z-50 w-64 min-h-screen bg-white border-r border-gray-100 flex flex-col py-6 transform transition-transform duration-300 ease-in-out',
+      'fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-white border-r border-gray-100 flex flex-col py-6 overflow-y-auto transform transition-transform duration-300 ease-in-out',
+      // Desktop: dính ngay dưới header (h-16) khi cuộn, cao phần màn hình còn lại (self-start để sticky chạy được trong flex)
+      'lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)] lg:z-30',
       // Trên mobile (< lg): ẩn khi đóng (-translate-x-full), hiện khi mở (translate-x-0)
-      // Trên desktop (>= lg): luôn hiện (static position, không translate)
+      // Trên desktop (>= lg): luôn hiện, không translate
       isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
     ]"
   >
@@ -71,6 +73,50 @@
             Khách Hàng
           </router-link>
         </li>
+        <li>
+          <router-link 
+            to="/admin/homepage" 
+            @click="$emit('close')"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 text-base md:text-lg font-semibold rounded-l-full transition hover:bg-green-50"
+            :class="{ 'text-green-600 bg-green-50': $route.path.startsWith('/admin/homepage') }"
+          >
+            <span class="inline-block w-2 h-2 rounded-full mr-2" :class="$route.path.startsWith('/admin/homepage') ? 'bg-green-500' : 'bg-gray-300'"></span>
+            Trang chủ
+          </router-link>
+        </li>
+        <li v-for="item in contentPages" :key="item.to">
+          <router-link
+            :to="item.to"
+            @click="$emit('close')"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 text-base md:text-lg font-semibold rounded-l-full transition hover:bg-green-50"
+            :class="{ 'text-green-600 bg-green-50': $route.path.startsWith(item.to) }"
+          >
+            <span class="inline-block w-2 h-2 rounded-full mr-2" :class="$route.path.startsWith(item.to) ? 'bg-green-500' : 'bg-gray-300'"></span>
+            {{ item.label }}
+          </router-link>
+        </li>
+        <li>
+          <router-link 
+            to="/admin/posts" 
+            @click="$emit('close')"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 text-base md:text-lg font-semibold rounded-l-full transition hover:bg-green-50"
+            :class="{ 'text-green-600 bg-green-50': $route.path.startsWith('/admin/posts') }"
+          >
+            <span class="inline-block w-2 h-2 rounded-full mr-2" :class="$route.path.startsWith('/admin/posts') ? 'bg-green-500' : 'bg-gray-300'"></span>
+            Bài viết
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/admin/reviews"
+            @click="$emit('close')"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 text-base md:text-lg font-semibold rounded-l-full transition hover:bg-green-50"
+            :class="{ 'text-green-600 bg-green-50': $route.path.startsWith('/admin/reviews') }"
+          >
+            <span class="inline-block w-2 h-2 rounded-full mr-2" :class="$route.path.startsWith('/admin/reviews') ? 'bg-green-500' : 'bg-gray-300'"></span>
+            Đánh giá sản phẩm
+          </router-link>
+        </li>
       </ul>
     </nav>
   </aside>
@@ -89,4 +135,9 @@ defineProps({
 defineEmits(['close'])
 
 const route = useRoute()
+
+const contentPages = [
+  { to: '/admin/pages/story', label: 'Câu chuyện Thi Yên' },
+  { to: '/admin/pages/philosophy', label: 'Triết lý dưỡng sinh' },
+]
 </script> 

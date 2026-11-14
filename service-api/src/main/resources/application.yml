@@ -1,6 +1,11 @@
 spring:
   application:
     name: ecommerce-api
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
   
   # Active profile sẽ được set khi build/run:
   # - Maven: mvn spring-boot:run -Dspring-boot.run.profiles=dev

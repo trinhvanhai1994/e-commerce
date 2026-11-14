@@ -6,7 +6,14 @@
         <div>
           <h2 class="text-xl md:text-2xl font-bold text-green-700">Chi tiết sản phẩm</h2>
         </div>
-        <button 
+        <router-link
+          v-if="productId"
+          :to="{ path: '/admin/reviews', query: { productId, status: '' } }"
+          class="px-3 md:px-4 py-2 border border-green-600 text-green-700 rounded hover:bg-green-50 font-semibold text-sm md:text-base w-full sm:w-auto text-center sm:ml-auto"
+        >
+          Đánh giá của sản phẩm
+        </router-link>
+        <button
           @click="goBack" 
           class="px-3 md:px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-semibold text-sm md:text-base w-full sm:w-auto"
         >
@@ -175,90 +182,78 @@
           <!-- Images Section -->
           <div class="mb-6 md:mb-8">
             <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Hình ảnh sản phẩm</h3>
-            
-            <!-- Gallery Images - 11 ảnh -->
+
+            <div class="mb-6">
+              <label class="block font-semibold mb-2 text-gray-700 text-sm md:text-base">Ảnh đại diện (bắt buộc khi ACTIVE)</label>
+              <p class="text-xs text-gray-500 mb-3">Hiện ở trang chủ, danh sách, giỏ hàng và là ảnh đầu trên trang chi tiết.</p>
+              <div class="max-w-xs">
+                <CmsImageUploader
+                  v-model="form.image"
+                  slot-key="product_main"
+                  entity-type="product"
+                  :entity-id="String(form.id || 'new')"
+                  label="Ảnh đại diện"
+                />
+              </div>
+            </div>
+
             <div>
-              <label class="block font-semibold mb-2 md:mb-3 text-gray-700 text-sm md:text-base">Ảnh mô tả (Gallery) - Tối đa 11 ảnh</label>
-              <p class="text-xs text-gray-500 mb-3 md:mb-4">Chọn ảnh để thay thế. Nếu có path cũ, ảnh mới sẽ thay thế ảnh cũ nhưng giữ nguyên path.</p>
-              
-              <!-- Grid 11 ảnh -->
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                <div 
-                  v-for="(imageItem, index) in form.galleryImages" 
-                  :key="index"
-                  class="relative border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
-                  :class="{ 'border-green-400 bg-green-50': imageItem.path || imageItem.preview }"
+              <div class="flex items-center justify-between mb-2">
+                <label class="block font-semibold text-gray-700 text-sm md:text-base">Ảnh con (Gallery) — tối đa 10</label>
+                <button
+                  type="button"
+                  class="text-xs px-3 py-1 rounded bg-blue-600 text-white font-semibold disabled:opacity-50"
+                  :disabled="form.galleryImages.filter(g => g.path).length >= 10"
+                  @click="addGallerySlot"
                 >
-                  <!-- Image Preview -->
-                  <div class="relative w-full aspect-square mb-2 rounded-lg overflow-hidden bg-white border border-gray-200">
-                    <div v-if="imageItem.loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
-                      <div class="text-center">
-                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mb-1"></div>
-                        <span class="text-xs text-gray-600 block">Đang tải...</span>
-                      </div>
-                    </div>
-                    <img 
-                      v-else-if="imageItem.preview || imageItem.path" 
-                      :src="imageItem.preview && imageItem.preview.startsWith('data:') 
-                        ? imageItem.preview 
-                        : getImageUrlFromApi(imageItem.path)" 
-                      :alt="`Gallery ${index + 1}`" 
-                      class="w-full h-full object-cover"
-                      @error="(e) => handleGalleryImageError(e, index)"
-                      :key="`gallery-${index}-${imageItem.path || ''}`"
-                    />
-                    <div v-else class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                      <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                      </svg>
-                      <span class="text-xs font-semibold">Ảnh {{ index + 1 }}</span>
-                      <span class="text-xs text-gray-300 mt-0.5">Chưa có</span>
-                    </div>
-                    
-                    <!-- Remove button -->
-                    <button 
-                      v-if="imageItem.path || imageItem.preview"
-                      type="button"
-                      @click="removeGalleryImage(index)"
-                      class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 font-bold shadow-lg"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  
-                  <!-- File name and path display -->
-                  <div v-if="imageItem.path" class="text-xs mb-2">
-                    <div class="font-semibold text-green-700 truncate" :title="imageItem.fileName || imageItem.path">
-                      {{ imageItem.fileName || imageItem.path.split('/').pop() }}
-                    </div>
-                    <div class="text-gray-500 truncate text-xs mt-0.5" :title="imageItem.path">
-                      {{ imageItem.path }}
-                    </div>
-                  </div>
-                  <div v-else class="text-xs text-gray-400 mb-2">
-                    Chưa có ảnh
-                  </div>
-                  
-                  <!-- File input -->
-                  <input 
-                    :ref="el => { if (el) galleryFileInputs[index] = el }"
-                    type="file" 
-                    @change="(e) => handleGalleryFileUpload(e, index)" 
-                    accept="image/*"
-                    class="hidden"
+                  + Thêm ảnh
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mb-3">Thứ tự dưới đây là thứ tự hiển thị sau ảnh đại diện trên trang chi tiết.</p>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                <div
+                  v-for="(imageItem, index) in form.galleryImages"
+                  :key="`g-${index}-${imageItem.path || 'empty'}`"
+                  class="relative border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50"
+                  :class="{ 'border-green-400 bg-green-50': imageItem.path }"
+                >
+                  <div class="text-xs font-bold text-gray-500 mb-2">Ảnh con {{ index + 1 }}</div>
+                  <CmsImageUploader
+                    v-model="imageItem.path"
+                    slot-key="product_gallery"
+                    entity-type="product"
+                    :entity-id="String(form.id || 'new')"
+                    :label="`Ảnh con ${index + 1}`"
+                    @update:model-value="(v) => onGalleryPathUpdate(index, v)"
                   />
-                  
-                  <!-- Select button -->
-                  <button 
+                  <button
                     type="button"
-                    @click="galleryFileInputs[index]?.click()"
-                    class="w-full px-3 py-1.5 text-xs rounded font-semibold transition"
-                    :class="imageItem.path || imageItem.preview 
-                      ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
-                      : 'bg-blue-500 text-white hover:bg-blue-600'"
+                    class="mt-2 w-full text-xs text-red-600 font-semibold"
+                    @click="removeGalleryImage(index)"
                   >
-                    {{ imageItem.path || imageItem.preview ? 'Thay đổi ảnh' : 'Chọn ảnh' }}
+                    Xóa ô này
                   </button>
+                </div>
+              </div>
+
+              <!-- Preview like detail -->
+              <div class="mt-6 border rounded-lg p-4 bg-white">
+                <div class="text-sm font-semibold mb-2 text-gray-700">Xem như trang chi tiết</div>
+                <div class="flex gap-3 items-start">
+                  <div class="w-40 h-40 rounded-lg overflow-hidden bg-gray-100 border">
+                    <img v-if="form.image" :src="getImageUrlFromApi(form.image)" class="w-full h-full object-cover" alt="Main" />
+                    <div v-else class="w-full h-full flex items-center justify-center text-xs text-gray-400">Chưa có đại diện</div>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <div
+                      v-for="(g, i) in form.galleryImages.filter(x => x.path)"
+                      :key="'prev-' + i"
+                      class="w-16 h-16 rounded border overflow-hidden bg-gray-50"
+                    >
+                      <img :src="getImageUrlFromApi(g.path)" class="w-full h-full object-cover" :alt="`Thumb ${i + 1}`" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -359,6 +354,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
 import { getImageUrlFromApi } from '@/utils/imageUtils.js'
+import CmsImageUploader from '../components/cms/CmsImageUploader.vue'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
 
@@ -421,7 +417,7 @@ const form = reactive({
   image: '',
   gallery: [],
   galleryText: '',
-  galleryImages: Array(11).fill(null).map(() => ({ path: null, preview: null, fileName: null, loading: false })),
+  galleryImages: [],
   isNew: false,
   category: 'ME_DEN',
   status: 'ACTIVE',
@@ -483,27 +479,12 @@ async function fetchProduct() {
     // Loại bỏ mainImage khỏi gallery nếu có (để tránh duplicate)
     const galleryWithoutMain = gallery.filter(path => !mainImage || path !== mainImage)
     
-    // Khởi tạo galleryImages với 11 slots, map trực tiếp theo thứ tự từ API
-    // Slot index 0 = gallery[0] (display_order = 0)
-    // Slot index 1 = gallery[1] (display_order = 1)
-    // ...
-    // Slot index 10 = gallery[10] (display_order = 10)
-    const galleryImages = Array(11).fill(null).map((_, index) => {
-      // Map trực tiếp theo index: slot index = display_order
-      const existingPath = index < galleryWithoutMain.length ? galleryWithoutMain[index] : null
-      
-      // Extract tên file từ path
-      const fileName = existingPath ? existingPath.split('/').pop() : null
-      
-      return {
-        path: existingPath,
-        preview: null, // Không lưu preview URL với timestamp, sẽ generate mới mỗi lần render
-        fileName: fileName, // Tên file để hiển thị
-        loading: false
-      }
-    })
-    
-    // Không cần cache-busting - BE trả về path đúng
+    const galleryImages = galleryWithoutMain.slice(0, 10).map((existingPath) => ({
+      path: existingPath,
+      preview: null,
+      fileName: existingPath ? existingPath.split('/').pop() : null,
+      loading: false,
+    }))
     
     Object.assign(form, {
       id: product.id,
@@ -543,13 +524,30 @@ async function fetchProduct() {
 }
 
 // Submit form
+function addGallerySlot() {
+  if (form.galleryImages.filter((g) => g.path).length >= 10 && form.galleryImages.length >= 10) return
+  if (form.galleryImages.length >= 10) return
+  form.galleryImages.push({ path: null, preview: null, fileName: null, loading: false })
+}
+
+function onGalleryPathUpdate(index, value) {
+  if (!form.galleryImages[index]) return
+  form.galleryImages[index].path = value || null
+  form.galleryImages[index].fileName = value ? String(value).split('/').pop() : null
+  form.galleryImages[index].preview = null
+}
+
 async function submitForm() {
   submitting.value = true
   try {
-    // Xử lý ảnh chính
     let imagePath = form.image
     if (imagePath && imagePath.startsWith('data:')) {
-      showErrorPopup('Vui lòng nhập đường dẫn ảnh (path) thay vì chọn file. Ví dụ: /images/products/product1.jpg')
+      showErrorPopup('Ảnh đại diện chưa upload xong. Hãy chờ upload CMS hoàn tất.')
+      submitting.value = false
+      return
+    }
+    if ((form.status || 'ACTIVE') === 'ACTIVE' && (!imagePath || !String(imagePath).trim())) {
+      showErrorPopup('Sản phẩm ACTIVE bắt buộc có ảnh đại diện')
       submitting.value = false
       return
     }
@@ -695,8 +693,8 @@ function handleFileUpload(event) {
     return
   }
   
-  if (file.size > 5 * 1024 * 1024) {
-    showErrorPopup('File ảnh không được lớn hơn 5MB')
+  if (file.size > 10 * 1024 * 1024) {
+    showErrorPopup('File ảnh không được lớn hơn 10MB')
     return
   }
   
@@ -924,20 +922,9 @@ async function handleGalleryFileUpload(event, index) {
   }
 }
 
-// Remove gallery image
+// Remove gallery image slot
 function removeGalleryImage(index) {
-  const imageItem = form.galleryImages[index]
-  if (imageItem) {
-    imageItem.path = null
-    imageItem.preview = null
-    imageItem.fileName = null
-    imageItem.loading = false
-  }
-  
-  // Reset file input
-  if (galleryFileInputs.value[index]) {
-    galleryFileInputs.value[index].value = ''
-  }
+  form.galleryImages.splice(index, 1)
 }
 
 // Handle gallery image error

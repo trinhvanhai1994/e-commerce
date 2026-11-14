@@ -14,7 +14,7 @@
       <AdminSidebar :is-open="isMobileMenuOpen" @close="closeMobileMenu" />
       
       <!-- Main content - Full width trên mobile khi sidebar đóng -->
-      <main class="flex-1 p-4 md:p-6 lg:p-8 bg-gray-50 w-full">
+      <main class="flex-1 min-w-0 p-4 md:p-6 lg:p-8 bg-gray-50 w-full">
         <slot />
       </main>
     </div>
