@@ -1,7 +1,6 @@
 package com.dragun.ecommerce.controller.external;
 
-/*
-// COMMENTED: All unit tests are commented out
+import com.dragun.ecommerce.TestcontainersConfiguration;
 import com.dragun.ecommerce.model.entity.District;
 import com.dragun.ecommerce.model.entity.Province;
 import com.dragun.ecommerce.model.entity.Ward;
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,9 +26,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// @SpringBootTest
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("test")
+@ActiveProfiles("it")
+@Import(TestcontainersConfiguration.class)
 @DisplayName("LocationController API Tests")
 class LocationControllerTest {
 
@@ -223,4 +224,3 @@ class LocationControllerTest {
                 .andExpect(jsonPath("$.data.length()").value(0));
     }
 }
-*/

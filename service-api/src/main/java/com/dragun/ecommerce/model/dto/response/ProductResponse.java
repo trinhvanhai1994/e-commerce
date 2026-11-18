@@ -29,6 +29,10 @@ public class ProductResponse {
     private String specifications;
     private String technology;
     private String storage;
+    private String videoUrl;
+    private String targetUsers;
+    private String highlights;
+    private String shelfLife;
     private Integer discount;
     private Double rating;
     private Integer reviewCount;

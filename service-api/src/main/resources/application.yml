@@ -1,6 +1,11 @@
 spring:
   application:
     name: ecommerce-api
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
   
   # Active profile sẽ được set khi build/run:
   # - Maven: mvn spring-boot:run -Dspring-boot.run.profiles=dev
@@ -87,3 +92,23 @@ pancake:
       orders:
         enabled: ${PANCAKE_SYNC_ORDERS_ENABLED:false}
         cron: ${PANCAKE_SYNC_ORDERS_CRON:0 */15 * * * *}
+
+# Email thông báo đơn hàng (task-005), gửi qua Brevo REST API.
+# Tắt mặc định: khi tắt, hoặc thiếu from-email / BREVO_API_KEY, mail chỉ được ghi log.
+app:
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    # Địa chỉ gửi, phải là sender hoặc domain đã xác minh trong Brevo
+    from-email: ${MAIL_FROM_EMAIL:}
+    from-name: ${MAIL_FROM_NAME:Thi Yên}
+    # Danh sách email admin nhận báo đơn mới, cách nhau bằng dấu phẩy
+    admin-recipients: ${MAIL_ADMIN_RECIPIENTS:}
+    # URL storefront để gắn link trong mail (vd https://thiyen.vn); trống thì mail không có link
+    store-url: ${MAIL_STORE_URL:}
+    support-phone: ${MAIL_SUPPORT_PHONE:}
+    brevo:
+      # API key (tab "API keys" trong Brevo), KHÔNG phải SMTP key. Đặt trong .env, không commit
+      api-key: ${BREVO_API_KEY:}
+      base-url: ${BREVO_API_BASE_URL:https://api.brevo.com}
+      connect-timeout: 10s
+      read-timeout: 30s

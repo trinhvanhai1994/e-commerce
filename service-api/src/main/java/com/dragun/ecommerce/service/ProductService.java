@@ -135,6 +135,10 @@ public class ProductService {
         existingProduct.setSpecifications(product.getSpecifications());
         existingProduct.setTechnology(product.getTechnology());
         existingProduct.setStorage(product.getStorage());
+        existingProduct.setVideoUrl(product.getVideoUrl());
+        existingProduct.setTargetUsers(product.getTargetUsers());
+        existingProduct.setHighlights(product.getHighlights());
+        existingProduct.setShelfLife(product.getShelfLife());
         existingProduct.setDiscount(product.getDiscount());
         existingProduct.setRating(product.getRating());
         existingProduct.setReviewCount(product.getReviewCount());
@@ -204,6 +208,10 @@ public class ProductService {
             .specifications(product.getSpecifications())
             .technology(product.getTechnology())
             .storage(product.getStorage())
+            .videoUrl(product.getVideoUrl())
+            .targetUsers(product.getTargetUsers())
+            .highlights(product.getHighlights())
+            .shelfLife(product.getShelfLife())
             .discount(product.getDiscount())
             .rating(product.getRating())
             .reviewCount(product.getReviewCount())

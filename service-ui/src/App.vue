@@ -4,16 +4,32 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from './stores/cart'
 import { navigateToMainDomain, navigateToSubdomain, shouldStayOnSubdomain, shouldChangeDomain } from './utils/domainUtils'
 import { getImageUrlFromApi } from './utils/imageUtils.js'
+import { contentService } from './services/content.service.js'
+import { resolveSlotImage, DEFAULT_IMAGE_PATHS } from './content/homeDefaults.js'
+import SiteFooter from './components/SiteFooter.vue'
+import AuthModal from './components/auth/AuthModal.vue'
+import { useAuthStore } from './stores/auth.js'
 
 const route = useRoute()
 const router = useRouter()
+const siteLogoUseDefault = ref(true)
+const siteLogoPath = ref(null)
+// null → SiteFooter uses its packaged defaults (same text as before CMS)
+const footerContent = ref(null)
+const footerEnabled = ref(true)
+const siteLogoUrl = computed(() =>
+  resolveSlotImage({
+    useDefault: siteLogoUseDefault.value,
+    path: siteLogoPath.value,
+    defaultPath: DEFAULT_IMAGE_PATHS.header_logo.imageDesktop,
+  })
+)
 const isScrolled = ref(false)
 const isMobileMenuOpen = ref(false)
 const openSubMenu = ref(false)
 const showScrollTop = ref(false)
 const showSearch = ref(false)
 const searchQuery = ref("")
-const showMobileSearch = ref(false)
 
 const cartStore = useCartStore()
 const showCartPopup = ref(false)
@@ -27,6 +43,18 @@ const navigation = ref([
   { name: 'Blog chăm sóc cá nhân', href: '/blog', current: false },
   { name: 'Liên hệ', href: '/contact', current: false },
 ])
+
+const headerMenu = [
+  { name: 'Trang Chủ', href: '/' },
+  { name: 'Câu chuyện Thi Yên', href: '/me' },
+  { name: 'Triết lý dưỡng sinh', href: '/healthcare' },
+  { name: 'Sản Phẩm', href: '/products' },
+  { name: 'Blogs', href: '/blog' },
+]
+
+// Mục menu active cả ở trang con (/products/:id, /blog/:slug)
+const isMenuActive = (href) =>
+  href === '/' ? route.path === '/' : route.path === href || route.path.startsWith(`${href}/`)
 
 // Watch route changes to update current state
 watch(
@@ -109,7 +137,8 @@ const handleNavigation = (path, e) => {
   
   // Otherwise, use router navigation directly
   // Use replace: false to allow browser back button
-  if (route.path !== pathWithoutQuery) {
+  // So sánh cả query để /products?search=... vẫn điều hướng khi đang ở /products
+  if (route.fullPath !== path) {
     router.push(path).catch((err) => {
       // Ignore navigation errors (e.g., navigating to same route)
       if (err.name !== 'NavigationDuplicated') {
@@ -119,9 +148,30 @@ const handleNavigation = (path, e) => {
   }
 }
 
+async function loadSiteLogo() {
+  try {
+    const data = await contentService.getHomepage()
+    const footerSection = data?.sections?.footer
+    if (footerSection) {
+      footerEnabled.value = footerSection.enabled !== false
+      footerContent.value = footerSection.extraJson || null
+    }
+    const logoSection = data?.sections?.header_logo
+    if (!logoSection) return
+    siteLogoUseDefault.value = logoSection.useDefaultDesktop !== false
+    siteLogoPath.value = logoSection.imageDesktop || null
+  } catch (_) {
+    siteLogoUseDefault.value = true
+    siteLogoPath.value = null
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  window.addEventListener('click', closeAccountMenuOnOutsideClick)
+  authStore.init()
   cartStore.loadFromStorage()
+  loadSiteLogo()
   
   // Facebook Pixel Code
   !function(f,b,e,v,n,t,s)
@@ -203,7 +253,9 @@ function proceedToCheckout() {
   handleNavigation('/checkout', null)
 }
 
+// Khung tìm kiếm dùng chung PC + mobile: tìm theo tên sản phẩm ở trang /products?search=
 function openSearch() {
+  searchQuery.value = route.path === '/products' ? String(route.query.search || '') : ''
   showSearch.value = true
   setTimeout(() => {
     const input = document.getElementById('search-input')
@@ -216,34 +268,65 @@ function closeSearch() {
   searchQuery.value = ""
 }
 
+// Từ khóa sản phẩm chủ chốt hiện dưới ô tìm kiếm để chọn nhanh
+const quickSearchKeywords = ['Mè đen', 'Hồng đậu']
+
+function quickSearch(keyword) {
+  searchQuery.value = keyword
+  submitSearch()
+}
+
+function submitSearch() {
+  const q = searchQuery.value.trim()
+  if (!q) return
+  closeSearch()
+  handleNavigation(`/products?search=${encodeURIComponent(q)}`, null)
+}
+
 function handleSearchKey(e) {
-  if (e.key === 'Enter' && searchQuery.value.trim()) {
-    handleNavigation(`/products?search=${encodeURIComponent(searchQuery.value.trim())}`, null)
-    closeSearch()
-  } else if (e.key === 'Escape') {
-    closeSearch()
-  }
+  if (e.key === 'Escape') closeSearch()
 }
 
 function closeMobileMenu() {
   isMobileMenuOpen.value = false
 }
 
-function openMobileSearch() {
-  showMobileSearch.value = true
-  setTimeout(() => {
-    const input = document.getElementById('mobile-search-input')
-    if (input) input.focus()
-  }, 50)
-}
-
-function closeMobileSearch() {
-  showMobileSearch.value = false
-}
-
 function removeFromCart(item) {
   cartStore.removeItem(item.id)
 }
+
+// Customer account (task-003): header button opens the login popup, or a menu once logged in
+const authStore = useAuthStore()
+const showAccountMenu = ref(false)
+const accountMenuRoot = ref(null)
+
+function onAccountButton() {
+  if (authStore.isLoggedIn) showAccountMenu.value = !showAccountMenu.value
+  else authStore.openModal('login')
+}
+
+function goToAccount(tab, e) {
+  showAccountMenu.value = false
+  closeMobileMenu()
+  handleNavigation(tab ? `/tai-khoan?tab=${tab}` : '/tai-khoan', e)
+}
+
+async function logoutCustomer() {
+  showAccountMenu.value = false
+  closeMobileMenu()
+  await authStore.logout()
+  if (route.path.startsWith('/tai-khoan')) router.push('/')
+}
+
+function closeAccountMenuOnOutsideClick(event) {
+  if (showAccountMenu.value && accountMenuRoot.value && !accountMenuRoot.value.contains(event.target)) {
+    showAccountMenu.value = false
+  }
+}
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeAccountMenuOnOutsideClick)
+})
 </script>
 
 <template>
@@ -254,6 +337,8 @@ function removeFromCart(item) {
         src="https://www.facebook.com/tr?id=822351806811750&ev=PageView&noscript=1"
       />
     </noscript>
+    <!-- Customer login/register popup (stores/auth.js opens it from any page) -->
+    <AuthModal />
     <router-view v-slot="{ Component, route }">
       <transition name="fade" mode="out-in">
         <div v-if="route.path.startsWith('/admin')" :key="route.path">
@@ -267,31 +352,59 @@ function removeFromCart(item) {
               <div class="flex items-center min-h-[42px] py-0">
                 <!-- Logo + Brand: luôn sát trái -->
                 <a href="#" @click="handleLogoClick" class="flex items-center justify-center header-brand select-none cursor-pointer flex-shrink-0 no-underline" style="text-decoration: none;">
-                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
+                  <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain transition-transform hover:scale-105" />
                 </a>
                 <!-- Menu PC only: căn giữa, flex-1 để menu chiếm không gian giữa, ẩn trên mobile -->
                 <nav class="header-menu hidden md:flex gap-6 items-center flex-1 justify-center">
-                  <a href="#" @click="(e) => { handleNavigation('/', e); closeMobileMenu(); }" class="text-black font-bold">Trang Chủ</a>
-                  <a href="#" @click="(e) => { handleNavigation('/me', e); closeMobileMenu(); }" class="text-black font-bold">Câu chuyện Thi Yên</a>
-                  <a href="#" @click="(e) => { handleNavigation('/healthcare', e); closeMobileMenu(); }" class="text-black font-bold">Triết lý dưỡng sinh</a>
-                  <a href="#" @click="(e) => { handleNavigation('/products', e); closeMobileMenu(); }" class="text-black font-bold">Sản Phẩm</a>
-                  <a href="#" @click="(e) => { handleNavigation('/blog', e); closeMobileMenu(); }" class="text-black font-bold">Blogs</a>
+                  <a
+                    v-for="item in headerMenu"
+                    :key="item.href"
+                    :href="item.href"
+                    @click="(e) => { handleNavigation(item.href, e); closeMobileMenu(); }"
+                    :class="['text-black font-bold', { 'is-active': isMenuActive(item.href) }]"
+                    :aria-current="isMenuActive(item.href) ? 'page' : undefined"
+                  >{{ item.name }}</a>
                 </nav>
                 <!-- Cụm icon: search, cart, hamburger. PC: icon sát phải, mobile: icon sát phải, không bị ảnh hưởng bởi flex-1 -->
                 <div class="flex items-center gap-2 md:gap-3 min-w-[100px] ml-auto md:ml-0 order-2 md:order-none">
                   <!-- Mobile: chỉ icon search, PC: input search -->
-                  <button class="md:hidden p-2 flex items-center justify-center" @click="openMobileSearch" aria-label="Tìm kiếm">
-                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button type="button" class="search-trigger" @click="openSearch" aria-label="Tìm kiếm sản phẩm" :aria-expanded="showSearch">
+                    <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                      <path d="M21 21l-4.35-4.35" stroke-width="2"/>
+                      <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
+                    <span class="hidden md:inline">Tìm kiếm</span>
                   </button>
-                  <div class="hidden md:block relative w-[150px]">
-                    <input type="text" placeholder="Tìm kiếm" class="border rounded-full px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 w-full" />
-                    <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                      <path d="M21 21l-4.35-4.35" stroke-width="2"/>
-                    </svg>
+                  <!-- Tài khoản khách: chưa đăng nhập thì mở popup, đã đăng nhập thì mở menu -->
+                  <div ref="accountMenuRoot" class="relative flex-shrink-0 order-1">
+                    <button
+                      type="button"
+                      class="flex items-center gap-1 p-1 text-gray-700 hover:text-green-600"
+                      :aria-label="authStore.isLoggedIn ? 'Tài khoản của ' + authStore.displayName : 'Đăng nhập'"
+                      :aria-expanded="authStore.isLoggedIn ? showAccountMenu : undefined"
+                      @click="onAccountButton"
+                    >
+                      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span class="hidden lg:inline text-sm font-semibold max-w-[120px] truncate">
+                        {{ authStore.isLoggedIn ? authStore.displayName : 'Đăng nhập' }}
+                      </span>
+                    </button>
+                    <div
+                      v-if="authStore.isLoggedIn && showAccountMenu"
+                      class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50"
+                      role="menu"
+                    >
+                      <div class="px-4 py-2 border-b border-gray-100">
+                        <div class="text-sm font-semibold text-gray-800 truncate">{{ authStore.displayName }}</div>
+                        <div class="text-xs text-gray-500">{{ authStore.customer?.phone }}</div>
+                      </div>
+                      <a href="#" role="menuitem" class="block px-4 py-2 text-sm hover:bg-green-50" @click="(e) => goToAccount('', e)">Tài khoản của tôi</a>
+                      <a href="#" role="menuitem" class="block px-4 py-2 text-sm hover:bg-green-50" @click="(e) => goToAccount('orders', e)">Đơn hàng của tôi</a>
+                      <a href="#" role="menuitem" class="block px-4 py-2 text-sm hover:bg-green-50" @click="(e) => goToAccount('password', e)">Đổi mật khẩu</a>
+                      <button type="button" role="menuitem" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" @click="logoutCustomer">Đăng xuất</button>
+                    </div>
                   </div>
                   <a href="#" @click="(e) => handleNavigation('/cart', e)" class="relative flex-shrink-0 flex items-center justify-center order-2">
                     <svg class="w-7 h-7 text-gray-700 hover:text-green-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,25 +419,103 @@ function removeFromCart(item) {
                   </button>
                 </div>
               </div>
-              <!-- Mobile search overlay -->
+              <!-- Khung tìm kiếm (PC + mobile): rơi xuống từ đầu trang, cùng tông với header -->
               <transition name="fade">
-                <div v-if="showMobileSearch" class="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-start justify-center md:hidden" @click.self="closeMobileSearch">
-                  <div class="bg-white rounded-full mt-6 px-4 py-2 flex items-center gap-2 w-[90vw] max-w-xs shadow-lg">
-                    <input id="mobile-search-input" type="text" placeholder="Tìm kiếm..." class="flex-1 border-none outline-none text-base" />
-                    <button @click="closeMobileSearch" class="text-gray-400 hover:text-green-500 text-lg">&times;</button>
-                  </div>
+                <div v-if="showSearch" class="search-backdrop fixed inset-0 z-50 flex items-start justify-center px-4" @click.self="closeSearch">
+                  <form class="search-panel w-full max-w-xl mt-4 md:mt-24" role="search" @submit.prevent="submitSearch">
+                    <div class="search-field">
+                      <svg class="w-5 h-5 search-field-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      <label for="search-input" class="sr-only">Tìm kiếm sản phẩm</label>
+                      <input
+                        id="search-input"
+                        v-model="searchQuery"
+                        type="search"
+                        autocomplete="off"
+                        enterkeyhint="search"
+                        placeholder="Tìm sản phẩm..."
+                        class="flex-1 min-w-0 bg-transparent text-base"
+                        @keydown="handleSearchKey"
+                      />
+                      <button v-if="searchQuery" type="button" class="search-clear" aria-label="Xoá nội dung" @click="searchQuery = ''">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <button type="submit" class="search-submit" :disabled="!searchQuery.trim()">Tìm</button>
+                    </div>
+                    <div class="search-quick" aria-label="Từ khóa phổ biến">
+                      <span class="search-quick-label">Tìm nhanh:</span>
+                      <button
+                        v-for="keyword in quickSearchKeywords"
+                        :key="keyword"
+                        type="button"
+                        class="search-chip"
+                        @click="quickSearch(keyword)"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                          <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        {{ keyword }}
+                      </button>
+                    </div>
+                    <div class="search-hint">
+                      <span>Nhấn Enter để tìm</span>
+                      <button type="button" class="search-close" @click="closeSearch">Đóng <kbd class="hidden md:inline">Esc</kbd></button>
+                    </div>
+                  </form>
                 </div>
               </transition>
               <!-- Mobile menu overlay -->
-              <transition name="slide-down">
-                <div v-if="isMobileMenuOpen" class="fixed inset-0 z-50 bg-black bg-opacity-30 md:hidden" @click.self="closeMobileMenu">
-                  <div class="absolute top-0 left-0 w-3/4 max-w-xs h-full bg-white shadow-lg p-6 flex flex-col gap-4 animate-slideIn">
-                    <a href="#" @click="(e) => { handleNavigation('/', e); closeMobileMenu(); }" class="py-2 font-bold text-lg">Trang Chủ</a>
-                    <a href="#" @click="(e) => { handleNavigation('/me', e); closeMobileMenu(); }" class="py-2 font-bold text-lg">Câu chuyện Thi Yên</a>
-                    <a href="#" @click="(e) => { handleNavigation('/healthcare', e); closeMobileMenu(); }" class="py-2 font-bold text-lg">Triết lý dưỡng sinh</a>
-                    <a href="#" @click="(e) => { handleNavigation('/products', e); closeMobileMenu(); }" class="py-2 font-bold text-lg">Sản Phẩm</a>
-                    <a href="#" @click="(e) => { handleNavigation('/blog', e); closeMobileMenu(); }" class="py-2 font-bold text-lg">Blogs</a>
-                  </div>
+              <transition name="fade">
+                <div v-if="isMobileMenuOpen" class="mobile-drawer-backdrop fixed inset-0 z-50 md:hidden" @click.self="closeMobileMenu">
+                  <aside class="mobile-drawer absolute top-0 left-0 h-full w-[82%] max-w-xs flex flex-col animate-slideIn" role="dialog" aria-modal="true" aria-label="Menu điều hướng">
+                    <div class="mobile-drawer-head flex items-center justify-between px-4 py-2">
+                      <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="w-14 h-14 object-contain" />
+                      <button class="mobile-drawer-close" @click="closeMobileMenu" aria-label="Đóng menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <nav class="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+                      <a
+                        v-for="item in headerMenu"
+                        :key="item.href"
+                        :href="item.href"
+                        @click="(e) => { handleNavigation(item.href, e); closeMobileMenu(); }"
+                        :class="['mobile-menu-link', { 'is-active': isMenuActive(item.href) }]"
+                        :aria-current="isMenuActive(item.href) ? 'page' : undefined"
+                      >
+                        <span>{{ item.name }}</span>
+                        <svg class="mobile-menu-chevron w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </a>
+                    </nav>
+                    <div class="mobile-drawer-foot px-4 py-4">
+                      <!-- Tài khoản khách (task-003) -->
+                      <div class="mb-3 flex flex-col gap-1 text-sm">
+                        <template v-if="authStore.isLoggedIn">
+                          <div class="text-gray-500">Xin chào, <span class="font-semibold text-gray-800">{{ authStore.displayName }}</span></div>
+                          <a href="/tai-khoan" class="py-1 font-semibold" @click="(e) => goToAccount('', e)">Tài khoản của tôi</a>
+                          <a href="/tai-khoan?tab=orders" class="py-1 font-semibold" @click="(e) => goToAccount('orders', e)">Đơn hàng của tôi</a>
+                          <button type="button" class="py-1 font-semibold text-left text-red-600" @click="logoutCustomer">Đăng xuất</button>
+                        </template>
+                        <button v-else type="button" class="py-2 font-bold text-left text-green-700" @click="closeMobileMenu(); authStore.openModal('login')">Đăng nhập / Đăng ký</button>
+                      </div>
+                      <a href="/cart" @click="(e) => { handleNavigation('/cart', e); closeMobileMenu(); }" class="mobile-drawer-cart">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a2 2 0 10-4 0v7" />
+                        </svg>
+                        <span>Giỏ hàng</span>
+                        <span v-if="getTotalItems() > 0" class="mobile-drawer-badge">{{ getTotalItems() }}</span>
+                      </a>
+                    </div>
+                  </aside>
                 </div>
               </transition>
             </div>
@@ -448,140 +639,8 @@ function removeFromCart(item) {
               <component :is="Component" />
             </div>
           </main>
-          <!-- Footer -->
-          <footer class="bg-gradient-to-br from-yellow-50 via-white to-yellow-50 font-sans border-t border-yellow-200 mt-4 text-black relative overflow-hidden">
-            <!-- Background decoration -->
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-100/20 to-transparent"></div>
-            
-            <div class="max-w-7xl mx-auto px-4 py-8 relative z-10">
-              <!-- Main footer content -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <!-- Logo + Info -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <img :src="getImageUrlFromApi('/images/logo/logo.png')" alt="Logo" class="h-20 w-auto mb-4 object-contain mx-auto drop-shadow-md" />
-                  <div class="space-y-3 text-gray-700">
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      </svg>
-                      <span class="text-sm">KĐT Khai Sơn City,<br />Phường Bồ Đề, Thành phố Hà Nội, Việt Nam</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                      </svg>
-                      <span class="font-bold text-green-700">0396860584</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                      </svg>
-                      <span class="text-sm">thiyen.vietnam@gmail.com</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Quy định & chính sách -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <div class="text-xl font-bold mb-4 text-green-700 flex items-center justify-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    QUY ĐỊNH VÀ CHÍNH SÁCH
-                  </div>
-                  <ul class="space-y-3">
-                    <li>
-                      <router-link to="/terms" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Điều khoản sử dụng
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/privacy" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách bảo mật
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/returns" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách đổi trả
-                      </router-link>
-                    </li>
-                    <li>
-                      <router-link to="/payment" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Chính sách thanh toán
-                      </router-link>
-                    </li>
-                  </ul>
-                </div>
-                
-                <!-- Thông tin liên hệ -->
-                <div class="text-center bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-yellow-200/50">
-                  <div class="text-xl font-bold mb-4 text-green-700 flex items-center justify-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    THÔNG TIN LIÊN HỆ
-                  </div>
-                  <div class="space-y-3">
-                    <div class="bg-green-100 rounded-lg p-3">
-                      <div class="font-bold text-green-800 text-lg">HOTLINE: 0396860584</div>
-                      <div class="text-sm text-green-700">(Thứ 2 - Thứ 7 (8h - 17h))</div>
-                    </div>
-                    <div>
-                      <router-link to="/faq" class="text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50 px-3 py-2 rounded-lg block">
-                        Các câu hỏi thường gặp
-                      </router-link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Social Media Section -->
-              <div class="text-center mb-8">
-                <div class="flex items-center justify-center gap-2 mb-4">
-                  <div class="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                  </div>
-                  <span class="text-green-600 font-medium">Kết nối với Thi Yên tại</span>
-                </div>
-                
-                <div class="flex flex-wrap justify-center gap-3">
-                  <!-- Facebook -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">FACEBOOK</span>
-                  </a>
-                  
-                  <!-- TikTok -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">TIKTOK</span>
-                  </a>
-                  
-                  <!-- YouTube -->
-                  <a href="#" class="bg-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200">
-                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    <span class="font-medium text-gray-700">YOUTUBE</span>
-                  </a>
-                </div>
-              </div>
-              
-              <!-- Bottom footer -->
-              <div class="border-t border-yellow-200 pt-8">
-                <div class="text-center">
-                  <p class="text-gray-600 text-sm">&copy; 2024 Thi Yên. Tất cả quyền được bảo lưu.</p>
-                </div>
-              </div>
-            </div>
-          </footer>
+          <!-- Footer (CMS section "footer", defaults in content/homeDefaults.js) -->
+          <SiteFooter v-if="footerEnabled" :content="footerContent" :logo-url="siteLogoUrl" />
         </div>
       </transition>
     </router-view>
@@ -662,18 +721,158 @@ html {
     min-width: 100px;
   }
 }
+/*
+ * Menu header: chữ đổi sang xanh đậm thương hiệu + vạch chỉ báo bo tròn dưới chữ.
+ * Không dùng nền riêng cho item để giữ nguyên nền header (#eef1c5).
+ * Hover: vạch mờ, ngắn mọc từ giữa. Active: vạch đầy đủ, đậm. Màu #2f6b2f đạt tương phản AA trên nền header.
+ */
+.header-menu {
+  --menu-accent: #2f6b2f;
+}
 .header-menu a {
-  padding: 4px 0;
+  position: relative;
+  padding: 6px 2px;
   font-weight: 600;
   font-size: 1rem;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  color: #1f2a1f;
+  transition: color 0.2s ease;
+}
+.header-menu a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 9999px;
+  background-color: var(--menu-accent);
+  opacity: 0;
+  transform: scaleX(0);
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 .header-menu a:hover {
-  color: #0dd906;
-  background: #fffbe6;
-  border-bottom: 2px solid #1ab63c;
-  border-radius: 2px;
+  color: var(--menu-accent);
+}
+.header-menu a:hover::after {
+  opacity: 0.35;
+  transform: scaleX(0.5);
+}
+.header-menu a.is-active {
+  color: var(--menu-accent);
+}
+.header-menu a.is-active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.header-menu a:focus-visible {
+  outline: 2px solid var(--menu-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-menu a,
+  .header-menu a::after {
+    transition: none;
+  }
+}
+
+/*
+ * Drawer menu mobile: cùng bảng màu với header (#eef1c5) và nền trang (kem),
+ * mục đang xem dùng xanh đậm #2f6b2f giống vạch active trên PC.
+ */
+.mobile-drawer-backdrop {
+  background-color: rgba(31, 42, 31, 0.45);
+}
+.mobile-drawer {
+  background-color: #fbfbef;
+  box-shadow: 8px 0 24px rgba(31, 42, 31, 0.18);
+}
+.mobile-drawer-head {
+  background-color: #eef1c5;
+  border-bottom: 1px solid rgba(47, 107, 47, 0.15);
+}
+.mobile-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  color: #1f2a1f;
+  transition: background-color 0.2s;
+}
+.mobile-drawer-close:hover,
+.mobile-drawer-close:focus-visible {
+  background-color: rgba(47, 107, 47, 0.1);
+  outline: none;
+}
+.mobile-menu-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2a1f;
+  transition: color 0.2s, background-color 0.2s;
+}
+.mobile-menu-chevron {
+  color: rgba(31, 42, 31, 0.3);
+  transition: color 0.2s, transform 0.2s;
+}
+.mobile-menu-link:hover,
+.mobile-menu-link:focus-visible {
+  background-color: rgba(47, 107, 47, 0.06);
+  outline: none;
+}
+.mobile-menu-link.is-active {
+  color: #2f6b2f;
+  background-color: #eef1c5;
+}
+.mobile-menu-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 4px;
+  border-radius: 9999px;
+  background-color: #2f6b2f;
+}
+.mobile-menu-link.is-active .mobile-menu-chevron {
+  color: #2f6b2f;
+  transform: translateX(2px);
+}
+.mobile-drawer-foot {
+  border-top: 1px solid rgba(47, 107, 47, 0.15);
+}
+.mobile-drawer-cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #2f6b2f;
+  transition: background-color 0.2s;
+}
+.mobile-drawer-cart:hover {
+  background-color: #275a27;
+}
+.mobile-drawer-badge {
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1.4rem;
+  text-align: center;
+  color: #2f6b2f;
+  background-color: #eef1c5;
 }
 .header-brand span {
   font-size: 2rem;
@@ -681,8 +880,172 @@ html {
   line-height: 1.1;
   margin-top: 0;
 }
-.header-search {
-  min-width: 120px;
+/*
+ * Tìm kiếm: nút mở trong header (PC: pill có chữ, mobile: icon tròn) và khung tìm kiếm dùng chung.
+ * Bảng màu giống menu: nền header #eef1c5, nền kem #fbfbef, xanh đậm #2f6b2f.
+ */
+.search-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  color: #1f2a1f;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.search-trigger:hover,
+.search-trigger:focus-visible {
+  color: #2f6b2f;
+  background-color: rgba(47, 107, 47, 0.08);
+  outline: none;
+}
+@media (min-width: 768px) {
+  .search-trigger {
+    width: auto;
+    height: 36px;
+    padding: 0 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(31, 42, 31, 0.7);
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(47, 107, 47, 0.2);
+  }
+  .search-trigger:hover,
+  .search-trigger:focus-visible {
+    background-color: #fff;
+    border-color: rgba(47, 107, 47, 0.45);
+  }
+}
+.search-backdrop {
+  background-color: rgba(31, 42, 31, 0.45);
+}
+.search-panel {
+  padding: 0.75rem;
+  border-radius: 20px;
+  background-color: #fbfbef;
+  box-shadow: 0 16px 40px rgba(31, 42, 31, 0.25);
+  animation: searchDrop 0.22s cubic-bezier(.4, 0, .2, 1);
+}
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.35rem 0.35rem 0.9rem;
+  border-radius: 9999px;
+  background-color: #fff;
+  border: 1.5px solid rgba(47, 107, 47, 0.25);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-field:focus-within {
+  border-color: #2f6b2f;
+  box-shadow: 0 0 0 3px rgba(47, 107, 47, 0.15);
+}
+.search-field-icon {
+  flex-shrink: 0;
+  color: #2f6b2f;
+}
+.search-field input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+.search-field input::placeholder {
+  color: rgba(31, 42, 31, 0.45);
+}
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  color: rgba(31, 42, 31, 0.5);
+  background-color: rgba(31, 42, 31, 0.06);
+}
+.search-clear:hover {
+  color: #1f2a1f;
+  background-color: rgba(31, 42, 31, 0.12);
+}
+.search-submit {
+  flex-shrink: 0;
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #2f6b2f;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+.search-submit:hover:not(:disabled) {
+  background-color: #275a27;
+}
+.search-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.search-quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.25rem 0;
+}
+.search-quick-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(31, 42, 31, 0.6);
+}
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2f6b2f;
+  background-color: #eef1c5;
+  border: 1px solid rgba(47, 107, 47, 0.2);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.search-chip:hover,
+.search-chip:focus-visible {
+  color: #fff;
+  background-color: #2f6b2f;
+  border-color: #2f6b2f;
+  outline: none;
+}
+.search-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.5rem 0;
+  font-size: 0.8rem;
+  color: rgba(31, 42, 31, 0.55);
+}
+.search-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #2f6b2f;
+}
+.search-close kbd {
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.7rem;
+  border: 1px solid rgba(47, 107, 47, 0.3);
+}
+@keyframes searchDrop {
+  from { transform: translateY(-12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-panel {
+    animation: none;
+  }
 }
 
 @keyframes slideIn {

@@ -61,8 +61,8 @@ function checkDependencies() {
 // Kiểm tra file môi trường
 function checkEnvFiles() {
   const envFiles = [
-    'env.production',
-    'env.local'
+    '.env',
+    '.env.production'
   ];
   
   let hasEnv = false;
@@ -74,7 +74,7 @@ function checkEnvFiles() {
   });
   
   if (!hasEnv) {
-    console.warn('⚠️  Không tìm thấy file môi trường (env.production hoặc env.local)');
+    console.warn('⚠️  Không tìm thấy file môi trường (.env hoặc .env.production)');
     console.warn('   Ứng dụng sẽ sử dụng giá trị mặc định');
   }
 }

@@ -1,0 +1,5 @@
+# Local IDE and AI-agent config (machine-specific paths, agent worktrees)
+.idea/
+.claude/*
+# Project skills are shared with the team
+!.claude/skills/

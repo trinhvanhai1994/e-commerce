@@ -30,7 +30,7 @@
                   :key="index"
                   @click="selectImage(image, index)"
                   :class="[
-                    'relative aspect-square bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
+                    'relative flex-shrink-0 aspect-square bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
                     currentImageIndex === index
                       ? 'border-green-500 shadow-lg transform scale-105 ring-2 ring-green-200'
                       : 'border-gray-200 hover:border-green-300 hover:shadow-md hover:scale-102'
@@ -80,7 +80,7 @@
               <div class="relative overflow-hidden rounded-none md:rounded-lg shadow-none md:shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 p-0 md:p-4 group">
                 <!-- Carousel Container with touch support -->
                 <div 
-                  class="relative h-[400px] md:h-64 lg:h-80 overflow-hidden rounded-none md:rounded-lg touch-pan-x aspect-square"
+                  class="relative w-full max-w-[560px] mx-auto aspect-square overflow-hidden rounded-none md:rounded-lg touch-pan-x"
                   @touchstart="handleTouchStart"
                   @touchmove="handleTouchMove"
                   @touchend="handleTouchEnd"
@@ -257,13 +257,14 @@
               <h1 class="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
               <div class="flex items-center gap-2 mb-3">
                 <div class="flex items-center">
-                  <span class="text-base md:text-lg font-bold text-gray-900 mr-2">5</span>
+                  <span class="text-base md:text-lg font-bold text-gray-900 mr-2">{{ reviewCount ? averageRating : '' }}</span>
                   <div class="flex text-yellow-400">
-                    <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <svg v-for="i in 5" :key="i" class="w-3 h-3 fill-current" :class="!reviewCount || i > Math.round(averageRating) ? 'text-gray-300' : ''" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </div>
-                  <span class="ml-2 text-xs text-gray-600">5 trên tổng 5 sao (dựa trên {{ product.reviewCount || 32 }} đánh giá)</span>
+                  <span v-if="reviewCount" class="ml-2 text-xs text-gray-600">{{ averageRating }} trên tổng 5 sao (dựa trên {{ reviewCount }} đánh giá)</span>
+                  <span v-else class="ml-2 text-xs text-gray-600">Chưa có đánh giá</span>
                 </div>
               </div>
             </div>
@@ -396,16 +397,22 @@
             <!-- Customer Reviews -->
             <div class="bg-white rounded-lg p-4 mt-2 shadow-md">
               <div class="flex items-center justify-between mb-2">
-                <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ allReviews.length }})</div>
+                <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ reviewCount }})</div>
                 <div class="flex gap-2">
-                  <button @click="showAddReviewForm = true" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors">
+                  <button @click="openReviewForm" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors">
                     Viết đánh giá
                   </button>
-                  <button v-if="!showAllReviews && allReviews && allReviews.length > 6" @click="showAllReviews = true" class="text-blue-500 text-xs font-semibold hover:underline">Xem thêm &gt;</button>
+                  <button v-if="!showAllReviews && reviews.length > 6" @click="showAllReviews = true" class="text-blue-500 text-xs font-semibold hover:underline">Xem thêm &gt;</button>
                   <button v-if="showAllReviews" @click="showAllReviews = false" class="text-gray-500 text-xs font-semibold hover:underline">Thu gọn &lt;</button>
                 </div>
               </div>
-              <div class="flex items-center mb-3">
+              <div v-if="reviewsLoading" class="text-sm text-gray-500 py-2">Đang tải đánh giá...</div>
+              <div v-else-if="reviewsError" class="text-sm text-gray-500 py-2">
+                Không tải được đánh giá.
+                <button type="button" class="ml-1 text-green-600 hover:underline font-semibold" @click="loadReviews(product.id)">Thử lại</button>
+              </div>
+              <div v-else-if="!reviewCount" class="text-sm text-gray-500 py-2">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này.</div>
+              <div v-else class="flex items-center mb-3">
                 <span class="text-yellow-500 text-2xl font-bold mr-2">{{ averageRating }}</span>
                 <div class="flex text-yellow-400 mr-2">
                   <svg v-for="i in 5" :key="i" class="w-5 h-5 fill-current" :class="i > Math.round(averageRating) ? 'text-gray-300' : ''" viewBox="0 0 20 20">
@@ -416,19 +423,18 @@
               <div v-for="review in displayedReviews" :key="review.id" class="border-b border-gray-100 pb-4 mb-4 last:mb-0 last:pb-0 last:border-0">
                 <div class="flex items-center mb-2">
                   <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center font-bold text-yellow-700 mr-2 text-base">
-                    {{ review.author.charAt(0).toUpperCase() }}
+                    {{ (review.authorName || '?').charAt(0).toUpperCase() }}
                   </div>
-                  <span class="font-semibold text-gray-800 text-sm mr-2">{{ review.author }}</span>
+                  <span class="font-semibold text-gray-800 text-sm mr-2">{{ review.authorName }}</span>
                   <div class="flex text-yellow-400 ml-1">
                     <svg v-for="i in 5" :key="i" class="w-4 h-4 fill-current" :class="i > review.rating ? 'text-gray-300' : ''" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   </div>
-                  <button v-if="!review.isDefault" @click="confirmDeleteReview(review.id)" class="ml-auto text-red-500 text-xs hover:text-red-700">Xóa</button>
                 </div>
-                <div class="text-gray-800 text-sm mb-2">{{ review.content }}</div>
+                <div class="text-gray-800 text-sm mb-2 whitespace-pre-line">{{ review.content }}</div>
                 <div class="flex gap-2 flex-wrap">
-                  <img v-for="(img, idx) in review.images" :key="idx" :src="img" class="w-16 h-16 object-cover rounded-md border border-gray-200" :alt="`Ảnh đánh giá ${idx+1}`" />
+                  <img v-for="(img, idx) in review.images" :key="idx" :src="resolveCmsImage(img)" loading="lazy" class="w-16 h-16 object-cover rounded-md border border-gray-200" :alt="`Ảnh đánh giá ${idx+1}`" />
                 </div>
               </div>
             </div>
@@ -451,17 +457,12 @@
 
           <!-- Form Body -->
           <form @submit.prevent="submitReview" class="p-6 space-y-4">
-            <!-- Tên khách hàng -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Tên của bạn *</label>
-              <input
-                v-model="newReviewForm.author"
-                type="text"
-                required
-                placeholder="Nhập tên của bạn"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+            <!-- Honeypot: hidden from people, bots fill it and the server drops the submission -->
+            <input v-model="newReviewForm.website" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" />
+            <!-- Tên hiển thị lấy từ tài khoản (đổi ở trang Tài khoản) -->
+            <p class="text-sm text-gray-600">
+              Đánh giá với tên <span class="font-semibold text-gray-800">{{ authStore.displayName }}</span>
+            </p>
 
             <!-- Rating -->
             <div>
@@ -488,6 +489,8 @@
               <textarea
                 v-model="newReviewForm.content"
                 required
+                minlength="5"
+                maxlength="2000"
                 rows="4"
                 placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
                 class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
@@ -503,28 +506,29 @@
                     ref="imageInput"
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     @change="handleImageUpload"
                     class="hidden"
                   />
                   <button
                     type="button"
+                    :disabled="newReviewForm.images.length >= MAX_REVIEW_IMAGES || processingImages"
                     @click="$refs.imageInput?.click()"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Chọn ảnh
+                    {{ processingImages ? 'Đang xử lý...' : 'Chọn ảnh' }}
                   </button>
-                  <span class="text-xs text-gray-500">Tối đa 5 ảnh, mỗi ảnh tối đa 5MB</span>
+                  <span class="text-xs text-gray-500">Tối đa {{ MAX_REVIEW_IMAGES }} ảnh, ảnh sẽ được cắt vuông</span>
                 </div>
 
                 <!-- Preview ảnh đã chọn -->
-                <div v-if="newReviewForm.imagePreviews.length > 0" class="grid grid-cols-4 gap-2">
-                  <div v-for="(preview, idx) in newReviewForm.imagePreviews" :key="idx" class="relative group">
-                    <img :src="preview" alt="Preview" class="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                <div v-if="newReviewForm.images.length > 0" class="grid grid-cols-4 gap-2">
+                  <div v-for="(img, idx) in newReviewForm.images" :key="img.previewUrl" class="relative group">
+                    <img :src="img.previewUrl" alt="Preview" class="w-full aspect-square object-cover rounded-lg border border-gray-200" />
                     <button
                       type="button"
                       @click="removeImagePreview(idx)"
-                      class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity text-xs"
                     >
                       ×
                     </button>
@@ -532,6 +536,8 @@
                 </div>
               </div>
             </div>
+
+            <p class="text-xs text-gray-500">Đánh giá sẽ hiển thị ngay trên trang sản phẩm.</p>
 
             <!-- Buttons -->
             <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
@@ -544,7 +550,7 @@
               </button>
               <button
                 type="submit"
-                :disabled="submittingReview"
+                :disabled="submittingReview || processingImages"
                 class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {{ submittingReview ? 'Đang gửi...' : 'Gửi đánh giá' }}
@@ -555,172 +561,76 @@
       </div>
 
       <!-- Video giới thiệu sản phẩm (PC only - trước phần mô tả) -->
-      <div class="hidden lg:block mt-4 mb-6">
+      <div v-if="productVideoInfo" class="hidden lg:block mt-4 mb-6">
         <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
           <h2 class="text-lg md:text-xl font-bold text-green-700 mb-4 text-center">Video giới thiệu sản phẩm</h2>
           <div class="flex justify-center">
+            <iframe
+              v-if="productVideoInfo.kind === 'youtube'"
+              :src="productVideoInfo.src"
+              class="w-full max-w-2xl aspect-video rounded-lg"
+              title="Video giới thiệu sản phẩm"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
             <video
+              v-else
+              :key="productVideoInfo.src"
               class="w-full max-w-2xl rounded-lg"
               controls
               style="max-height: 70vh; object-fit: contain;"
             >
-              <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
+              <source :src="productVideoInfo.src" type="video/mp4" />
               Trình duyệt của bạn không hỗ trợ video.
             </video>
           </div>
         </div>
       </div>
 
-              <!-- Product Details Table -->
-        <div class="space-y-6">
+              <!-- Product Details Table: 9 mục do admin sửa (task-006, utils/productSections.js) -->
+        <div v-if="detailSections.length" class="space-y-6">
           <div class="grid grid-cols-1 gap-6">
-            <!-- THÔNG TIN SẢN PHẨM - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
-              <ul class="benefits-list">
-                <li>Tên sản phẩm: Bột Ngũ Hắc Mè Đen</li>
-                <li>Quy cách: Lon thiếc 600g</li>
-                <li>Hạn sử dụng: 10 tháng kể từ ngày sản xuất</li>
-                <li>Xuất xứ: Việt Nam</li>
-              </ul>
+            <div v-for="section in detailSections" :key="section.key" class="product-detail-section">
+              <h3 class="section-title">{{ section.title }}</h3>
+              <template v-if="section.style === 'paragraph'">
+                <template v-for="(line, idx) in section.lines" :key="idx">
+                  <h3 v-if="line.type === 'heading'" class="section-title">{{ line.text }}</h3>
+                  <p v-else-if="line.type === 'note'" class="section-subtitle">{{ line.text }}</p>
+                  <p v-else class="section-content">{{ line.text }}</p>
+                </template>
+              </template>
+              <template v-else>
+                <template v-for="(group, gIdx) in groupSectionLines(section.lines)" :key="gIdx">
+                  <h3 v-if="group.heading" class="section-title">{{ group.heading }}</h3>
+                  <p v-for="(note, nIdx) in group.notes" :key="'n' + nIdx" class="section-subtitle">{{ note }}</p>
+                  <ul v-if="group.items.length" class="benefits-list">
+                    <li v-for="(item, iIdx) in group.items" :key="iIdx">{{ section.style === 'bullet' ? '• ' + item : item }}</li>
+                  </ul>
+                </template>
+              </template>
             </div>
-
-            <!-- THÔNG TIN SẢN PHẨM - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
-              <ul class="benefits-list">
-                <li>Tên sản phẩm: Bột Ngũ Sắc Hồng Đậu</li>
-                <li>Quy cách: Lon thiếc 600g</li>
-                <li>Hạn sử dụng: 08 tháng kể từ ngày sản xuất</li>
-                <li>Xuất xứ: Việt Nam</li>
-              </ul>
-            </div>
-
-            <!-- THÀNH PHẦN - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">THÀNH PHẦN</h3>
-              <p class="section-content">Yến mạch; Gạo lứt đen; Đậu đỏ có vỏ; Diêm mạch đen; Mè đen; Dâu tằm đen; Đậu đen có vỏ (trắng lòng); Óc chó; Erythritol; FOS, Khoai mỡ.</p>
-            </div>
-
-            <!-- THÀNH PHẦN - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">THÀNH PHẦN</h3>
-              <p class="section-content">Đậu đỏ nhỏ có vỏ, Hạt sen đỏ Củ dền đỏ, Diêm mạch đỏ, Yến mạch, Táo đỏ khô, Konjac Gum, Bột sữa dừa, Nacl, Fructose, Isomalto Oligosaccharide.</p>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 v-if="product.id === 5" class="section-title">1. BỘT NGŨ HẮC MÈ ĐEN</h3>
-              <h3 class="section-title">CÔNG DỤNG</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng đen cho tóc chắc khỏe, đen mượt</li>
-                <li v-if="product.id === 1 || product.id === 2">• Bổi bổ sức khoẻ, nuôi dưỡng khí huyết: công thức ngũ hắc dưỡng sinh kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, nuôi dưỡng cơ thể và khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng cho giấc ngủ: 5 nguyên liệu đen có tính bình kết hợp cùng hạt óc chó giàu dưỡng chất nuôi dưỡng giấc ngủ</li>
-                <li v-if="product.id === 1 || product.id === 2">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
-
-                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo </li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho tóc chắc khỏe, đen mượt từ 5 loại hạt đen giàu dưỡng chất</li>
-                <li v-if="product.id === 52">• Bổ huyết, bồi bổ sức khỏe: kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, hỗ trợ tuần hoàn máu, bổ sung dưỡng chất cần thiết giúp cơ thể duy trì thể trạng</li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ, giúp cơ thể thư giãn, dễ đi vào giấc ngủ, ngủ ngon và ngủ sâu hơn.</li>
-                <li v-if="product.id === 52">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
-              </ul>
-
-              <h3 v-if="product.id === 52" class="section-title">2. BỘT NGŨ SẮC HỒNG ĐẬU</h3>
-              <h3 v-if="product.id === 52" class="section-title">CÔNG DỤNG</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 52">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 52">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">ĐỐI TƯỢNG PHÙ HỢP</h3>
-              <p class="section-subtitle">Phù hợp với người lớn và trẻ em trên 03 tuổi</p>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 1 || product.id === 2">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 1 || product.id === 2">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 1 || product.id === 2">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-                
-                <li v-if="product.id === 3 || product.id === 4">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 3 || product.id === 4">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 3 || product.id === 4">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 3 || product.id === 4">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-
-                <li v-if="product.id === 52">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 52">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 52">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 52">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 52">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-              </ul>
-            </div>
-
-            <!-- ƯU ĐIỂM NỔI BẬT - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
-              <ul class="benefits-list">
-                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
-                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
-                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
-                <li>• Hàm lượng natri gần như bằng 0, phù hợp với người muốn ăn nhạt, kiểm soát huyết áp.</li>
-              </ul>
-            </div>
-
-            <!-- ƯU ĐIỂM NỔI BẬT - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
-              <ul class="benefits-list">
-                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
-                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
-                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
-                <li>• Giàu sắt, kẽm và phytoestrogen tự nhiên</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">CÔNG NGHỆ VƯỢT TRỘI TỐI ƯU DƯỠNG CHẤT</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-                
-                <li v-if="product.id === 3 || product.id === 4">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-
-                <li v-if="product.id === 52">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">HƯỚNG DẪN BẢO QUẢN</h3>
-              <p class="section-content">Bảo quản ở nơi thoáng mát, tránh ánh nắng trực tiếp chiếu vào sản phẩm. Sản phẩm đã mở nắp cần sử dụng trong vòng 4 tuần.</p>
-            </div>
-
-            <div v-if="product.specifications" class="product-detail-section">
-              <h3 class="section-title">HẠN SỬ DỤNG</h3>
-              <p v-if="product.id === 1 || product.id === 2" class="section-content">10 tháng từ ngày sản xuất</p>
-              <p v-if="product.id === 3 || product.id === 4" class="section-content">8 tháng từ ngày sản xuất</p>
-              <p v-if="product.id === 52" class="section-content">8 tháng từ ngày sản xuất. Nên dùng sau khi mở nắp trong vòng 4 tuần</p>
-            </div>
-           
           </div>
         </div>
 
          <!-- Ảnh liên quan đến sản phẩm -->
      <div class="bg-white rounded-none shadow-none md:rounded-lg md:shadow-lg p-2 md:p-4 mt-2 md:mt-4 md:hidden">
        <!-- Video giới thiệu sản phẩm -->
-       <video
-         class="w-full max-w-2xl mx-auto rounded-lg mb-4"
-         controls
-       >
-         <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
-         Trình duyệt của bạn không hỗ trợ video.
-       </video>
+       <template v-if="productVideoInfo">
+         <iframe
+           v-if="productVideoInfo.kind === 'youtube'"
+           :src="productVideoInfo.src"
+           class="w-full max-w-2xl mx-auto aspect-video rounded-lg mb-4"
+           title="Video giới thiệu sản phẩm"
+           allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+           allowfullscreen
+           loading="lazy"
+         ></iframe>
+         <video v-else :key="productVideoInfo.src" class="w-full max-w-2xl mx-auto rounded-lg mb-4" controls>
+           <source :src="productVideoInfo.src" type="video/mp4" />
+           Trình duyệt của bạn không hỗ trợ video.
+         </video>
+       </template>
        <div class="flex flex-col gap-3">
          <div
            v-for="(image, idx) in relatedImages"
@@ -732,7 +642,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-100 object-cover rounded-lg border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-m-${idx}-${img}`"
+             :key="`related-m-${idx}-${image}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
          </div>
@@ -756,7 +666,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-40 object-cover rounded-xl border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-${idx}-${img}`"
+             :key="`related-${idx}-${image}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
          </div>
@@ -1253,9 +1163,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
-import { getProductImage, getProductGallery } from '../utils/productImage'
-import { getImageUrlFromApi } from '../utils/imageUtils.js'
+import { getProductImage, getProductGallery, getProductDetailImages } from '../utils/productImage'
+import { getImageUrlFromApi, applyImageFallback } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
+import { reviewService } from '../services/review.service.js'
+import { useAuthStore } from '../stores/auth.js'
+import { processImageForSlot } from '../utils/imageSlotPipeline.js'
+import { resolveCmsImage } from '../content/homeDefaults.js'
+import { productDetailSections, productVideo } from '../utils/productSections.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1316,6 +1231,25 @@ async function fetchProductById(id) {
 
 const selectedProductId = computed(() => Number(product.value?.id))
 
+// 9 mục chi tiết và video do admin nhập (task-006)
+const detailSections = computed(() => productDetailSections(product.value))
+const productVideoInfo = computed(() => productVideo(product.value?.videoUrl))
+
+// Danh sách: mỗi tiêu đề con (#) mở một nhóm mới; chú thích (>) và mục thuộc nhóm hiện tại
+function groupSectionLines(lines) {
+  const groups = [{ heading: '', notes: [], items: [] }]
+  for (const line of lines) {
+    if (line.type === 'heading') {
+      groups.push({ heading: line.text, notes: [], items: [] })
+    } else if (line.type === 'note') {
+      groups[groups.length - 1].notes.push(line.text)
+    } else {
+      groups[groups.length - 1].items.push(line.text)
+    }
+  }
+  return groups.filter((g) => g.heading || g.notes.length || g.items.length)
+}
+
 // Thay thế các chỗ dùng productData
 const relatedProducts = computed(() => {
   if (!products.value.length || !product.value) return []
@@ -1374,20 +1308,19 @@ async function loadData() {
   const id = parseInt(route.params.id) || (products.value[0]?.id || 1)
   await fetchProductById(id)
   updateProductImages()
+  loadReviews(id)
   // Không cần cache-busting - BE trả về path đúng
 }
 
 // Xử lý lỗi ảnh
 function handleImageError(event) {
-  // Thay thế ảnh lỗi bằng ảnh placeholder
-  event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
-  event.target.onerror = null // Tránh loop vô hạn
+  // Thay ảnh lỗi bằng ảnh placeholder, chỉ một lần (placeholder lỗi thì dừng, không lặp)
+  applyImageFallback(event, '/images/products/details/black/1.png')
 }
 
 // Single onMounted hook to avoid conflicts
 onMounted(() => {
   isComponentMounted.value = true
-  loadReviewsFromStorage() // Load reviews từ localStorage khi component mount
   loadData()
   startFlashSaleCountdown()
   if (isAutoPlaying.value) {
@@ -1412,6 +1345,7 @@ onUnmounted(() => {
 })
 
 watch(() => route.params.id, async () => {
+  loadReviews(route.params.id)
   await fetchProductById(route.params.id)
   updateProductImages()
   // Reset currentImageIndex khi chuyển product
@@ -1439,12 +1373,8 @@ function formatFlashSaleTime(sec) {
 // Việc reset currentImageIndex sẽ được xử lý bởi watch bên dưới
 const galleryImages = computed(() => {
   if (!product.value) return []
-  const gallery = getProductGallery(product.value)
-  // Filter null/empty để không hiển thị ảnh khi API trả về null
-  // Không cần cache-busting - BE trả về path đúng và tự xử lý cache
-  return gallery
-    .filter(path => path && path.trim() !== '') // Filter null/empty
-    .map(path => getImageUrlFromApi(path)) // Chỉ convert path thành full URL
+  // mainImage first, then gallery children — consistent with list/Home thumbnails
+  return getProductDetailImages(product.value)
 })
 
 // Watch galleryImages để reset currentImageIndex nếu vượt quá bounds
@@ -1457,239 +1387,118 @@ watch(galleryImages, (newGallery) => {
   }
 }, { immediate: true })
 
-// Reviews mặc định (5 reviews)
-const defaultReviews = [
-  {
-    id: 1,
-    author: 'Thu Quyên',
-    rating: 5,
-    content: 'Giao hàng nhanh, hàng chính hãng, đóng gói bọc xốp cẩn thận, Vị thơm mùi mè, pha nhanh, dễ pha, hợp với người bận rộn như mình.',
-    images: [
-      getImageUrlFromApi('/images/review/comment1/5f70f3785c7bd025896a1.jpg'),
-      getImageUrlFromApi('/images/review/comment1/cba003a9acaa20f479bb2.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 2,
-    author: 'Mai Trân',
-    rating: 5,
-    content: 'Mẫu mã và chất lượng OK ạ. Shop tư vấn nhiệt tình. Hàng đóng gói cẩn thận. Sẽ ủng hộ Shop lâu dài',
-    images: [
-      getImageUrlFromApi('/images/review/comment2/55604d6ae2696e3737789.jpg'),
-      getImageUrlFromApi('/images/review/comment2/c59aea924591c9cf908010.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 3,
-    author: 'Lê Lan',
-    rating: 5,
-    content: 'Shop giao hàng nhanh, đóng gói cẩn thận, bột mè đen mịn, dễ pha, vị mè đen thơm, dễ uống',
-    images: [
-      getImageUrlFromApi('/images/review/comment3/ee0af18a5f89d3d78a9814.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 4,
-    author: 'Quyền Thu',
-    rating: 5,
-    content: 'Bột ngũ hắc thơm mùi mè đen, vị ngon béo ngậy. Bé nhà m cũng thích, chiều đi học về cứ làm cốc là ấm bụng.',
-    images: [
-      getImageUrlFromApi('/images/review/comment4/fbcebb48154b9915c05a13.jpg')
-    ],
-    isDefault: true
-  },
-  {
-    id: 5,
-    author: 'Lê Hà',
-    rating: 5,
-    content: 'cũng dùng thử mấy loại rồi mà chỉ thấy toàn mùi đỗ đen, nay mới thấy loại này ngon và rõ mùi vị của mè đen. Nghe nói tốt lắm, thử dùng xem sao',
-    images: [
-      getImageUrlFromApi('/images/review/comment5/1f973fb291b11def44a018.jpg'),
-      getImageUrlFromApi('/images/review/comment5/f19088b626b5aaebf3a417.jpg')
-    ],
-    isDefault: true
-  }
-]
+// Đánh giá sản phẩm: chỉ đánh giá APPROVED (khách gửi được đăng ngay, admin ẩn sau), kèm điểm trung bình tính ở server
+const MAX_REVIEW_IMAGES = 4
+const reviews = ref([])
+const reviewCount = ref(0)
+const averageRating = ref(0)
+const reviewsLoading = ref(false)
+const reviewsError = ref(false)
+let reviewsRequestId = 0
 
-// Reviews từ localStorage
-const storedReviews = ref([])
-
-// Key cho localStorage
-const STORAGE_KEY = 'product_reviews'
-
-// Load reviews từ localStorage
-function loadReviewsFromStorage() {
+async function loadReviews(productId, { fresh = false } = {}) {
+  const id = parseInt(productId)
+  if (!id) return
+  const requestId = ++reviewsRequestId
+  // A refresh after submitting keeps the current list on screen instead of flashing "Đang tải"
+  if (!fresh) reviewsLoading.value = true
+  reviewsError.value = false
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      storedReviews.value = JSON.parse(stored)
-    } else {
-      storedReviews.value = []
-    }
+    const data = await reviewService.getProductReviews(id, { fresh })
+    if (requestId !== reviewsRequestId) return // a newer product was opened meanwhile
+    reviews.value = data?.reviews || []
+    reviewCount.value = data?.reviewCount || 0
+    averageRating.value = data?.averageRating || 0
   } catch (error) {
-    console.error('Error loading reviews from localStorage:', error)
-    storedReviews.value = []
+    if (requestId !== reviewsRequestId) return
+    console.error('Error loading reviews:', error)
+    reviews.value = []
+    reviewCount.value = 0
+    averageRating.value = 0
+    reviewsError.value = true
+  } finally {
+    if (requestId === reviewsRequestId) reviewsLoading.value = false
   }
 }
-
-// Lưu reviews vào localStorage
-function saveReviewsToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(storedReviews.value))
-  } catch (error) {
-    console.error('Error saving reviews to localStorage:', error)
-  }
-}
-
-// Thêm review mới
-function addReview(review) {
-  const newReview = {
-    ...review,
-    id: Date.now(), // Tạo ID duy nhất
-    isDefault: false
-  }
-  storedReviews.value.push(newReview)
-  saveReviewsToStorage()
-}
-
-// Cập nhật review
-function updateReview(reviewId, updatedReview) {
-  const index = storedReviews.value.findIndex(r => r.id === reviewId)
-  if (index !== -1) {
-    storedReviews.value[index] = {
-      ...updatedReview,
-      id: reviewId,
-      isDefault: false
-    }
-    saveReviewsToStorage()
-    return true
-  }
-  return false
-}
-
-// Xóa review (chỉ xóa reviews từ localStorage, không xóa reviews mặc định)
-function deleteReview(reviewId) {
-  const index = storedReviews.value.findIndex(r => r.id === reviewId)
-  if (index !== -1) {
-    storedReviews.value.splice(index, 1)
-    saveReviewsToStorage()
-    return true
-  }
-  return false
-}
-
-// Xác nhận trước khi xóa review
-function confirmDeleteReview(reviewId) {
-  showConfirm('Bạn có chắc muốn xóa đánh giá này?', () => {
-    deleteReview(reviewId)
-    showSuccessPopup('Đã xóa đánh giá thành công!')
-  })
-}
-
-// Load reviews sẽ được gọi trong onMounted
 
 // Form thêm review
 const showAddReviewForm = ref(false)
 const submittingReview = ref(false)
+const processingImages = ref(false)
 const imageInput = ref(null)
-const newReviewForm = ref({
-  author: '',
-  rating: 5,
-  content: '',
-  imagePreviews: []
-})
+const emptyReviewForm = () => ({ rating: 5, content: '', website: '', images: [] })
 
-// Xử lý upload ảnh
-function handleImageUpload(event) {
+// Viết đánh giá cần đăng nhập (task-003 R3): chưa đăng nhập thì mở popup, đăng nhập xong mở form luôn
+const authStore = useAuthStore()
+function openReviewForm() {
+  authStore.requireLogin(() => {
+    showAddReviewForm.value = true
+  }, 'Đăng nhập để viết đánh giá sản phẩm.')
+}
+const newReviewForm = ref(emptyReviewForm())
+
+// Ảnh được cắt vuông và nén ở trình duyệt (slot review_image) trước khi gửi, giống ảnh CMS
+async function handleImageUpload(event) {
   const files = Array.from(event.target.files || [])
+  if (imageInput.value) imageInput.value.value = ''
   if (files.length === 0) return
 
-  // Giới hạn tối đa 5 ảnh
-  const remainingSlots = 5 - newReviewForm.value.imagePreviews.length
-  const filesToProcess = files.slice(0, remainingSlots)
-
-  filesToProcess.forEach(file => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showErrorPopup('Vui lòng chọn file ảnh hợp lệ')
-      return
+  const remaining = MAX_REVIEW_IMAGES - newReviewForm.value.images.length
+  if (files.length > remaining) {
+    showErrorPopup(`Chỉ được chọn tối đa ${MAX_REVIEW_IMAGES} ảnh`)
+  }
+  processingImages.value = true
+  try {
+    for (const file of files.slice(0, Math.max(remaining, 0))) {
+      try {
+        const processed = await processImageForSlot(file, 'review_image', 'fit')
+        newReviewForm.value.images.push({ file: processed.file, previewUrl: processed.previewUrl })
+      } catch (error) {
+        showErrorPopup(error.message || `Không xử lý được ảnh ${file.name}`)
+      }
     }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showErrorPopup(`File ${file.name} không được lớn hơn 5MB`)
-      return
-    }
-
-    // Convert to base64
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      newReviewForm.value.imagePreviews.push(e.target.result)
-    }
-    reader.onerror = () => {
-      showErrorPopup('Có lỗi xảy ra khi đọc file')
-    }
-    reader.readAsDataURL(file)
-  })
-
-  // Reset input để có thể chọn lại cùng file
-  if (imageInput.value) {
-    imageInput.value.value = ''
+  } finally {
+    processingImages.value = false
   }
 }
 
-// Xóa ảnh preview
 function removeImagePreview(index) {
-  newReviewForm.value.imagePreviews.splice(index, 1)
+  const [removed] = newReviewForm.value.images.splice(index, 1)
+  if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl)
 }
 
-// Đóng form
 function closeAddReviewForm() {
   showAddReviewForm.value = false
-  // Reset form
-  newReviewForm.value = {
-    author: '',
-    rating: 5,
-    content: '',
-    imagePreviews: []
-  }
-  if (imageInput.value) {
-    imageInput.value.value = ''
-  }
+  newReviewForm.value.images.forEach((img) => img.previewUrl && URL.revokeObjectURL(img.previewUrl))
+  newReviewForm.value = emptyReviewForm()
+  if (imageInput.value) imageInput.value.value = ''
 }
 
-// Submit review
-function submitReview() {
-  if (!newReviewForm.value.author || !newReviewForm.value.content) {
-    showErrorPopup('Vui lòng điền đầy đủ thông tin')
+async function submitReview() {
+  const form = newReviewForm.value
+  if (form.content.trim().length < 5) {
+    showErrorPopup('Vui lòng nhập nội dung đánh giá (ít nhất 5 ký tự)')
     return
   }
-
   submittingReview.value = true
-
   try {
-    // Tạo review object
-    const review = {
-      author: newReviewForm.value.author,
-      rating: newReviewForm.value.rating,
-      content: newReviewForm.value.content,
-      images: [...newReviewForm.value.imagePreviews] // Lưu base64 images
-    }
-
-    // Thêm review
-    addReview(review)
-
-    // Hiển thị thông báo thành công
-    showSuccessPopup('Đánh giá của bạn đã được gửi thành công!')
-
-    // Đóng form
+    const { message } = await authStore.authorized((token) => reviewService.submitReview(product.value.id, {
+      rating: form.rating,
+      content: form.content.trim(),
+      website: form.website,
+      images: form.images.map((img) => img.file),
+    }, token))
     closeAddReviewForm()
+    showSuccessPopup(message || 'Cảm ơn bạn! Đánh giá đã được đăng.')
+    loadReviews(product.value.id, { fresh: true })
   } catch (error) {
+    if (error.status === 401) {
+      // Phiên hết hạn khi đang viết: giữ nguyên nội dung và ảnh, đăng nhập lại xong thì gửi tiếp
+      authStore.requireLogin(() => submitReview(), 'Phiên đăng nhập đã hết hạn. Đăng nhập lại để gửi đánh giá.')
+      return
+    }
     console.error('Error submitting review:', error)
-    showErrorPopup('Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
+    showErrorPopup(error.message || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
   } finally {
     submittingReview.value = false
   }
@@ -1836,18 +1645,7 @@ const isAutoPlaying = ref(true)
 
 const showAllReviews = ref(false)
 
-// Kết hợp reviews mặc định và reviews từ localStorage
-const allReviews = computed(() => {
-  return [...defaultReviews, ...storedReviews.value]
-})
-
-const averageRating = computed(() => {
-  if (!allReviews.value.length) return 0
-  const total = allReviews.value.reduce((sum, r) => sum + (r.rating || 0), 0)
-  return (total / allReviews.value.length).toFixed(1)
-})
-
-const displayedReviews = computed(() => showAllReviews.value ? allReviews.value : allReviews.value.slice(0, 6))
+const displayedReviews = computed(() => showAllReviews.value ? reviews.value : reviews.value.slice(0, 6))
 
 const infoItems = [
   {

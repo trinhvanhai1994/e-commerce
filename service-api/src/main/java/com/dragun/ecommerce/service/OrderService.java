@@ -11,7 +11,10 @@ import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.model.enums.OrderStatus;
 import com.dragun.ecommerce.repository.OrderRepository;
 import com.dragun.ecommerce.repository.ProductRepository;
+import com.dragun.ecommerce.service.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,17 +30,30 @@ public class OrderService {
     
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
     
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
+        return createOrder(request, null);
+    }
+
+    /**
+     * @param customerId logged-in account placing the order, or null for guest checkout (task-003 R7).
+     *                   The contact and address in the request are used as typed either way.
+     */
+    @Transactional
+    public OrderResponse createOrder(CreateOrderRequest request, Long customerId) {
         Order order = new Order();
-        
+        order.setCustomerId(customerId);
+
         // Generate orderId with format: yyyymmdd + 5 digits incrementing
         String orderId = generateOrderId();
         order.setOrderId(orderId);
         
         order.setCustomerName(request.getCustomerInfo().getName());
         order.setCustomerPhone(request.getCustomerInfo().getPhone());
+        String email = request.getCustomerInfo().getEmail();
+        order.setCustomerEmail(StringUtils.hasText(email) ? email.trim() : null);
         order.setCustomerAddress(request.getCustomerInfo().getAddress());
         order.setProvinceCode(request.getCustomerInfo().getProvince());
         order.setDistrictCode(request.getCustomerInfo().getDistrict());
@@ -84,6 +100,8 @@ public class OrderService {
         order.setItems(items);
         
         Order savedOrder = orderRepository.save(order);
+        // Mails go out after commit (OrderMailListener); a rolled-back order sends nothing
+        eventPublisher.publishEvent(new OrderPlacedEvent(savedOrder.getId()));
         return mapToResponse(savedOrder);
     }
     
@@ -99,6 +117,14 @@ public class OrderService {
             .collect(Collectors.toList());
     }
     
+    /** Orders the account placed while logged in, newest first ("Đơn hàng của tôi"). */
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersByCustomerId(Long customerId) {
+        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+    }
+
     public List<OrderResponse> getOrdersByCustomerPhone(String phone) {
         return orderRepository.findByCustomerPhone(phone).stream()
             .map(this::mapToResponse)
@@ -142,6 +168,7 @@ public class OrderService {
         OrderResponse.CustomerInfo customerInfo = OrderResponse.CustomerInfo.builder()
             .name(order.getCustomerName())
             .phone(order.getCustomerPhone())
+            .email(order.getCustomerEmail())
             .address(order.getCustomerAddress())
             .province(order.getProvinceCode())
             .district(order.getDistrictCode())

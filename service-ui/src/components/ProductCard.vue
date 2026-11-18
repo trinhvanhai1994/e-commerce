@@ -7,7 +7,7 @@
       <img
         :src="getProductImage(product)"
         :alt="product.name"
-        class="w-full h-48 md:h-64 object-cover hover:scale-105 transition-transform duration-300"
+        class="w-full aspect-square object-cover hover:scale-105 transition-transform duration-300"
       />
       <div v-if="productDiscount > 0" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
         -{{ productDiscount }}%
@@ -74,6 +74,7 @@ import { computed } from 'vue'
 import { getProductImage } from '../utils/productImage'
 import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
 import { getProductDiscount } from '../utils/productUtils'
+import { useProductCategories } from '../composables/useProductCategories.js'
 
 const props = defineProps({
   product: {
@@ -110,13 +111,8 @@ function formatPrice(price) {
   return price.toLocaleString('vi-VN') + '₫'
 }
 
-function getCategoryName(category) {
-  const categories = {
-    'me-den': 'Mè đen',
-    'hong-dau': 'Hồng đậu'
-  }
-  return categories[category] || 'Sản phẩm'
-}
+const { nameOf } = useProductCategories()
+const getCategoryName = (category) => (category ? nameOf(category) : 'Sản phẩm')
 </script>
 
 <style scoped>

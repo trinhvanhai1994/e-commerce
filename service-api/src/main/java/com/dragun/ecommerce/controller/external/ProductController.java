@@ -1,21 +1,34 @@
 package com.dragun.ecommerce.controller.external;
 
 import com.dragun.ecommerce.model.dto.response.ApiResponse;
+import com.dragun.ecommerce.model.dto.response.ProductCategoryResponse;
 import com.dragun.ecommerce.model.dto.response.ProductResponse;
+import com.dragun.ecommerce.service.ProductCategoryService;
 import com.dragun.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/dragun/products")
 @RequiredArgsConstructor
 public class ProductController {
-    
+
     private final ProductService productService;
-    
+    private final ProductCategoryService categoryService;
+
+    /** Categories for the storefront filter and product cards (task-004). Literal path, so it wins over /{id}. */
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ProductCategoryResponse>>> getCategories() {
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(30, TimeUnit.SECONDS).cachePublic())
+            .body(ApiResponse.success(categoryService.listPublic()));
+    }
+
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
         // Return all ACTIVE products for users (no limit - for products listing page)

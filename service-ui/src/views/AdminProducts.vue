@@ -122,40 +122,8 @@
               <p class="text-xs text-gray-500 mt-1">Mô tả chi tiết hiển thị ở trang chi tiết sản phẩm</p>
             </div>
             <div class="mb-3">
-              <label class="block font-semibold mb-1">Công dụng</label>
-              <textarea v-model="form.benefits" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Đối tượng sử dụng</label>
-              <textarea v-model="form.targetUsers" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Cách sử dụng</label>
-              <textarea v-model="form.usage" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Nhà sản xuất</label>
-              <input v-model="form.manufacturer" class="w-full border rounded px-3 py-2" />
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Thành phần</label>
-              <textarea v-model="form.ingredients" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Hướng dẫn chi tiết</label>
-              <textarea v-model="form.detailedUsage" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Thông số kỹ thuật</label>
-              <textarea v-model="form.specifications" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Công nghệ</label>
-              <textarea v-model="form.technology" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="block font-semibold mb-1">Bảo quản</label>
-              <textarea v-model="form.storage" class="w-full border rounded px-3 py-2" rows="2"></textarea>
+              <p class="font-semibold mb-2">Thông tin chi tiết trên trang sản phẩm</p>
+              <ProductDetailSectionsEditor :model-value="sectionValues" @update:model-value="(v) => Object.assign(form, v)" />
             </div>
             
             <div class="mb-3">
@@ -193,9 +161,7 @@
               <label class="block font-semibold mb-1">Danh mục</label>
               <select v-model="form.category" class="w-full border rounded px-3 py-2">
                 <option value="">Chọn danh mục</option>
-                <option value="ME_DEN">Mè đen</option>
-                <option value="HONG_DAU">Hồng đậu</option>
-                <option value="COMBO">Combo</option>
+                <option v-for="opt in categoryOptions(form.category)" :key="opt.code" :value="opt.code">{{ opt.label }}</option>
               </select>
             </div>
             
@@ -239,8 +205,12 @@ import { useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
 import { getImageUrlFromApi, getImageUrlWithCacheBusting } from '@/utils/imageUtils.js'
+import { useProductCategories } from '../composables/useProductCategories.js'
+import ProductDetailSectionsEditor from '../components/admin/ProductDetailSectionsEditor.vue'
+import { PRODUCT_SECTION_KEYS, videoUrlError } from '../utils/productSections.js'
 
 const router = useRouter()
+const { options: categoryOptions, nameOf: getCategoryName } = useProductCategories({ fresh: true })
 
 const products = ref([])
 const loading = ref(false)
@@ -271,15 +241,21 @@ const form = reactive({
   specifications: '',
   technology: '',
   storage: '',
+  videoUrl: '',
+  highlights: '',
+  shelfLife: '',
   image: '',
   gallery: [],
   galleryText: '',
   isNew: false,
-  category: 'me-den',
+  category: 'ME_DEN',
   status: 'ACTIVE',
   priority: 999,
   syncToPancake: false
 })
+
+// Video + 8 mục trang chi tiết (task-006), chuyển qua lại với ProductDetailSectionsEditor
+const sectionValues = computed(() => Object.fromEntries(PRODUCT_SECTION_KEYS.map((k) => [k, form[k] || ''])))
 
 // Fetch products from API
 async function fetchProducts() {
@@ -351,6 +327,9 @@ function openAdd() {
     specifications: '',
     technology: '',
     storage: '',
+    videoUrl: '',
+    highlights: '',
+    shelfLife: '',
     image: '',
     gallery: [],
     galleryText: '',
@@ -379,6 +358,12 @@ function closeModal() {
 async function submitForm() {
   submitting.value = true
   try {
+    const videoError = videoUrlError(form.videoUrl)
+    if (videoError) {
+      alert(videoError)
+      submitting.value = false
+      return
+    }
     // Xử lý ảnh chính
     let imagePath = form.image
     if (imagePath && imagePath.startsWith('data:')) {
@@ -426,6 +411,10 @@ async function submitForm() {
       specifications: form.specifications || '',
       technology: form.technology || '',
       storage: form.storage || '',
+      videoUrl: form.videoUrl || '',
+      targetUsers: form.targetUsers || '',
+      highlights: form.highlights || '',
+      shelfLife: form.shelfLife || '',
       syncToPancake: form.syncToPancake // Flag đồng bộ với Pancake POS
     }
 
@@ -481,14 +470,6 @@ function formatPrice(val) {
   return Number(val).toLocaleString('vi-VN') + '₫'
 }
 
-function getCategoryName(categoryCode) {
-  const categoryMap = {
-    'ME_DEN': 'Mè đen',
-    'HONG_DAU': 'Hồng đậu',
-    'COMBO': 'Combo'
-  }
-  return categoryMap[categoryCode] || categoryCode || 'Chưa phân loại'
-}
 
 // Handle file upload - chỉ tạo path từ tên file, không lưu base64
 function handleFileUpload(event) {
@@ -502,8 +483,8 @@ function handleFileUpload(event) {
   }
   
   // Validate file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('File ảnh không được lớn hơn 5MB')
+  if (file.size > 10 * 1024 * 1024) {
+    alert('File ảnh không được lớn hơn 10MB')
     return
   }
   

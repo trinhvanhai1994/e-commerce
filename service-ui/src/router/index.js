@@ -90,6 +90,12 @@ const routes = [
     component: () => import('../views/MapView.vue')
   },
   {
+    // Customer account (task-003). Not logged in: the page opens the login popup itself.
+    path: '/tai-khoan',
+    name: 'Account',
+    component: () => import('../views/Account.vue')
+  },
+  {
     path: '/admin',
     name: 'AdminDashboard',
     component: () => import('../views/AdminDashboard.vue'),
@@ -131,6 +137,19 @@ const routes = [
     }
   },
   {
+    // Product categories (task-004): add, rename, reorder, hide, delete when unused
+    path: '/admin/categories',
+    name: 'AdminCategories',
+    component: () => import('../views/AdminCategories.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
     path: '/admin/products/:id',
     name: 'AdminProductDetail',
     component: () => import('../views/AdminProductDetail.vue'),
@@ -146,6 +165,68 @@ const routes = [
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('../views/AdminUsers.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/homepage',
+    name: 'AdminHomepage',
+    component: () => import('../views/AdminHomepage.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    // CMS of the content pages: /admin/pages/story (Câu chuyện Thi Yên), /admin/pages/philosophy (Triết lý dưỡng sinh)
+    path: '/admin/pages/:pageKey(story|philosophy)',
+    name: 'AdminPageContent',
+    component: () => import('../views/AdminPageContent.vue'),
+    props: true,
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/reviews',
+    name: 'AdminProductReviews',
+    component: () => import('../views/AdminProductReviews.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/posts',
+    name: 'AdminBlogList',
+    component: () => import('../views/AdminBlogList.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/admin/posts/:id',
+    name: 'AdminBlogEditor',
+    component: () => import('../views/AdminBlogEditor.vue'),
     beforeEnter: (to, from, next) => {
       if (!adminService.isAuthenticated()) {
         next({ path: '/admin/login', query: { redirect: to.fullPath } })

@@ -19,9 +19,31 @@ import java.io.IOException;
 public class AdminFileUploadController {
     
     private final FileStorageService fileStorageService;
+    private final com.dragun.ecommerce.service.CmsImageService cmsImageService;
+
+    /**
+     * Upload ảnh CMS / product theo ImageSlot (path do server sinh).
+     */
+    @PostMapping("/upload-cms")
+    public ResponseEntity<ApiResponse<String>> uploadCms(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("slot") String slot,
+            @RequestParam(value = "entityType", required = false) String entityType,
+            @RequestParam(value = "entityId", required = false) String entityId) {
+        try {
+            String path = cmsImageService.upload(file, slot, entityType, entityId);
+            return ResponseEntity.ok(ApiResponse.success(path, "Upload CMS thành công"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (IOException e) {
+            log.error("CMS upload failed: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("Lỗi khi lưu file: " + e.getMessage()));
+        }
+    }
     
     /**
-     * Upload ảnh sản phẩm
+     * Upload ảnh sản phẩm (legacy — Admin UI mới dùng upload-cms)
      * @param file File ảnh cần upload
      * @param path Đường dẫn tương đối (ví dụ: products/details/black/1.png)
      * @return Đường dẫn đầy đủ để truy cập file

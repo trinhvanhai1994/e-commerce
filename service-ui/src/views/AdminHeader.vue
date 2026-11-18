@@ -1,5 +1,6 @@
 <template>
-  <header class="flex items-center justify-between px-4 md:px-6 lg:px-8 py-3 bg-white shadow-sm border-b border-gray-100">
+  <!-- Cố định ở mép trên khi cuộn. Chiều cao h-16 (4rem) là mốc cho sidebar (lg:top-16) và các khối sticky trong trang (top-20) -->
+  <header class="sticky top-0 z-40 h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 bg-white shadow-sm border-b border-gray-100">
     <div class="flex items-center gap-2 md:gap-3">
       <!-- Mobile menu button - Luôn hiển thị trên mobile, ẩn trên desktop -->
       <button 

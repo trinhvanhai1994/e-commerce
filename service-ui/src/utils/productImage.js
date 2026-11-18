@@ -68,6 +68,32 @@ export function getProductImage(productOrId) {
  * @param {Object} product - Product object từ API (có gallery array đã được sort theo display_order)
  * @returns {string[]} - Mảng đường dẫn ảnh gallery từ API server (giữ nguyên thứ tự)
  */
+/**
+ * Detail carousel slides: mainImage first, then gallery (no duplicates).
+ * @param {Object} product
+ * @returns {string[]} absolute URLs
+ */
+export function getProductDetailImages(product) {
+  const slides = []
+  const seen = new Set()
+
+  const pushPath = (raw) => {
+    if (!isValidImagePath(raw)) return
+    const trimmed = raw.trim()
+    if (seen.has(trimmed)) return
+    seen.add(trimmed)
+    slides.push(getImageUrlFromApi(trimmed))
+  }
+
+  if (product) {
+    pushPath(product.mainImage || product.image)
+    if (Array.isArray(product.gallery)) {
+      product.gallery.forEach(pushPath)
+    }
+  }
+  return slides
+}
+
 export function getProductGallery(product) {
   // Nếu product có gallery từ API, sử dụng gallery đó (giữ nguyên thứ tự từ backend)
   // Backend đã sort theo display_order, không cần sort lại ở frontend

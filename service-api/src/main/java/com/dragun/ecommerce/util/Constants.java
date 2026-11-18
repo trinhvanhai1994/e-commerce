@@ -5,6 +5,8 @@ public class Constants {
     // Security Constants
     public static final String[] PUBLIC_ENDPOINTS = {
         "/api/dragun/products/**",
+        "/api/dragun/content/**",
+        "/api/dragun/auth/**",      // customer register/login/refresh/logout (account/** needs ROLE_CUSTOMER)
         "/api/extend/orders",
         "/api/extend/orders/**",
         "/api/public/visitors/**",  // Allow public access to visitor tracking

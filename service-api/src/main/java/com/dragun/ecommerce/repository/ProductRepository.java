@@ -25,6 +25,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     // Find all products that are not deleted and have specific status
     List<Product> findByDeletedFalseAndStatus(String status);
+
+    long countByCategoryAndDeletedFalse(String category);
+
+    /** [category code, count] of non-deleted products, for the admin category list. */
+    @Query("SELECT p.category, COUNT(p) FROM Product p WHERE p.deleted = false AND p.category IS NOT NULL GROUP BY p.category")
+    List<Object[]> countActiveByCategory();
 }
 
 

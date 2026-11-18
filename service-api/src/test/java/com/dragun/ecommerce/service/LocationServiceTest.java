@@ -1,7 +1,5 @@
 package com.dragun.ecommerce.service;
 
-/*
-// COMMENTED: All unit tests are commented out
 import com.dragun.ecommerce.model.entity.District;
 import com.dragun.ecommerce.model.entity.Province;
 import com.dragun.ecommerce.model.entity.Ward;
@@ -235,4 +233,3 @@ class LocationServiceTest {
         verify(wardRepository, times(1)).findById("00001");
     }
 }
-*/

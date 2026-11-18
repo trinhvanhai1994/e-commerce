@@ -269,6 +269,10 @@
                   <label class="text-sm font-medium text-gray-600">Số điện thoại:</label>
                   <p class="text-gray-900">{{ getCustomerPhone(selectedOrder) }}</p>
                 </div>
+                <div v-if="selectedOrder.customerInfo?.email" class="md:col-span-2">
+                  <label class="text-sm font-medium text-gray-600">Email:</label>
+                  <p class="text-gray-900 break-all">{{ selectedOrder.customerInfo.email }}</p>
+                </div>
                 <div class="md:col-span-2">
                   <label class="text-sm font-medium text-gray-600">Địa chỉ:</label>
                   <p class="text-gray-900">{{ getCustomerAddress(selectedOrder) }}</p>

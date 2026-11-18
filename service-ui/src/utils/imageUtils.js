@@ -32,6 +32,22 @@ export function getImageUrlFromApi(imagePath) {
 }
 
 /**
+ * @error handler body: swap a broken <img> to a fallback image once.
+ * If the fallback itself fails it is left broken. Vue binds @error with addEventListener, so setting
+ * `img.onerror = null` does not stop it; without this check a missing fallback re-fires forever
+ * (hundreds of requests per second).
+ * @param {Event} event - error event of the <img>
+ * @param {string} fallbackPath - image path, e.g. /images/products/details/black/1.png
+ */
+export function applyImageFallback(event, fallbackPath) {
+  const img = event?.target
+  if (!img) return
+  const fallbackUrl = getImageUrlFromApi(fallbackPath)
+  if (!fallbackUrl || img.src === fallbackUrl) return
+  img.src = fallbackUrl
+}
+
+/**
  * Helper function để tạo URL ảnh với cache-busting
  * @param {string} imageUrl - Image URL
  * @param {number} [customTimestamp] - Optional custom timestamp (nếu không có sẽ dùng Date.now())
