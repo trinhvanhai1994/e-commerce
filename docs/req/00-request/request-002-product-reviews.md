@@ -19,3 +19,10 @@ Nguồn: owner trao đổi qua chat với agent, 2026-11-14.
 4. Số sao trung bình và số lượng ở đầu trang: **tính từ đánh giá đã duyệt** (bỏ con số cứng "32").
 
 Owner duyệt kế hoạch triển khai ("Làm theo kế hoạch").
+
+## Thay đổi 2026-11-18 (owner, chat với agent)
+
+> sửa lại đánh giá sản phẩm để user viết đánh giá xong được duyệt và hiển thị lên page public luôn,
+> Admin sẽ sửa hoặc ẩn sau
+
+Thay mục 1 ở trên: bỏ bước chờ duyệt, đánh giá khách gửi được đăng ngay; admin hậu kiểm (sửa, ẩn).

@@ -1,7 +1,5 @@
 package com.dragun.ecommerce.integration.pancake.client;
 
-/*
-// COMMENTED: All unit tests are commented out
 import com.dragun.ecommerce.integration.config.PancakeIntegrationConfig;
 import com.dragun.ecommerce.integration.pancake.dto.PancakeApiResponse;
 import com.dragun.ecommerce.integration.pancake.dto.PancakeOrderDto;
@@ -123,4 +121,3 @@ class PancakeApiClientTest {
         return order;
     }
 }
-*/

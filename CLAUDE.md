@@ -1,4 +1,8 @@
-# Hướng dẫn cho AI agent (gốc repo)
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Hướng dẫn cho AI agent (gốc repo)
 
 Đọc file này trước khi làm bất kỳ việc gì trong repo. Mục tiêu: mọi agent đi cùng một flow, đọc đúng nguồn, sửa đúng chỗ.
 
@@ -31,12 +35,16 @@ Mỗi thư mục có đúng một nơi giữ một loại thông tin. Không t�
 5. **Đổi API đang được FE dùng**: giữ tương thích với FE hiện tại, hoặc sửa cả hai trong cùng thay đổi.
 6. **Cập nhật tài liệu**: sửa `docs/ai/` hoặc `docs/req/` khi thay đổi làm chúng sai.
 
-## 4. Lệnh kiểm tra
+Làm chức năng mới: theo skill dự án `.claude/skills/ecommerce-dev/SKILL.md` (gọi bằng `/ecommerce-dev`), gồm hồ sơ yêu cầu, kế hoạch chờ owner duyệt, quy tắc riêng BE/FE, cách viết test, chạy và kiểm tra trên trình duyệt.
 
-| Service | Lệnh |
-|---|---|
-| service-api | `mvn -q compile` (cần JDK 17; máy có thể mặc định Java 8, xem `service-api/scripts/setup/`). `mvn test` hiện chạy 0 test vì các test class đang bị comment, không coi là gate |
-| service-ui | `npm run build` (ESLint chưa có file cấu hình nên `npm run lint` chưa dùng được; chưa có test) |
+## 4. Lệnh chạy và kiểm tra
+
+| Service | Chạy local | Kiểm tra |
+|---|---|---|
+| service-api (port 5678) | Bật JDK 17 trong shell: `. .\scripts\setup\setup-java-current-session.ps1 -Version 17` (PowerShell) hoặc `source ./scripts/setup/setup-java.sh 17`; rồi `scripts/run/run-dev.*` (profile `dev`, DB `ecommerce_dev`). Build/run theo môi trường: `scripts/{build,run}/*-{dev,test,prod}.*` | `mvn test` là gate (cần Docker đang chạy: test `@SpringBootTest` dùng PostgreSQL thật qua Testcontainers, profile `it`, Flyway + `ddl-auto: validate`). Một test: `mvn test -Dtest=ProductReviewServiceTest` (hoặc `-Dtest=Class#method`). Test gắn `@Tag("external")` gọi Pancake POS thật, bị loại khỏi lần chạy mặc định |
+| service-ui (port 5173) | `npm run dev` (gọi API theo `VITE_API_BASE_URL`) | `npm run build`. ESLint chưa có file cấu hình nên `npm run lint` chưa dùng được; chưa có test; `npm run format` = prettier |
+
+`predev`/`prebuild` của service-ui chạy `scripts/sync-cms-seed.mjs`, chép seed CMS từ `service-api/src/main/resources/cms-seed/` sang `service-ui/src/content/page-sections.seed.json`. Sửa file seed phía BE, không sửa bản FE.
 
 ## 5. Quy ước chung
 
@@ -44,3 +52,10 @@ Mỗi thư mục có đúng một nơi giữ một loại thông tin. Không t�
 - Ảnh upload qua `/api/dragun/admin/files/upload-cms` theo slot (`cms/ImageSlot.java` ↔ `service-ui/src/constants/imageSlots.js`, phải giữ đồng bộ).
 - Không commit `node_modules/`, `dist/`, `target/`, `uploads/`, file `.env.local`. Không đọc hoặc in giá trị trong file `.env*`.
 - Văn bản tài liệu: tiếng Việt, không dùng em-dash (theo `docs/req/CLAUDE.md` mục D).
+
+## 6. Bẫy hay gặp (chi tiết: `docs/ai/00-overview.md` mục Gotchas)
+
+- Danh sách route public nằm ở hai nơi: `util/Constants.PUBLIC_ENDPOINTS` và `JwtAuthenticationFilter.shouldNotFilter`. Đổi cả hai.
+- `/api/extend/orders/**` đang `permitAll` (kể cả đổi trạng thái); admin UI dùng chung route này. Không nhân bản pattern này cho route mới.
+- Profile dev/test dùng `ddl-auto: update`, prod dùng `validate`: cột thiếu trong migration chỉ lộ ra ở prod. Mọi thay đổi schema phải có migration.
+- CMS seed (`cms-seed/*.json`) phải bằng đúng nội dung site đang hiển thị: `CmsSeedService` chỉ chèn key còn thiếu. Storefront merge section từ API lên `service-ui/src/content/homeDefaults.js`; API public không được lọc bỏ section `enabled:false`.

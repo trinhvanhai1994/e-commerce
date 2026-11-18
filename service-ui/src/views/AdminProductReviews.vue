@@ -4,7 +4,7 @@
       <div class="flex items-start justify-between mb-4 gap-3 flex-wrap">
         <div>
           <h1 class="text-2xl font-bold text-green-700">Đánh giá sản phẩm</h1>
-          <p class="text-sm text-gray-500">Khách gửi đánh giá ở trang sản phẩm; chỉ đánh giá "Đã duyệt" hiện công khai và được tính vào số sao.</p>
+          <p class="text-sm text-gray-500">Đánh giá khách gửi ở trang sản phẩm được đăng ngay. Sửa hoặc bấm "Ẩn" để gỡ khỏi trang công khai; chỉ đánh giá "Đã duyệt" hiện công khai và được tính vào số sao.</p>
         </div>
         <button type="button" class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm" @click="openCreate">
           + Thêm đánh giá
@@ -73,7 +73,7 @@
             </div>
 
             <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t">
-              <button v-if="r.status !== 'APPROVED'" type="button" :disabled="busyId === r.id" class="px-3 py-1.5 rounded-lg text-sm font-semibold bg-green-600 text-white disabled:opacity-50" @click="changeStatus(r, 'APPROVED')">Duyệt</button>
+              <button v-if="r.status !== 'APPROVED'" type="button" :disabled="busyId === r.id" class="px-3 py-1.5 rounded-lg text-sm font-semibold bg-green-600 text-white disabled:opacity-50" @click="changeStatus(r, 'APPROVED')">{{ r.status === 'HIDDEN' ? 'Hiện lại' : 'Duyệt' }}</button>
               <button v-if="r.status !== 'HIDDEN'" type="button" :disabled="busyId === r.id" class="px-3 py-1.5 rounded-lg text-sm font-semibold border bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50" @click="changeStatus(r, 'HIDDEN')">Ẩn</button>
               <button type="button" :disabled="busyId === r.id" class="px-3 py-1.5 rounded-lg text-sm font-semibold border bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50" @click="openEdit(r)">Sửa</button>
               <button type="button" :disabled="busyId === r.id" class="px-3 py-1.5 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 sm:ml-auto" @click="remove(r)">Xoá</button>
@@ -195,10 +195,13 @@ const messageError = ref(false)
 const busyId = ref(null)
 const uploading = ref(false)
 
+// Customer reviews are published immediately, so the newest of all statuses is what admin needs to check first
+const DEFAULT_STATUS = ''
+
 // Filters live in the URL (?productId=&status=) so links from the product page and reloads keep them
 const filters = reactive({
   productId: route.query.productId ? String(route.query.productId) : '',
-  status: route.query.status !== undefined ? String(route.query.status) : 'PENDING',
+  status: route.query.status !== undefined ? String(route.query.status) : DEFAULT_STATUS,
 })
 
 const tabs = computed(() => [
@@ -262,7 +265,7 @@ async function load() {
 function syncQuery() {
   const query = {}
   if (filters.productId) query.productId = filters.productId
-  if (filters.status !== 'PENDING') query.status = filters.status
+  if (filters.status !== DEFAULT_STATUS) query.status = filters.status
   router.replace({ query })
 }
 
@@ -286,7 +289,8 @@ async function changeStatus(review, status) {
   busyId.value = review.id
   try {
     await reviewService.updateReviewStatus(review.id, status)
-    flash(`Đã ${status === 'APPROVED' ? 'duyệt' : 'ẩn'} đánh giá của ${review.authorName}.`)
+    const verb = status === 'HIDDEN' ? 'ẩn' : review.status === 'HIDDEN' ? 'hiện lại' : 'duyệt'
+    flash(`Đã ${verb} đánh giá của ${review.authorName}.`)
     await load()
   } catch (e) {
     flash(e.message || 'Cập nhật thất bại', true)

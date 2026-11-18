@@ -21,6 +21,8 @@
     <properties>
         <java.version>17</java.version>
         <jjwt.version>0.12.3</jjwt.version>
+        <!-- Overrides Boot 3.2's 1.19.3, which Docker Engine 29+ rejects (minimum Docker API 1.44). Test scope only. -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
     
     <dependencies>
@@ -124,6 +126,23 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Testcontainers: integration tests run against a real PostgreSQL (jsonb, Flyway migrations). Needs Docker. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <profiles>
@@ -162,6 +181,15 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <!-- Tests tagged "external" call real third-party systems (Pancake POS); run them only on purpose:
+                 mvn test -Dgroups=external -DexcludedGroups=none -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>external</excludedGroups>
                 </configuration>
             </plugin>
             <!-- Flyway Maven Plugin for database migration -->

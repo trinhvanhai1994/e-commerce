@@ -1,11 +1,10 @@
 package com.dragun.ecommerce.integration.pancake.service;
 
-/*
-// COMMENTED: All integration tests are commented out
 import com.dragun.ecommerce.integration.pancake.dto.PancakeProductDto;
 import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.repository.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +16,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Pushes real products to the live Pancake POS shop: never part of the default run (surefire excludes "external").
+// Manual run, with the dev .env loaded: mvn test -Dgroups=external -DexcludedGroups=none
+@Tag("external")
 @SpringBootTest
 @ActiveProfiles("dev") // Sử dụng profile dev để dùng cấu hình thật từ application.yml
 @DisplayName("Pancake Product Sync Integration Test - Tạo 5 sản phẩm lên Pancake POS")
@@ -140,4 +142,3 @@ class PancakeProductSyncIntegrationTest {
         assertNotNull(productsNeedingSync);
     }
 }
-*/

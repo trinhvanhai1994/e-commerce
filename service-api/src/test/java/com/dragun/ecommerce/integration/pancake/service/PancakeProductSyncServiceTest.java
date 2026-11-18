@@ -1,7 +1,5 @@
 package com.dragun.ecommerce.integration.pancake.service;
 
-/*
-// COMMENTED: All unit tests are commented out
 import com.dragun.ecommerce.integration.config.PancakeIntegrationConfig;
 import com.dragun.ecommerce.integration.pancake.client.PancakeApiClient;
 import com.dragun.ecommerce.integration.pancake.dto.PancakeProductDto;
@@ -72,6 +70,8 @@ class PancakeProductSyncServiceTest {
     void testSyncProductToPancake_CreateNew() {
         // Given
         thiYenProduct.setPancakeProductId(null);
+        // The service reloads the product (with gallery) before mapping
+        when(productRepository.findById(thiYenProduct.getId())).thenReturn(Optional.of(thiYenProduct));
         when(productMapper.toPancakeProduct(any())).thenReturn(pancakeProduct);
         when(pancakeApiClient.createProduct(any())).thenReturn(Mono.just(pancakeProduct));
         when(productRepository.save(any(Product.class))).thenReturn(thiYenProduct);
@@ -122,4 +122,3 @@ class PancakeProductSyncServiceTest {
                 .build();
     }
 }
-*/

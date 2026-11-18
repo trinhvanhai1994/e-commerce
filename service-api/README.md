@@ -217,17 +217,20 @@ API đã được cấu hình CORS để cho phép các origin sau:
 
 ## Testing
 
-Chạy tests:
+Chạy tests (cần Docker đang chạy: test có Spring context dùng PostgreSQL tạm qua Testcontainers, không đụng DB dev):
 
 ```bash
 mvn test
 ```
 
-Chạy tests với profile cụ thể:
+Một class hoặc một method:
 
 ```bash
-mvn test -Dspring.profiles.active=dev
+mvn test -Dtest=ProductReviewServiceTest
+mvn test -Dtest=ClassName#methodName
 ```
+
+Test gọi Pancake POS thật (`@Tag("external")`) chỉ chạy khi chỉ định: xem [docs/04-pancake-integration.md](./docs/04-pancake-integration.md).
 
 ## Troubleshooting
 

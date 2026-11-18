@@ -30,7 +30,7 @@ public class ProductReviewController {
             .body(ApiResponse.success(reviewService.getPublicReviews(productId)));
     }
 
-    /** Customer submission (multipart: authorName, rating, content, images[] up to 4). Stored as PENDING. */
+    /** Customer submission (multipart: authorName, rating, content, images[] up to 4). Published immediately (APPROVED). */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ProductReviewResponse>> submit(
         @PathVariable Long productId,
@@ -44,7 +44,7 @@ public class ProductReviewController {
     ) {
         ProductReviewResponse saved = reviewService.submit(
             productId, authorName, rating, content, website, images, clientKey(request));
-        return ResponseEntity.ok(ApiResponse.success(saved, "Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt."));
+        return ResponseEntity.ok(ApiResponse.success(saved, "Cảm ơn bạn! Đánh giá đã được đăng."));
     }
 
     /**

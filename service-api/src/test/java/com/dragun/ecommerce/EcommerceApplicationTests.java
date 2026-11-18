@@ -1,19 +1,18 @@
 package com.dragun.ecommerce;
 
-/*
-// COMMENTED: All unit tests are commented out
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("it")
+@Import(TestcontainersConfiguration.class)
 class EcommerceApplicationTests {
 
     @Test
     void contextLoads() {
-        // This test verifies that the Spring application context loads successfully
+        // Context starts on a real PostgreSQL: all Flyway migrations apply and Hibernate validates every entity
     }
 
 }
-*/

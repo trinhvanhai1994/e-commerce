@@ -16,7 +16,7 @@ service-api/
   LANG=Java 17, FRAMEWORK=Spring Boot 3.2 (web, webflux client, data-jpa, security, oauth2-client, validation), Lombok, jjwt
   DB=PostgreSQL, MIGRATIONS=Flyway (src/main/resources/db/migration, V1..V18), seed CMS: CmsSeedService + resources/cms-seed/*.json
   BUILD=mvn (needs JDK 17; machine default java is 8 -> set JAVA_HOME), PORT=5678, profiles: dev/test/prod (application-*.yml)
-  TEST_CMD=mvn test (7 test classes; surefire currently executes 0 tests -> not a working gate), LINT=not configured
+  TEST_CMD=mvn test (37 tests, ~85s, needs Docker: Testcontainers postgres:15 via TestcontainersConfiguration + profile "it"), LINT=not configured
   DOCKER=service-api/Dockerfile, service-api/docker-compose.yml; scripts/{build,run,setup}/*.ps1|*.sh
 
 service-ui/
@@ -59,14 +59,14 @@ service-ui/
 | an admin page | `views/Admin*.vue` wrapped in `AdminLayout` + route with admin guard | `views/AdminHomepage.vue` |
 
 ## Gotchas: what a newcomer gets wrong here
-- **Tests are not a gate.** All 7 backend test classes are commented out (`/* */` from line 3, e.g. `LocationServiceTest.java:3`), so `mvn test` passes with 0 tests. FE has no tests and no ESLint config.
+- **Backend tests need Docker.** Context tests (`@SpringBootTest`) use `@ActiveProfiles("it")` + `@Import(TestcontainersConfiguration.class)`: a throwaway PostgreSQL 15, all Flyway migrations, Hibernate `ddl-auto: validate` (`src/test/resources/application-it.yml`), so an entity column missing from migrations fails `EcommerceApplicationTests`. Never use profile `test` in tests: that is the deployed TEST environment and reads DB credentials from env. `testcontainers.version` is pinned to 1.21.4 in `pom.xml` because Boot 3.2's 1.19.3 cannot talk to Docker Engine 29+. `@Tag("external")` tests (Pancake POS, real shop) are excluded by surefire. FE has no tests and no ESLint config.
 - **JDK 17 required** but the machine default is Java 8: run Maven with `JAVA_HOME` pointing at a JDK 17.
 - **Orders API is public.** `/api/extend/orders/**` is `permitAll` (`util/Constants.java:9-10`), including listing all orders and changing status; the admin UI calls these same routes. Do not copy this pattern.
 - **Public route list lives in two places**: `Constants.PUBLIC_ENDPOINTS` and `JwtAuthenticationFilter.shouldNotFilter`; change both.
 - **CMS seed = live content.** `CmsSeedService` inserts only missing keys from `cms-seed/*.json`; the JSON must equal what the site shows today, so a deploy changes nothing until an admin saves. `content/page-sections.seed.json` (FE) is copied from the BE seed by `service-ui/scripts/sync-cms-seed.mjs` (npm `predev`/`prebuild`); edit the BE file. Blog posts have no FE copy: list/detail show an error with retry when the API fails, and the Home blog block hides. Story (`/me`) and philosophy (`/healthcare`) pages read `GET /content/pages/{pageKey}` via `composables/usePageContent.js`; their admin is `views/AdminPageContent.vue` (`/admin/pages/story|philosophy`).
 - **Storefront fallbacks**: Home/App merge API sections over `homeDefaults.js`; a section absent from the API keeps its default, `enabled:false` hides it. Never filter disabled sections out of the public API.
 - **`@PreUpdate` + optimistic lock**: CMS services use `saveAndFlush` and MICROS-truncated timestamps so the `updatedAt` returned equals the stored one (`ContentService.updateSection`).
-- **Product reviews are moderated.** Customers POST to `/api/dragun/products/{id}/reviews` (stored `PENDING`, rate-limited in memory per IP, honeypot `website`); only `APPROVED` rows are public and feed the rating summary. Admin: `views/AdminProductReviews.vue` (`/admin/reviews`). Image slot `review_image` exists in both `ImageSlot.java` and `imageSlots.js`.
+- **Product reviews are published immediately, moderated after.** Customers POST to `/api/dragun/products/{id}/reviews` (stored `APPROVED` with `approved_by = auto` since 2026-11-18, rate-limited in memory per IP, honeypot `website`); only `APPROVED` rows are public and feed the rating summary; admin hides (`HIDDEN`) or edits later. The public GET is cached 30s, so the storefront refetches with a `_` query param after a submit. Admin: `views/AdminProductReviews.vue` (`/admin/reviews`). Image slot `review_image` exists in both `ImageSlot.java` and `imageSlots.js`.
 - **Dev/test profiles use `ddl-auto: update`** with `validate-on-migrate: false`; prod uses `validate`. A column missing from migrations shows up only in prod.
 - **Default images resolve through the API host** (`getImageUrlFromApi`): `/images/...` defaults live in `service-ui/public/images`, so they appear broken when the API host does not serve them (local dev).
 

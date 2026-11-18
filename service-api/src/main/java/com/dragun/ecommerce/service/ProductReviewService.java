@@ -39,6 +39,8 @@ public class ProductReviewService {
     static final int MAX_CONTENT = 2000;
     static final int MIN_CONTENT = 5;
     private static final int MAX_PAGE_SIZE = 100;
+    /** approved_by of a customer review published without moderation. */
+    static final String AUTO_APPROVER = "auto";
     private static final Set<String> STATUSES = Set.of(
         ProductReview.STATUS_PENDING, ProductReview.STATUS_APPROVED, ProductReview.STATUS_HIDDEN);
 
@@ -64,7 +66,7 @@ public class ProductReviewService {
     }
 
     /**
-     * Customer submission: stored as PENDING and shown only after an admin approves it.
+     * Customer submission: published immediately (APPROVED, approved_by = AUTO_APPROVER); admin edits or hides it later.
      * All text and every image are validated before any file is written.
      */
     @Transactional
@@ -73,7 +75,7 @@ public class ProductReviewService {
         if (honeypot != null && !honeypot.isBlank()) {
             // Bots fill every field; answer like a success so they do not adapt, but store nothing.
             log.info("Review honeypot hit product={} client={}", productId, clientKey);
-            return ProductReviewResponse.builder().productId(productId).status(ProductReview.STATUS_PENDING).build();
+            return ProductReviewResponse.builder().productId(productId).build();
         }
         requireProduct(productId);
         String author = cleanText(authorName);
@@ -111,8 +113,10 @@ public class ProductReviewService {
                 .rating(rating.shortValue())
                 .content(text)
                 .images(paths)
-                .status(ProductReview.STATUS_PENDING)
+                .status(ProductReview.STATUS_APPROVED)
                 .source(ProductReview.SOURCE_CUSTOMER)
+                .approvedAt(OffsetDateTime.now())
+                .approvedBy(AUTO_APPROVER)
                 .updatedBy("customer")
                 .build();
             return toResponse(reviewRepository.save(review), null, false);
@@ -313,9 +317,6 @@ public class ProductReviewService {
                 .approvedAt(r.getApprovedAt())
                 .updatedAt(r.getUpdatedAt())
                 .updatedBy(r.getUpdatedBy());
-        } else if (ProductReview.STATUS_PENDING.equals(r.getStatus())) {
-            // A customer's own submission: tell the form it is waiting for approval
-            b.status(r.getStatus());
         }
         return b.build();
     }

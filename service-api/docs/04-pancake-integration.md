@@ -112,21 +112,23 @@ Sử dụng giao diện admin để test connection trực tiếp.
 
 ### Test Sync 5 Sản phẩm lên Pancake
 
+`PancakeProductSyncIntegrationTest` gắn `@Tag("external")`: tạo sản phẩm thật trên shop Pancake, nên `mvn test` mặc định bỏ qua. Chạy tay với `-Dgroups=external -DexcludedGroups=none` và biến môi trường từ `.env` (profile `dev`).
+
 ```bash
 cd service-api
-mvn test -Dtest="PancakeProductSyncIntegrationTest#testSync5ProductsToPancake" -Dspring.profiles.active=dev
+mvn test -Dtest="PancakeProductSyncIntegrationTest#testSync5ProductsToPancake" -Dgroups=external -DexcludedGroups=none
 ```
 
 ### Test Liệt kê Sản phẩm cần Sync
 
 ```bash
-mvn test -Dtest="PancakeProductSyncIntegrationTest#testListProductsNeedingSync" -Dspring.profiles.active=dev
+mvn test -Dtest="PancakeProductSyncIntegrationTest#testListProductsNeedingSync" -Dgroups=external -DexcludedGroups=none
 ```
 
 ### Chạy tất cả Tests Pancake
 
 ```bash
-mvn test -Dtest="*Pancake*" -Dspring.profiles.active=dev
+mvn test -Dtest="*Pancake*" -Dgroups=external -DexcludedGroups=none
 ```
 
 ## Lưu ý Quan trọng

@@ -36,7 +36,7 @@ Gốc BE: `service-api/src/main/java/com/dragun/ecommerce/` (viết tắt `BE/`)
 | Việc | Lệnh | Trạng thái |
 |---|---|---|
 | Compile BE | `mvn -q compile` | chạy được (cần JDK 17, xem `CLAUDE.md` mục 4) |
-| Test BE | `mvn test` | chạy 0 test: cả 7 file test bị comment toàn bộ bằng `/* */` từ dòng 3 (ví dụ `service-api/src/test/java/com/dragun/ecommerce/service/LocationServiceTest.java:3`) |
+| Test BE | `mvn test` | 37 test, cần Docker. Test cần Spring context: `@SpringBootTest` + `@ActiveProfiles("it")` + `@Import(TestcontainersConfiguration.class)` (copy `service/ProductReviewServiceTest.java`); unit test thuần: `@ExtendWith(MockitoExtension.class)` (copy `integration/pancake/service/PancakeProductSyncServiceTest.java`). Test gọi hệ ngoài thật gắn `@Tag("external")` |
 | Format BE | không có | không spotless/checkstyle trong `pom.xml` |
 | Build FE | `npm run build` | là kiểm tra duy nhất có tác dụng |
 | Format FE | `npm run format` (`prettier --write src/`) | chạy tay, không có `.prettierrc` nên dùng mặc định Prettier; chưa được áp đều (xem mục 15) |
@@ -216,7 +216,7 @@ Gốc BE: `service-api/src/main/java/com/dragun/ecommerce/` (viết tắt `BE/`)
 11. **FE lớp gọi API**: `utils/api.js` (lớp "backward compatibility", vẫn được 11 file dùng) vs import thẳng `services/*.service.js`; và `unwrap()` trong `content.service.js` vs dựa vào adapter (`admin.service.js:26-27` tự xử lý `data.data`). Code mới dùng service trực tiếp.
 12. **FE base URL lặp ở 5 nơi** (mục 11) và upload multipart bỏ qua `httpClient` (`content.service.js:66`, `product-management.service.js:86`).
 13. **FE style**: alias `@/` vs đường dẫn tương đối; Pinia options vs setup store; nháy đơn vs kép. Thêm `.prettierrc` + `.eslintrc` để chốt.
-14. **Test bị comment toàn bộ**: bật lại, xoá, hay viết mới? Hiện `mvn test` xanh nhưng không chứng minh gì.
+14. ~~Test bị comment toàn bộ~~: đã bật lại (2026-11-18), test context chạy trên Testcontainers, xem dòng "Test BE".
 
 ### Đề xuất nâng enforce (cần hỏi trước khi thêm tool)
 - FE: thêm `.eslintrc.cjs` (`plugin:vue/vue3-recommended`) + `.prettierrc` để `npm run lint` chạy được; chặn `console.log`.

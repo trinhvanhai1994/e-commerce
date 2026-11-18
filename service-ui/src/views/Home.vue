@@ -289,7 +289,7 @@ import ImageSwiper from '../components/ImageSwiper.vue'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
-import { getImageUrlFromApi } from '../utils/imageUtils.js'
+import { getImageUrlFromApi, applyImageFallback } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
 import { contentService } from '../services/content.service.js'
 import { defaultHomepage, resolveCmsImage, resolveSlotImage, DEFAULT_IMAGE_PATHS } from '../content/homeDefaults.js'
@@ -668,9 +668,8 @@ const formatPrice = (price) => {
 
 // Xử lý lỗi ảnh
 const handleImageError = (event) => {
-  // Thay thế ảnh lỗi bằng ảnh placeholder
-  event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
-  event.target.onerror = null // Tránh loop vô hạn
+  // Thay ảnh lỗi bằng ảnh placeholder, chỉ một lần (placeholder lỗi thì dừng, không lặp)
+  applyImageFallback(event, '/images/products/details/black/1.png')
 }
 
 // Xử lý URL ảnh từ API

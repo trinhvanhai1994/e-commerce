@@ -61,7 +61,7 @@ Nguồn: `BE/controller/external/ProductController.java:13,19-45`. `/{id}` và `
 | Method | Path | Quyền | Request -> Response | Lỗi | FE caller |
 |---|---|---|---|---|---|
 | GET | `/api/dragun/products/{id}/reviews` | PUBLIC | -> `ProductReviewSummaryResponse{averageRating, reviewCount, reviews[]}` chỉ `APPROVED`, mới nhất trước, cache 30s | 404 sản phẩm không tồn tại | `FE/services/review.service.js` `getProductReviews` |
-| POST | `/api/dragun/products/{id}/reviews` | PUBLIC | multipart `authorName`, `rating`, `content`, `images[]` (≤ 4, slot `review_image`), `website` (honeypot) -> review `PENDING` | 400 dữ liệu/ảnh sai; 404; 429 quá 5 lần/10 phút/IP | `review.service.js` `submitReview` (fetch trực tiếp) |
+| POST | `/api/dragun/products/{id}/reviews` | PUBLIC | multipart `authorName`, `rating`, `content`, `images[]` (≤ 4, slot `review_image`), `website` (honeypot) -> review `APPROVED` ngay (`approved_by = auto`) | 400 dữ liệu/ảnh sai; 404; 429 quá 5 lần/10 phút/IP | `review.service.js` `submitReview` (fetch trực tiếp) |
 | GET | `/api/dragun/admin/reviews?productId=&status=&page=&size=` | ADMIN | -> `ProductReviewPageResponse{items, totalElements, page, size, totalPages, statusCounts}` | 400 status sai | `review.service.js` `getAdminReviews` |
 | GET | `/api/dragun/admin/reviews/{id}` | ADMIN | -> `ProductReviewResponse` | 404 | `getAdminReview` |
 | POST | `/api/dragun/admin/reviews` | ADMIN | `ProductReviewRequest` (mặc định `APPROVED`, `source=ADMIN`) | 400 `@Valid`/ảnh không phải `/images/...`; 404 sản phẩm | `createReview` |

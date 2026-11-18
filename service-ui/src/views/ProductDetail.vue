@@ -545,7 +545,7 @@
               </div>
             </div>
 
-            <p class="text-xs text-gray-500">Đánh giá sẽ hiển thị sau khi được Thi Yên duyệt.</p>
+            <p class="text-xs text-gray-500">Đánh giá sẽ hiển thị ngay trên trang sản phẩm.</p>
 
             <!-- Buttons -->
             <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
@@ -746,7 +746,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-100 object-cover rounded-lg border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-m-${idx}-${img}`"
+             :key="`related-m-${idx}-${image}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
          </div>
@@ -770,7 +770,7 @@
              :alt="`${product.name} liên quan ${idx + 1}`"
              class="w-full h-40 object-cover rounded-xl border border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-200"
              @error="handleImageError"
-             :key="`related-${idx}-${img}`"
+             :key="`related-${idx}-${image}`"
            />
            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
          </div>
@@ -1268,7 +1268,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage, getProductGallery, getProductDetailImages } from '../utils/productImage'
-import { getImageUrlFromApi } from '../utils/imageUtils.js'
+import { getImageUrlFromApi, applyImageFallback } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
 import { reviewService } from '../services/review.service.js'
 import { processImageForSlot } from '../utils/imageSlotPipeline.js'
@@ -1397,9 +1397,8 @@ async function loadData() {
 
 // Xử lý lỗi ảnh
 function handleImageError(event) {
-  // Thay thế ảnh lỗi bằng ảnh placeholder
-  event.target.src = getImageUrlFromApi('/images/products/details/black/1.png')
-  event.target.onerror = null // Tránh loop vô hạn
+  // Thay ảnh lỗi bằng ảnh placeholder, chỉ một lần (placeholder lỗi thì dừng, không lặp)
+  applyImageFallback(event, '/images/products/details/black/1.png')
 }
 
 // Single onMounted hook to avoid conflicts
@@ -1471,7 +1470,7 @@ watch(galleryImages, (newGallery) => {
   }
 }, { immediate: true })
 
-// Đánh giá sản phẩm: chỉ đánh giá đã duyệt, kèm điểm trung bình tính ở server (GET /products/{id}/reviews)
+// Đánh giá sản phẩm: chỉ đánh giá APPROVED (khách gửi được đăng ngay, admin ẩn sau), kèm điểm trung bình tính ở server
 const MAX_REVIEW_IMAGES = 4
 const reviews = ref([])
 const reviewCount = ref(0)
@@ -1480,14 +1479,15 @@ const reviewsLoading = ref(false)
 const reviewsError = ref(false)
 let reviewsRequestId = 0
 
-async function loadReviews(productId) {
+async function loadReviews(productId, { fresh = false } = {}) {
   const id = parseInt(productId)
   if (!id) return
   const requestId = ++reviewsRequestId
-  reviewsLoading.value = true
+  // A refresh after submitting keeps the current list on screen instead of flashing "Đang tải"
+  if (!fresh) reviewsLoading.value = true
   reviewsError.value = false
   try {
-    const data = await reviewService.getProductReviews(id)
+    const data = await reviewService.getProductReviews(id, { fresh })
     if (requestId !== reviewsRequestId) return // a newer product was opened meanwhile
     reviews.value = data?.reviews || []
     reviewCount.value = data?.reviewCount || 0
@@ -1565,7 +1565,8 @@ async function submitReview() {
       images: form.images.map((img) => img.file),
     })
     closeAddReviewForm()
-    showSuccessPopup(message || 'Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt.')
+    showSuccessPopup(message || 'Cảm ơn bạn! Đánh giá đã được đăng.')
+    loadReviews(product.value.id, { fresh: true })
   } catch (error) {
     console.error('Error submitting review:', error)
     showErrorPopup(error.message || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')

@@ -19,13 +19,17 @@ function query(params) {
 }
 
 export const reviewService = {
-  /** Approved reviews + { averageRating, reviewCount } of one product. */
-  async getProductReviews(productId) {
-    return unwrap(await httpClient.get(`/api/dragun/products/${productId}/reviews`))
+  /**
+   * Approved reviews + { averageRating, reviewCount } of one product.
+   * `fresh` bypasses the 30s browser cache (Cache-Control public) right after the customer posted a review.
+   */
+  async getProductReviews(productId, { fresh = false } = {}) {
+    const suffix = fresh ? `?_=${Date.now()}` : ''
+    return unwrap(await httpClient.get(`/api/dragun/products/${productId}/reviews${suffix}`))
   },
 
   /**
-   * Customer submission (stored as PENDING until an admin approves it).
+   * Customer submission, published immediately (APPROVED); admin edits or hides it later.
    * `images` are File objects already processed by imageSlotPipeline for slot review_image.
    * `website` is the honeypot field: always empty for real users.
    */
