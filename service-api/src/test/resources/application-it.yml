@@ -1,0 +1,30 @@
+# Profile "it": integration tests against a throwaway PostgreSQL from Testcontainers (TestcontainersConfiguration).
+# Datasource comes from @ServiceConnection; schema comes only from Flyway, and Hibernate validates it like prod,
+# so an entity column missing from the migrations fails here instead of in production.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+
+jwt:
+  secret: integration-test-secret-key-integration-test-secret-key-0123456789
+
+file:
+  upload-dir: target/test-uploads
+
+pancake:
+  api:
+    base-url: http://localhost:1
+    shop-id: test-shop
+    api-key: test-key
+    warehouse-id: test-warehouse
+  sync:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.dragun.ecommerce: INFO
