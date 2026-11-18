@@ -24,6 +24,10 @@ pancake:
   sync:
     enabled: false
 
+app:
+  mail:
+    enabled: false
+
 logging:
   level:
     root: WARN

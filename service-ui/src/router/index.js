@@ -90,6 +90,12 @@ const routes = [
     component: () => import('../views/MapView.vue')
   },
   {
+    // Customer account (task-003). Not logged in: the page opens the login popup itself.
+    path: '/tai-khoan',
+    name: 'Account',
+    component: () => import('../views/Account.vue')
+  },
+  {
     path: '/admin',
     name: 'AdminDashboard',
     component: () => import('../views/AdminDashboard.vue'),
@@ -122,6 +128,19 @@ const routes = [
     path: '/admin/products',
     name: 'AdminProducts',
     component: () => import('../views/AdminProducts.vue'),
+    beforeEnter: (to, from, next) => {
+      if (!adminService.isAuthenticated()) {
+        next({ path: '/admin/login', query: { redirect: to.fullPath } })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    // Product categories (task-004): add, rename, reorder, hide, delete when unused
+    path: '/admin/categories',
+    name: 'AdminCategories',
+    component: () => import('../views/AdminCategories.vue'),
     beforeEnter: (to, from, next) => {
       if (!adminService.isAuthenticated()) {
         next({ path: '/admin/login', query: { redirect: to.fullPath } })

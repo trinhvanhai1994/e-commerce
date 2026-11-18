@@ -37,6 +37,20 @@
           <div v-if="errors.phone" class="text-red-500 text-xs mt-1">{{ errors.phone }}</div>
         </div>
 
+        <!-- Email (không bắt buộc): nhận xác nhận đơn qua email -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Email (không bắt buộc)</label>
+          <input
+            v-model="form.email"
+            type="email"
+            autocomplete="email"
+            maxlength="255"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-blue-500"
+            placeholder="Nhập email để nhận xác nhận đơn hàng"
+          />
+          <div v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</div>
+        </div>
+
         <!-- Địa chỉ chi tiết -->
         <div>
           <label class="block text-sm font-medium mb-1">Địa chỉ chi tiết:</label>
@@ -201,13 +215,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useOrderStore } from '../stores/order'
 import { getProductImage } from '../utils/productImage'
 import { orderAPI } from '../utils/api'
 import locationService from '../services/location.service.js'
+import { customerService } from '../services/customer.service.js'
+import { useAuthStore } from '../stores/auth.js'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -221,6 +237,7 @@ const form = ref({
   district: '',
   ward: '',
   phone: '',
+  email: '',
   notes: ''
 })
 
@@ -326,6 +343,41 @@ function removeItem(itemId) {
   }
 }
 
+// Đã đăng nhập (task-003 R7): tự điền từ tài khoản, chỉ điền ô còn trống; khách vẫn sửa được trước khi đặt
+const authStore = useAuthStore()
+
+async function prefillFromAccount() {
+  if (!authStore.isLoggedIn) return
+  let profile = authStore.customer
+  try {
+    profile = await authStore.authorized((token) => customerService.getProfile(token))
+    authStore.setCustomer(profile)
+  } catch {
+    // Session over: checkout continues as a guest with whatever we already know
+    if (!authStore.isLoggedIn) return
+  }
+  if (!profile) return
+  const f = form.value
+  if (!f.name) f.name = profile.addressRecipient || profile.fullName || ''
+  if (!f.phone) f.phone = profile.addressPhone || profile.phone || ''
+  if (!f.email) f.email = profile.email || ''
+  if (!f.address) f.address = profile.addressLine || ''
+  if (!f.province && profile.provinceCode) {
+    f.province = profile.provinceCode
+    await fetchDistricts(f.province)
+    if (profile.districtCode) {
+      f.district = profile.districtCode
+      await fetchWards(f.district)
+      if (profile.wardCode) f.ward = profile.wardCode
+    }
+  }
+}
+
+// Logged in from the popup while on this page
+watch(() => authStore.isLoggedIn, (now) => {
+  if (now) prefillFromAccount()
+})
+
 // Validation
 function validateForm() {
   errors.value = {}
@@ -335,6 +387,8 @@ function validateForm() {
   if (!form.value.district) errors.value.district = 'Vui lòng chọn quận/huyện'
   if (!form.value.ward) errors.value.ward = 'Vui lòng chọn xã/phường'
   if (!form.value.phone) errors.value.phone = 'Vui lòng nhập số điện thoại'
+  const email = form.value.email.trim()
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.value.email = 'Email không hợp lệ'
   return Object.keys(errors.value).length === 0
 }
 
@@ -350,7 +404,9 @@ async function placeOrder() {
       province: form.value.province,
       district: form.value.district,
       ward: form.value.ward,
-      phone: form.value.phone
+      phone: form.value.phone,
+      // Optional: the order confirmation mail goes here (task-005); null when left empty
+      email: form.value.email.trim() || null
     },
     items: cartItems.value.map(item => ({
       productId: item.id,
@@ -359,8 +415,9 @@ async function placeOrder() {
   }
   
   try {
-    // Call API to create order
-    const response = await orderAPI.createOrder(orderData)
+    // Call API to create order; logged in: attach it to the account (no token = guest order, as before)
+    const customerToken = authStore.isLoggedIn ? await authStore.getAccessToken().catch(() => null) : null
+    const response = await orderAPI.createOrder(orderData, customerToken)
     
     // Handle ApiResponse format: {success: true, data: {orderId: "...", message: "..."}}
     // Prefer orderId field, fallback to id for backward compatibility
@@ -420,7 +477,8 @@ const formatPrice = (val) => val.toLocaleString('vi-VN') + '₫'
 onMounted(async () => {
   // Lấy danh sách tỉnh/thành phố
   await fetchProvinces()
-  
+  await prefillFromAccount()
+
   // Ưu tiên lấy sản phẩm được chọn từ cart nếu có
   const selected = localStorage.getItem('checkoutSelectedItems')
   if (selected) {

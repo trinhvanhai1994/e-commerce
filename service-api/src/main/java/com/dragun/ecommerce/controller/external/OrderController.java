@@ -4,10 +4,12 @@ import com.dragun.ecommerce.model.dto.request.CreateOrderRequest;
 import com.dragun.ecommerce.model.dto.request.UpdateOrderStatusRequest;
 import com.dragun.ecommerce.model.dto.response.ApiResponse;
 import com.dragun.ecommerce.model.dto.response.OrderResponse;
+import com.dragun.ecommerce.security.CustomerPrincipal;
 import com.dragun.ecommerce.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +22,13 @@ public class OrderController {
     
     private final OrderService orderService;
     
+    /** Guest checkout stays open; with a valid customer token the order is attached to that account. */
     @PostMapping
-    public ResponseEntity<ApiResponse<Map<String, String>>> createOrder(@Valid @RequestBody CreateOrderRequest request) {
-        OrderResponse order = orderService.createOrder(request);
+    public ResponseEntity<ApiResponse<Map<String, String>>> createOrder(
+            @Valid @RequestBody CreateOrderRequest request, Authentication authentication) {
+        Long customerId = authentication != null && authentication.getPrincipal() instanceof CustomerPrincipal c
+            ? c.id() : null;
+        OrderResponse order = orderService.createOrder(request, customerId);
         return ResponseEntity.ok(ApiResponse.success(
             Map.of("orderId", order.getId(), "message", "Đơn hàng đã được tạo thành công")
         ));

@@ -399,7 +399,7 @@
               <div class="flex items-center justify-between mb-2">
                 <div class="font-bold text-green-500 text-base md:text-2xl">Đánh giá của khách hàng ({{ reviewCount }})</div>
                 <div class="flex gap-2">
-                  <button @click="showAddReviewForm = true" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors">
+                  <button @click="openReviewForm" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition-colors">
                     Viết đánh giá
                   </button>
                   <button v-if="!showAllReviews && reviews.length > 6" @click="showAllReviews = true" class="text-blue-500 text-xs font-semibold hover:underline">Xem thêm &gt;</button>
@@ -459,18 +459,10 @@
           <form @submit.prevent="submitReview" class="p-6 space-y-4">
             <!-- Honeypot: hidden from people, bots fill it and the server drops the submission -->
             <input v-model="newReviewForm.website" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" />
-            <!-- Tên khách hàng -->
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Tên của bạn *</label>
-              <input
-                v-model="newReviewForm.author"
-                type="text"
-                required
-                maxlength="100"
-                placeholder="Nhập tên của bạn"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+            <!-- Tên hiển thị lấy từ tài khoản (đổi ở trang Tài khoản) -->
+            <p class="text-sm text-gray-600">
+              Đánh giá với tên <span class="font-semibold text-gray-800">{{ authStore.displayName }}</span>
+            </p>
 
             <!-- Rating -->
             <div>
@@ -1271,6 +1263,7 @@ import { getProductImage, getProductGallery, getProductDetailImages } from '../u
 import { getImageUrlFromApi, applyImageFallback } from '../utils/imageUtils.js'
 import { getProductDiscount } from '../utils/productUtils.js'
 import { reviewService } from '../services/review.service.js'
+import { useAuthStore } from '../stores/auth.js'
 import { processImageForSlot } from '../utils/imageSlotPipeline.js'
 import { resolveCmsImage } from '../content/homeDefaults.js'
 
@@ -1509,7 +1502,15 @@ const showAddReviewForm = ref(false)
 const submittingReview = ref(false)
 const processingImages = ref(false)
 const imageInput = ref(null)
-const emptyReviewForm = () => ({ author: '', rating: 5, content: '', website: '', images: [] })
+const emptyReviewForm = () => ({ rating: 5, content: '', website: '', images: [] })
+
+// Viết đánh giá cần đăng nhập (task-003 R3): chưa đăng nhập thì mở popup, đăng nhập xong mở form luôn
+const authStore = useAuthStore()
+function openReviewForm() {
+  authStore.requireLogin(() => {
+    showAddReviewForm.value = true
+  }, 'Đăng nhập để viết đánh giá sản phẩm.')
+}
 const newReviewForm = ref(emptyReviewForm())
 
 // Ảnh được cắt vuông và nén ở trình duyệt (slot review_image) trước khi gửi, giống ảnh CMS
@@ -1551,23 +1552,27 @@ function closeAddReviewForm() {
 
 async function submitReview() {
   const form = newReviewForm.value
-  if (!form.author.trim() || form.content.trim().length < 5) {
-    showErrorPopup('Vui lòng nhập tên và nội dung đánh giá (ít nhất 5 ký tự)')
+  if (form.content.trim().length < 5) {
+    showErrorPopup('Vui lòng nhập nội dung đánh giá (ít nhất 5 ký tự)')
     return
   }
   submittingReview.value = true
   try {
-    const { message } = await reviewService.submitReview(product.value.id, {
-      authorName: form.author.trim(),
+    const { message } = await authStore.authorized((token) => reviewService.submitReview(product.value.id, {
       rating: form.rating,
       content: form.content.trim(),
       website: form.website,
       images: form.images.map((img) => img.file),
-    })
+    }, token))
     closeAddReviewForm()
     showSuccessPopup(message || 'Cảm ơn bạn! Đánh giá đã được đăng.')
     loadReviews(product.value.id, { fresh: true })
   } catch (error) {
+    if (error.status === 401) {
+      // Phiên hết hạn khi đang viết: giữ nguyên nội dung và ảnh, đăng nhập lại xong thì gửi tiếp
+      authStore.requireLogin(() => submitReview(), 'Phiên đăng nhập đã hết hạn. Đăng nhập lại để gửi đánh giá.')
+      return
+    }
     console.error('Error submitting review:', error)
     showErrorPopup(error.message || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.')
   } finally {

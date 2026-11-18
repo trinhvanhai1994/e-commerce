@@ -157,6 +157,12 @@ mvn spring-boot:run
   - `SPRING_DATASOURCE_USERNAME`
   - `SPRING_DATASOURCE_PASSWORD`
   - `JWT_SECRET`
+- Email thông báo đơn hàng (task-005, tuỳ chọn; thiếu thì mail chỉ ghi log, đơn vẫn tạo bình thường):
+  - `MAIL_ENABLED=true` để bật gửi thật
+  - `BREVO_API_KEY`: API key ở Brevo > SMTP & API > tab "API keys" (không dùng SMTP key `xsmtpsib-...`, sẽ bị 401)
+  - `MAIL_FROM_EMAIL`: địa chỉ gửi, phải là sender hoặc domain đã xác minh (SPF/DKIM) trong Brevo
+  - `MAIL_ADMIN_RECIPIENTS`: email admin nhận báo đơn mới, cách nhau bằng dấu phẩy
+  - `MAIL_STORE_URL` (link trong mail), `MAIL_FROM_NAME` (mặc định "Thi Yên"), `MAIL_SUPPORT_PHONE` (tuỳ chọn)
 
 ## Application URL
 

@@ -77,9 +77,9 @@ export class ServiceApiAdapter extends BaseAdapter {
       },
     }
 
-    // Add authentication token if available
+    // Add the admin token if available, unless the caller sent its own (customer session, auth.store.js)
     const authToken = this.getAuthToken()
-    if (authToken) {
+    if (authToken && !requestOptions.headers['Authorization']) {
       requestOptions.headers['Authorization'] = `Bearer ${authToken}`
     }
 

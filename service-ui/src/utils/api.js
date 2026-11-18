@@ -28,7 +28,7 @@ export const productAPI = {
 
 // Order API functions (backward compatibility)
 export const orderAPI = {
-  createOrder: (orderData) => orderService.createOrder(orderData),
+  createOrder: (orderData, customerToken) => orderService.createOrder(orderData, customerToken),
   getOrderById: (orderId) => orderService.getOrderById(orderId),
   getOrders: () => orderService.getOrders(),
   getOrdersByCustomer: (phone) => orderService.getOrdersByCustomer(phone),

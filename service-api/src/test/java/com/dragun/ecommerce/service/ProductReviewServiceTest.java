@@ -1,10 +1,13 @@
 package com.dragun.ecommerce.service;
 
+import com.dragun.ecommerce.TestCustomers;
 import com.dragun.ecommerce.TestcontainersConfiguration;
 import com.dragun.ecommerce.model.dto.request.ProductReviewRequest;
 import com.dragun.ecommerce.model.dto.response.ProductReviewResponse;
 import com.dragun.ecommerce.model.dto.response.ProductReviewSummaryResponse;
+import com.dragun.ecommerce.model.entity.Customer;
 import com.dragun.ecommerce.model.entity.ProductReview;
+import com.dragun.ecommerce.repository.CustomerRepository;
 import com.dragun.ecommerce.repository.ProductRepository;
 import com.dragun.ecommerce.repository.ProductReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,8 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Review rules on a real PostgreSQL (jsonb images, Flyway V21 seed). Each test rolls back; the rate limiter is
- * in-memory and shared, so every test submits under its own client key.
+ * Review rules on a real PostgreSQL (jsonb images, Flyway V21 seed, V22 accounts). Each test rolls back; the rate
+ * limiter is in-memory and shared, so every test submits under its own client key. Reviews need an account (task-003).
  */
 @SpringBootTest
 @ActiveProfiles("it")
@@ -44,17 +47,22 @@ class ProductReviewServiceTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     private Long productId;
     private String clientKey;
+    private Customer customer;
 
     @BeforeEach
     void setUp() {
         productId = productRepository.findAll().get(0).getId();
         clientKey = "test-" + UUID.randomUUID();
+        customer = TestCustomers.create(customerRepository, "Khách Test");
     }
 
     private ProductReviewResponse submit(int rating, String content) {
-        return reviewService.submit(productId, "Khách Test", rating, content, null, List.of(), clientKey);
+        return reviewService.submit(productId, customer.getId(), rating, content, null, List.of(), clientKey);
     }
 
     @Test
@@ -69,6 +77,8 @@ class ProductReviewServiceTest {
         assertThat(stored.getSource()).isEqualTo(ProductReview.SOURCE_CUSTOMER);
         assertThat(stored.getApprovedBy()).isEqualTo(ProductReviewService.AUTO_APPROVER);
         assertThat(stored.getApprovedAt()).isNotNull();
+        assertThat(stored.getCustomerId()).isEqualTo(customer.getId());
+        assertThat(stored.getAuthorName()).isEqualTo("Khách Test");
 
         ProductReviewSummaryResponse after = reviewService.getPublicReviews(productId);
         assertThat(after.getReviewCount()).isEqualTo(before.getReviewCount() + 1);
@@ -130,7 +140,7 @@ class ProductReviewServiceTest {
         long before = reviewRepository.count();
 
         ProductReviewResponse response =
-            reviewService.submit(productId, "Bot", 5, "spam spam spam", "http://spam", List.of(), clientKey);
+            reviewService.submit(productId, customer.getId(), 5, "spam spam spam", "http://spam", List.of(), clientKey);
 
         assertThat(response.getId()).isNull();
         assertThat(reviewRepository.count()).isEqualTo(before);
@@ -143,17 +153,35 @@ class ProductReviewServiceTest {
         assertStatus(() -> submit(6, "Số sao sai"), HttpStatus.BAD_REQUEST);
         assertStatus(() -> submit(5, "ngắn"), HttpStatus.BAD_REQUEST);
         assertStatus(() -> submit(5, "x".repeat(2001)), HttpStatus.BAD_REQUEST);
-        assertStatus(() -> reviewService.submit(productId, "   ", 5, "Tên trống", null, List.of(), clientKey),
-            HttpStatus.BAD_REQUEST);
-        assertStatus(() -> reviewService.submit(-1L, "Khách", 5, "Sản phẩm không có", null, List.of(), clientKey),
+        assertStatus(() -> reviewService.submit(-1L, customer.getId(), 5, "Sản phẩm không có", null, List.of(), clientKey),
             HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("the 6th submission from one client within the window gets 429")
+    @DisplayName("one review per product per account: the second one gets 409")
+    void oneReviewPerProductPerAccount() {
+        submit(5, "Lần đầu đánh giá");
+
+        assertStatus(() -> submit(4, "Đánh giá lần hai"), HttpStatus.CONFLICT);
+    }
+
+    @Test
+    @DisplayName("a locked or unknown account cannot review (401)")
+    void inactiveAccountCannotReview() {
+        customer.setStatus(Customer.STATUS_LOCKED);
+        customerRepository.saveAndFlush(customer);
+
+        assertStatus(() -> submit(5, "Tài khoản bị khoá"), HttpStatus.UNAUTHORIZED);
+        assertStatus(() -> reviewService.submit(productId, -1L, 5, "Không có tài khoản", null, List.of(), clientKey),
+            HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("the 6th submission from one client (IP) within the window gets 429, even from different accounts")
     void rateLimit() {
         for (int i = 0; i < 5; i++) {
-            submit(5, "Lần gửi số " + (i + 1));
+            Long other = TestCustomers.create(customerRepository, "Khách " + i).getId();
+            reviewService.submit(productId, other, 5, "Lần gửi số " + (i + 1), null, List.of(), clientKey);
         }
         assertStatus(() -> submit(5, "Lần gửi số 6"), HttpStatus.TOO_MANY_REQUESTS);
     }

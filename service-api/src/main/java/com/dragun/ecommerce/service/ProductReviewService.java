@@ -5,8 +5,10 @@ import com.dragun.ecommerce.model.dto.request.ProductReviewRequest;
 import com.dragun.ecommerce.model.dto.response.ProductReviewPageResponse;
 import com.dragun.ecommerce.model.dto.response.ProductReviewResponse;
 import com.dragun.ecommerce.model.dto.response.ProductReviewSummaryResponse;
+import com.dragun.ecommerce.model.entity.Customer;
 import com.dragun.ecommerce.model.entity.Product;
 import com.dragun.ecommerce.model.entity.ProductReview;
+import com.dragun.ecommerce.repository.CustomerRepository;
 import com.dragun.ecommerce.repository.ProductRepository;
 import com.dragun.ecommerce.repository.ProductReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,6 @@ import java.util.stream.Collectors;
 public class ProductReviewService {
 
     static final int MAX_IMAGES = 4;
-    static final int MAX_AUTHOR = 100;
     static final int MAX_CONTENT = 2000;
     static final int MIN_CONTENT = 5;
     private static final int MAX_PAGE_SIZE = 100;
@@ -48,6 +49,7 @@ public class ProductReviewService {
     private final ProductRepository productRepository;
     private final CmsImageService cmsImageService;
     private final ReviewSubmissionLimiter submissionLimiter;
+    private final CustomerRepository customerRepository;
 
     // ---------- public ----------
 
@@ -66,11 +68,12 @@ public class ProductReviewService {
     }
 
     /**
-     * Customer submission: published immediately (APPROVED, approved_by = AUTO_APPROVER); admin edits or hides it later.
-     * All text and every image are validated before any file is written.
+     * Logged-in customer's review (task-003 R3): published immediately (APPROVED, approved_by = AUTO_APPROVER);
+     * admin edits or hides it later. The author name is the account's full name; one review per product per
+     * account. All text and every image are validated before any file is written.
      */
     @Transactional
-    public ProductReviewResponse submit(Long productId, String authorName, Integer rating, String content,
+    public ProductReviewResponse submit(Long productId, Long customerId, Integer rating, String content,
                                         String honeypot, List<MultipartFile> files, String clientKey) {
         if (honeypot != null && !honeypot.isBlank()) {
             // Bots fill every field; answer like a success so they do not adapt, but store nothing.
@@ -78,11 +81,14 @@ public class ProductReviewService {
             return ProductReviewResponse.builder().productId(productId).build();
         }
         requireProduct(productId);
-        String author = cleanText(authorName);
-        String text = cleanText(content);
-        if (author == null || author.length() > MAX_AUTHOR) {
-            throw badRequest("Tên tối đa " + MAX_AUTHOR + " ký tự và không được để trống");
+        Customer customer = customerRepository.findById(customerId)
+            .filter(c -> Customer.STATUS_ACTIVE.equals(c.getStatus()))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để đánh giá."));
+        if (reviewRepository.existsByProductIdAndCustomerId(productId, customerId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Bạn đã đánh giá sản phẩm này rồi.");
         }
+        String author = customer.getFullName();
+        String text = cleanText(content);
         if (rating == null || rating < 1 || rating > 5) {
             throw badRequest("Số sao từ 1 đến 5");
         }
@@ -115,9 +121,10 @@ public class ProductReviewService {
                 .images(paths)
                 .status(ProductReview.STATUS_APPROVED)
                 .source(ProductReview.SOURCE_CUSTOMER)
+                .customerId(customerId)
                 .approvedAt(OffsetDateTime.now())
                 .approvedBy(AUTO_APPROVER)
-                .updatedBy("customer")
+                .updatedBy("customer:" + customerId)
                 .build();
             return toResponse(reviewRepository.save(review), null, false);
         } catch (IllegalArgumentException e) {

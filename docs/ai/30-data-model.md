@@ -5,7 +5,7 @@
 Đường dẫn rút gọn: `mig/` = `service-api/src/main/resources/db/migration/`, `ent/` = `service-api/src/main/java/com/dragun/ecommerce/model/entity/`, `pk/` = `service-api/src/main/java/com/dragun/ecommerce/integration/pancake/model/`, `res/` = `service-api/src/main/resources/`.
 
 ## Schema ownership
-- Flyway là nguồn schema: `enabled: true`, `baseline-on-migrate: true` (`res/application.yml:34-37`). Head hiện tại: **V21** (`mig/V21__Create_product_reviews.sql`); V16-V21 chưa commit.
+- Flyway là nguồn schema: `enabled: true`, `baseline-on-migrate: true` (`res/application.yml:34-37`). Head hiện tại: **V24** (`mig/V24__Add_order_customer_email.sql`).
 - Hibernate `ddl-auto: validate` ở default và prod (`res/application.yml:27`, `res/application-prod.yml:11`), nhưng **`update` ở dev và test** kèm `flyway.validate-on-migrate: false` (`res/application-dev.yml:11-14`, `res/application-test.yml:11-14`). Hệ quả: DB dev/test có thể có cột/constraint do Hibernate tự thêm mà migration không có; luôn viết migration, đừng dựa vào `update` (inferred).
 - `validate` chỉ kiểm tra tồn tại cột và kiểu, không kiểm tra NOT NULL / độ dài, nên các lệch ở mục Drift bên dưới không làm app fail khi khởi động (inferred).
 - Kiểu thời gian: bảng cũ dùng `TIMESTAMP` không timezone + `LocalDateTime` (vd `mig/V1__Initial_schema.sql:8`, `ent/Order.java:71`); bảng CMS dùng `TIMESTAMPTZ` + `OffsetDateTime` (`mig/V16__Create_cms_tables.sql:15`, `ent/BlogPost.java:60`).
@@ -41,6 +41,7 @@
 - `status VARCHAR(50) NOT NULL DEFAULT 'pending'` (V1:53), xem mục Enums.
 - Tiền: `sub_total`, `shipping_fee`, `total DECIMAL(19,2)` (`V1:55-57`, `ent/Order.java:55-62`). `payment_method`, `order_type` là string tự do.
 - Pancake: `pancake_order_id`, `pancake_synced_at` (V8:10-11).
+- `customer_email VARCHAR(255) NULL` (V24, task-005): email khách nhập ở checkout, nhận mail xác nhận đơn. Đơn cũ và đơn không nhập email là NULL.
 - Index: `customer_phone`, `status`, `order_id` (V1:112-114), `pancake_order_id` (V8:58).
 
 ### order_items
@@ -85,8 +86,15 @@
 - Optimistic lock thủ công bằng so sánh `updated_at` -> HTTP 409 (`service/BlogPostService.java:94-96`).
 - Index partial `(status, published_at DESC) WHERE deleted_at IS NULL` (V16:43-45).
 
-### product_reviews (chưa commit)
+### customers (V22, task-003)
+- Tài khoản khách, tách khỏi `users` (admin). `phone VARCHAR(10) UNIQUE` CHECK `^0[0-9]{9}$` (đã chuẩn hoá, là tên đăng nhập), `password_hash` (BCrypt), `full_name`, `email`, `birth_date`, `gender` CHECK `MALE|FEMALE|OTHER`, địa chỉ mặc định (`address_recipient`, `address_phone`, `address_line`, `province_code`, `district_code`, `ward_code`), `status` CHECK `ACTIVE|LOCKED|DELETED`, `phone_verified_at` (luôn NULL khi chưa có OTP), `must_change_password`, `token_version` (tăng khi đổi mật khẩu: access token cũ bị từ chối), `failed_login_count`, `locked_until`, `consent_at`, `consent_version`, `last_login_at`, `created_at`, `updated_at` (timestamptz, khoá lạc quan).
+
+### customer_refresh_tokens (V22)
+- `customer_id` FK `ON DELETE CASCADE`, `token_hash VARCHAR(64) UNIQUE` (SHA-256), `expires_at`, `revoked_at`, `user_agent`, `created_at`.
+
+### product_reviews
 - V21. `product_id BIGINT NOT NULL` FK `products(id) ON DELETE CASCADE`, `author_name VARCHAR(100)`, `rating SMALLINT` CHECK 1..5, `content TEXT`, `images JSONB` mảng ≤ 4 path (CHECK), `status` CHECK `PENDING|APPROVED|HIDDEN`, `source` CHECK `CUSTOMER|ADMIN|SEED`, `approved_at/by`, `created_at`, `updated_at/by`.
+- V22 thêm `customer_id` FK `customers(id) ON DELETE SET NULL` (NULL với đánh giá khách vãng lai cũ, seed, admin) và unique index `(product_id, customer_id) WHERE customer_id IS NOT NULL`: một tài khoản một đánh giá mỗi sản phẩm.
 - Index `(product_id, status, created_at DESC)` cho trang sản phẩm, `(status, created_at DESC)` cho admin.
 - Không soft delete: ẩn bằng `HIDDEN`, DELETE là xoá hẳn. Optimistic lock bằng `updated_at` như CMS (`service/ProductReviewService.java` `requireFresh`).
 - `products.review_count` không còn dùng để hiển thị; số đếm và điểm trung bình tính từ dòng `APPROVED`.
@@ -134,6 +142,8 @@ Cả hai map `@JdbcTypeCode(SqlTypes.JSON)`; DB không có ràng buộc shape.
 | V14 | backfill | `display_order` trích từ số trong tên file ảnh, còn lại 0 (`mig/V14__...sql:8-22`) |
 | V15 | **xoá dữ liệu** | xoá visitor trùng `session_id`, giữ bản mới nhất (`mig/V15__...sql:4-17`) |
 | V17 | marker | `SELECT 1`; seed thật do `CmsSeedService` (ApplicationRunner, idempotent theo `section_key`/`slug`) từ `res/cms-seed/*.json` (`service/CmsSeedService.java:36-44,57,103`) |
+| V24 | thêm cột | `orders.customer_email` nullable, không backfill (`mig/V24__Add_order_customer_email.sql`) |
+| V22 | tạo bảng + cột | `customers`, `customer_refresh_tokens`; `orders.customer_id` và `product_reviews.customer_id` (nullable, `ON DELETE SET NULL`) (`mig/V22__Create_customer_accounts.sql`) |
 | V21 | tạo bảng + seed | `product_reviews`; chèn 5 đánh giá trước đây viết cứng trong `ProductDetail.vue` cho mọi sản phẩm hiện có (`source=SEED`, `APPROVED`, bỏ qua sản phẩm đã có dòng SEED) (`mig/V21__Create_product_reviews.sql`) |
 | V20 | đổi constraint | slug unique chỉ trong bài chưa xoá (partial index), cho phép tạo lại slug của bài đã soft delete (`mig/V20__Blog_slug_unique_active_only.sql`) |
 | V18 | rewrite giá trị + jsonb | xoá path ảnh đóng gói khỏi DB, bật cờ `use_default*`, sửa `extra_json` của `quality`, `meal_gallery` (`mig/V18__...sql:9-114`) |

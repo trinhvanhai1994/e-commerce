@@ -63,6 +63,17 @@
           </router-link>
         </li>
         <li>
+          <router-link
+            to="/admin/categories"
+            @click="$emit('close')"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 text-base md:text-lg font-semibold rounded-l-full transition hover:bg-green-50"
+            :class="{ 'text-green-600 bg-green-50': $route.path.startsWith('/admin/categories') }"
+          >
+            <span class="inline-block w-2 h-2 rounded-full mr-2" :class="$route.path.startsWith('/admin/categories') ? 'bg-green-500' : 'bg-gray-300'"></span>
+            Danh mục
+          </router-link>
+        </li>
+        <li>
           <router-link 
             to="/admin/users" 
             @click="$emit('close')"

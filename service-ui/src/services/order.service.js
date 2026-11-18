@@ -11,7 +11,16 @@ export const orderService = {
    * @param {Object} orderData - Order data
    * @returns {Promise<Object>} Created order response
    */
-  async createOrder(orderData) {
+  async createOrder(orderData, customerToken = null) {
+    // Guest checkout sends no token. With a customer token the order is attached to that account (task-003 R7);
+    // the adapter keeps this header instead of the admin token.
+    if (customerToken) {
+      return await httpClient.request('/api/extend/orders', {
+        method: 'POST',
+        body: orderData,
+        headers: { Authorization: `Bearer ${customerToken}` },
+      })
+    }
     return await httpClient.post('/api/extend/orders', orderData)
   },
 

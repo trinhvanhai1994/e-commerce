@@ -56,7 +56,7 @@
           </button>
           <button
             v-for="cat in categories"
-            :key="cat.id"
+            :key="cat.key"
             @click="selectCategory(cat.key)"
             :class="[
               'px-4 py-2 rounded-full border font-semibold text-sm transition-colors',
@@ -232,13 +232,14 @@ import { useCartStore } from '../stores/cart'
 import { productAPI } from '@/utils/api.js'
 import { getProductImage } from '../utils/productImage'
 import { getProductDiscount } from '../utils/productUtils.js'
+import { useProductCategories } from '../composables/useProductCategories.js'
 
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 
 // Reactive data
-const searchQuery = ref('')
+const searchQuery = ref(route.query.search || '')
 const selectedCat = ref(route.query.cat || '')
 const sortBy = ref('')
 const currentPage = ref(1)
@@ -246,12 +247,9 @@ const itemsPerPage = 12
 const showPopup = ref(false)
 const popupMessage = ref('')
 
-// Categories
-const categories = [
-  { id: 1, name: 'Mè đen', key: 'ME_DEN' },
-  { id: 2, name: 'Hồng đậu', key: 'HONG_DAU' },
-  { id: 3, name: 'Combo', key: 'COMBO' }
-]
+// Categories managed in /admin/categories; hidden ones get no filter button but keep their label
+const { visibleCategories, nameOf: getCategoryName } = useProductCategories()
+const categories = computed(() => visibleCategories.value.map((c) => ({ name: c.name, key: c.code })))
 
 // Products data from API
 const allProducts = ref([])
@@ -369,14 +367,6 @@ function getProductCountByCategory(catKey) {
   return allProducts.value.filter(p => p.category === catKey).length
 }
 
-function getCategoryName(catKey) {
-  const categoryMap = {
-    'ME_DEN': 'Mè đen',
-    'HONG_DAU': 'Hồng đậu',
-    'COMBO': 'Combo'
-  }
-  return categoryMap[catKey] || catKey || 'Chưa phân loại'
-}
 
 
 function formatPrice(val) {
@@ -429,6 +419,14 @@ watch(
   () => route.query.cat,
   (newCat) => {
     selectedCat.value = newCat || ""
+  }
+)
+
+// Tìm kiếm từ header: /products?search=...
+watch(
+  () => route.query.search,
+  (newSearch) => {
+    searchQuery.value = newSearch || ""
   }
 )
 

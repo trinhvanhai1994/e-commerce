@@ -193,9 +193,7 @@
               <label class="block font-semibold mb-1">Danh mục</label>
               <select v-model="form.category" class="w-full border rounded px-3 py-2">
                 <option value="">Chọn danh mục</option>
-                <option value="ME_DEN">Mè đen</option>
-                <option value="HONG_DAU">Hồng đậu</option>
-                <option value="COMBO">Combo</option>
+                <option v-for="opt in categoryOptions(form.category)" :key="opt.code" :value="opt.code">{{ opt.label }}</option>
               </select>
             </div>
             
@@ -239,8 +237,10 @@ import { useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
 import { getImageUrlFromApi, getImageUrlWithCacheBusting } from '@/utils/imageUtils.js'
+import { useProductCategories } from '../composables/useProductCategories.js'
 
 const router = useRouter()
+const { options: categoryOptions, nameOf: getCategoryName } = useProductCategories({ fresh: true })
 
 const products = ref([])
 const loading = ref(false)
@@ -275,7 +275,7 @@ const form = reactive({
   gallery: [],
   galleryText: '',
   isNew: false,
-  category: 'me-den',
+  category: 'ME_DEN',
   status: 'ACTIVE',
   priority: 999,
   syncToPancake: false
@@ -481,14 +481,6 @@ function formatPrice(val) {
   return Number(val).toLocaleString('vi-VN') + '₫'
 }
 
-function getCategoryName(categoryCode) {
-  const categoryMap = {
-    'ME_DEN': 'Mè đen',
-    'HONG_DAU': 'Hồng đậu',
-    'COMBO': 'Combo'
-  }
-  return categoryMap[categoryCode] || categoryCode || 'Chưa phân loại'
-}
 
 // Handle file upload - chỉ tạo path từ tên file, không lưu base64
 function handleFileUpload(event) {

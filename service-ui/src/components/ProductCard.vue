@@ -74,6 +74,7 @@ import { computed } from 'vue'
 import { getProductImage } from '../utils/productImage'
 import { navigateToSubdomain, navigateToMainDomain } from '../utils/domainUtils'
 import { getProductDiscount } from '../utils/productUtils'
+import { useProductCategories } from '../composables/useProductCategories.js'
 
 const props = defineProps({
   product: {
@@ -110,13 +111,8 @@ function formatPrice(price) {
   return price.toLocaleString('vi-VN') + '₫'
 }
 
-function getCategoryName(category) {
-  const categories = {
-    'me-den': 'Mè đen',
-    'hong-dau': 'Hồng đậu'
-  }
-  return categories[category] || 'Sản phẩm'
-}
+const { nameOf } = useProductCategories()
+const getCategoryName = (category) => (category ? nameOf(category) : 'Sản phẩm')
 </script>
 
 <style scoped>

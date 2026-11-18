@@ -25,13 +25,15 @@
 
 | Matcher | Quy tắc | Nguồn |
 |---|---|---|
-| `/api/public/**` | permitAll | `BE/config/SecurityConfig.java:41` |
-| `Constants.PUBLIC_ENDPOINTS`: `/api/dragun/products/**`, `/api/dragun/content/**`, `/api/extend/orders`, `/api/extend/orders/**`, `/api/public/visitors/**`, `/provinces`, `/districts/**`, `/wards/**`, `/images/**` | permitAll | `BE/util/Constants.java:6-16`, `SecurityConfig.java:42` |
+| `POST /api/dragun/products/*/reviews` | hasRole CUSTOMER (đặt trước PUBLIC) | `SecurityConfig.java` |
+| `/api/dragun/account/**` | hasRole CUSTOMER | `SecurityConfig.java` |
+| `/api/public/**` | permitAll | `BE/config/SecurityConfig.java` |
+| `Constants.PUBLIC_ENDPOINTS`: `/api/dragun/products/**`, `/api/dragun/content/**`, `/api/dragun/auth/**`, `/api/extend/orders`, `/api/extend/orders/**`, `/api/public/visitors/**`, `/provinces`, `/districts/**`, `/wards/**`, `/images/**` | permitAll | `BE/util/Constants.java:6-16`, `SecurityConfig.java:42` |
 | `/api/dragun/admin/login` | permitAll | `SecurityConfig.java:43` |
 | `/api/dragun/admin/**` | hasRole ADMIN | `Constants.java:18-20`, `SecurityConfig.java:45` |
 | mọi request khác (gồm `/api/thiyen/**`) | authenticated | `SecurityConfig.java:47` |
 
-JWT filter bị bỏ qua cho đúng các prefix public ở `BE/security/JwtAuthenticationFilter.java:27-39` (danh sách này phải giữ đồng bộ tay với `Constants.PUBLIC_ENDPOINTS`). Method security bật qua `@EnableMethodSecurity` (`SecurityConfig.java:26`).
+JWT filter (`BE/security/JwtAuthenticationFilter.java`) nhận hai loại token: admin (subject = username, tra bảng `users`) và khách (claim `typ=customer`, subject `customer:<id>`, claim `ver` phải bằng `customers.token_version`, tài khoản phải `ACTIVE`; principal `CustomerPrincipal`, quyền `ROLE_CUSTOMER`). Filter bỏ qua `/api/public/`, `/api/dragun/content/`, địa giới, `/images/`, admin login; **không** bỏ qua `/api/dragun/products/**` và `/api/extend/orders` vì viết đánh giá và gắn đơn vào tài khoản cần biết khách (task-003). Không token hoặc token hết hạn trên route cần quyền: 401 JSON; có token nhưng sai quyền: 403 JSON. Cả hai ghi thẳng trong `SecurityConfig.exceptionHandling` (đi qua `/error` sẽ mất token vì filter chỉ chạy một lần, mọi 403 thành 401). Method security bật qua `@EnableMethodSecurity` (`SecurityConfig.java:26`).
 
 ## 2. Endpoint catalogue
 
@@ -44,6 +46,22 @@ Cột Auth: `PUBLIC` = permitAll; `ADMIN` = SecurityConfig matcher + `@PreAuthor
 | POST | `/api/dragun/admin/login` | PUBLIC | `LoginRequest{username,password}` (`@NotBlank`) -> `LoginResponse{token,user{id,name,email,role}}` | 400 validation; 401 "Sai tài khoản hoặc mật khẩu!" (`BE/service/AdminService.java:42`) | không | `FE/services/admin.service.js:15` |
 
 Nguồn: `BE/controller/admin/AdminAuthController.java:13,19-23`, `BE/model/dto/request/LoginRequest.java:13-17`, `BE/model/dto/response/LoginResponse.java:13-24`.
+
+### 2.1b Tài khoản khách (task-003, V22)
+
+SĐT là tên đăng nhập, chuẩn hoá về `0` + 9 số (`BE/util/PhoneNumbers.java`); chưa có OTP. Access token JWT 60 phút (`customer.auth.access-token-minutes`), refresh token ngẫu nhiên 30 ngày (`customer.auth.refresh-token-days`), lưu băm SHA-256, xoay vòng mỗi lần refresh. Logic ở `BE/service/CustomerAuthService.java`, `CustomerAccountService.java`.
+
+| Method | Path | Auth | Request -> Response | Lỗi chính | FE caller |
+|---|---|---|---|---|---|
+| POST | `/api/dragun/auth/register` | PUBLIC | `{phone, fullName, email?, password, consent, website}` -> `CustomerAuthResponse{accessToken, expiresIn, refreshToken, customer}` | 400 SĐT, mật khẩu (8-64, có chữ và số, không chứa SĐT), thiếu đồng ý; 409 SĐT đã có; 429 quá 5 lần/giờ/IP | `customer.service.js` `register` |
+| POST | `/api/dragun/auth/login` | PUBLIC | `{phone, password}` -> `CustomerAuthResponse` | 401 chung cho SĐT lạ và sai mật khẩu; sai 5 lần thì 429 trong 15 phút; 403 tài khoản bị khoá; 429 quá 20 lần/10 phút/IP | `login` |
+| POST | `/api/dragun/auth/refresh` | PUBLIC | `{refreshToken}` -> `CustomerAuthResponse` (token cũ hết hiệu lực) | 401 hết hạn hoặc đã thu hồi | `refresh` (từ `stores/auth.js`) |
+| POST | `/api/dragun/auth/logout` | PUBLIC | `{refreshToken}` | luôn 200 | `logout` |
+| GET/PUT | `/api/dragun/account/profile` | CUSTOMER | PUT `CustomerProfileRequest` có `updatedAt` -> `CustomerProfileResponse` | 400; 409 `updatedAt` lệch | `getProfile`, `updateProfile` |
+| PUT | `/api/dragun/account/password` | CUSTOMER | `{currentPassword, newPassword}` -> `CustomerAuthResponse` mới; tăng `token_version`, thu hồi mọi refresh token | 400 sai mật khẩu hiện tại hoặc mật khẩu yếu | `changePassword` |
+| GET | `/api/dragun/account/orders` | CUSTOMER | -> `OrderResponse[]` đơn có `customer_id` của mình | | `getMyOrders` |
+
+Đổi họ tên ở profile thì cập nhật luôn `author_name` các đánh giá của tài khoản. `POST /api/extend/orders` giữ nguyên hợp đồng; có token khách hợp lệ thì đơn gắn `customer_id`.
 
 ### 2.2 Sản phẩm (storefront, PUBLIC)
 
@@ -61,7 +79,7 @@ Nguồn: `BE/controller/external/ProductController.java:13,19-45`. `/{id}` và `
 | Method | Path | Quyền | Request -> Response | Lỗi | FE caller |
 |---|---|---|---|---|---|
 | GET | `/api/dragun/products/{id}/reviews` | PUBLIC | -> `ProductReviewSummaryResponse{averageRating, reviewCount, reviews[]}` chỉ `APPROVED`, mới nhất trước, cache 30s | 404 sản phẩm không tồn tại | `FE/services/review.service.js` `getProductReviews` |
-| POST | `/api/dragun/products/{id}/reviews` | PUBLIC | multipart `authorName`, `rating`, `content`, `images[]` (≤ 4, slot `review_image`), `website` (honeypot) -> review `APPROVED` ngay (`approved_by = auto`) | 400 dữ liệu/ảnh sai; 404; 429 quá 5 lần/10 phút/IP | `review.service.js` `submitReview` (fetch trực tiếp) |
+| POST | `/api/dragun/products/{id}/reviews` | CUSTOMER | multipart `rating`, `content`, `images[]` (≤ 4, slot `review_image`), `website` (honeypot) -> review `APPROVED` ngay (`approved_by = auto`), tên tác giả lấy từ tài khoản, gắn `customer_id` | 401 chưa đăng nhập; 400 dữ liệu/ảnh sai; 404; 409 đã đánh giá sản phẩm này; 429 quá 5 lần/10 phút/IP | `review.service.js` `submitReview(id, form, token)` qua `authStore.authorized` |
 | GET | `/api/dragun/admin/reviews?productId=&status=&page=&size=` | ADMIN | -> `ProductReviewPageResponse{items, totalElements, page, size, totalPages, statusCounts}` | 400 status sai | `review.service.js` `getAdminReviews` |
 | GET | `/api/dragun/admin/reviews/{id}` | ADMIN | -> `ProductReviewResponse` | 404 | `getAdminReview` |
 | POST | `/api/dragun/admin/reviews` | ADMIN | `ProductReviewRequest` (mặc định `APPROVED`, `source=ADMIN`) | 400 `@Valid`/ảnh không phải `/images/...`; 404 sản phẩm | `createReview` |
@@ -87,7 +105,7 @@ Nguồn: `BE/controller/admin/AdminProductController.java:16-61`, `BE/model/dto/
 
 | Method | Path | Request -> Response | Lỗi | Side effect | FE caller |
 |---|---|---|---|---|---|
-| POST | `/api/extend/orders` | `CreateOrderRequest{customerInfo{name,phone,address,province,district,ward}, items[{productId,quantity}]}` -> `{orderId, message}` | 400 validation / "Insufficient stock"; 404 product | tạo order PENDING, COD, phí ship cứng 20000, **trừ stock** trong `@Transactional` (`BE/service/OrderService.java:31-87`) | `FE/services/order.service.js:15` (từ `FE/views/Checkout.vue:363`) |
+| POST | `/api/extend/orders` | `CreateOrderRequest{customerInfo{name,phone,email?,address,province,district,ward}, items[{productId,quantity}]}` -> `{orderId, message}` | 400 validation (kể cả email sai định dạng) / "Insufficient stock"; 404 product | tạo order PENDING, COD, phí ship cứng 20000, **trừ stock** trong `@Transactional` (`BE/service/OrderService.java`); sau commit gửi mail báo admin và mail xác nhận cho khách nếu có email (async, `integration/mail/OrderMailListener`, task-005) | `FE/services/order.service.js:15` (từ `FE/views/Checkout.vue:363`) |
 | GET | `/api/extend/orders/{orderId}` | -> `OrderResponse` | 404 | - | `FE/services/order.service.js:24` (`FE/views/OrderSuccess.vue:42`) |
 | GET | `/api/extend/orders` | -> `List<OrderResponse>` tất cả đơn, mới nhất trước | - | - | `FE/services/order.service.js:32` (`FE/views/AdminOrders.vue:535`, `FE/views/AdminUsers.vue:253`) |
 | GET | `/api/extend/orders/customer/{phone}` | -> `List<OrderResponse>` | - | - | `FE/services/order.service.js:41` |

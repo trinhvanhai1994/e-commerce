@@ -59,10 +59,9 @@
                   v-model="form.category" 
                   class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value="ME_DEN">Mè đen</option>
-                  <option value="HONG_DAU">Hồng đậu</option>
-                  <option value="COMBO">Combo</option>
+                  <option v-for="opt in categoryOptions(form.category)" :key="opt.code" :value="opt.code">{{ opt.label }}</option>
                 </select>
+                <router-link to="/admin/categories" class="inline-block mt-1 text-xs text-green-700 hover:underline">Quản lý danh mục</router-link>
               </div>
 
               <div>
@@ -355,11 +354,13 @@ import AdminLayout from './AdminLayout.vue'
 import { productManagementAPI } from '@/utils/api.js'
 import { getImageUrlFromApi } from '@/utils/imageUtils.js'
 import CmsImageUploader from '../components/cms/CmsImageUploader.vue'
+import { useProductCategories } from '../composables/useProductCategories.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
 
 const route = useRoute()
 const router = useRouter()
+const { options: categoryOptions } = useProductCategories({ fresh: true })
 
 const productId = ref(null)
 const loading = ref(false)

@@ -4,6 +4,7 @@ import com.dragun.ecommerce.model.entity.ProductReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,13 @@ import java.util.List;
 public interface ProductReviewRepository extends JpaRepository<ProductReview, Long> {
 
     List<ProductReview> findByProductIdAndStatusOrderByCreatedAtDesc(Long productId, String status);
+
+    boolean existsByProductIdAndCustomerId(Long productId, Long customerId);
+
+    /** Keeps the shown author name in step with the account's profile name. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("UPDATE ProductReview r SET r.authorName = :name WHERE r.customerId = :customerId")
+    int updateAuthorNameByCustomerId(@Param("customerId") Long customerId, @Param("name") String name);
 
     /** Admin list; null filters mean "any". */
     @Query("""

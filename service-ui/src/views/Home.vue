@@ -73,7 +73,7 @@
             <!-- Category and Rating -->
             <div class="flex items-center justify-between mb-2">
               <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                {{ product.category === 'me-den' ? 'Mè đen' : 'Hồng đậu' }}
+                {{ getCategoryName(product.category) }}
               </span>
               <div class="flex items-center">
                 <div class="flex text-yellow-400">
@@ -294,6 +294,9 @@ import { getProductDiscount } from '../utils/productUtils.js'
 import { contentService } from '../services/content.service.js'
 import { defaultHomepage, resolveCmsImage, resolveSlotImage, DEFAULT_IMAGE_PATHS } from '../content/homeDefaults.js'
 import { isInternalLink, linkAttrs } from '../utils/links.js'
+import { useProductCategories } from '../composables/useProductCategories.js'
+
+const { nameOf: getCategoryName } = useProductCategories()
 
 const router = useRouter()
 const cartStore = useCartStore()

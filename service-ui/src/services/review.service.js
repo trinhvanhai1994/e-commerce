@@ -1,4 +1,5 @@
 import { httpClient } from './http/client.js'
+import { customerFetch } from './customer.service.js'
 
 function unwrap(data) {
   if (data && typeof data === 'object' && 'success' in data) {
@@ -29,29 +30,27 @@ export const reviewService = {
   },
 
   /**
-   * Customer submission, published immediately (APPROVED); admin edits or hides it later.
+   * Logged-in customer's review (task-003), published immediately (APPROVED); admin edits or hides it later.
+   * The author name comes from the account, so the form does not send one.
    * `images` are File objects already processed by imageSlotPipeline for slot review_image.
    * `website` is the honeypot field: always empty for real users.
+   * `token` is the customer access token: call through authStore.authorized(...) so a 401 refreshes it.
+   * Errors carry `status` (401 = log in again, 409 = already reviewed).
    */
-  async submitReview(productId, { authorName, rating, content, images = [], website = '' }) {
+  async submitReview(productId, { rating, content, images = [], website = '' }, token) {
     const formData = new FormData()
-    formData.append('authorName', authorName)
     formData.append('rating', String(rating))
     formData.append('content', content)
     formData.append('website', website)
     images.forEach((file) => formData.append('images', file))
 
-    // Multipart goes through fetch, like contentService.uploadCmsImage (the http client sends JSON)
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
-    const response = await fetch(`${baseURL}/api/dragun/products/${productId}/reviews`, {
+    // Multipart goes through fetch (the http client sends JSON)
+    const { data, message } = await customerFetch(`/api/dragun/products/${productId}/reviews`, {
       method: 'POST',
       body: formData,
+      token,
     })
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok || data.success === false) {
-      throw new Error(data.message || `Gửi đánh giá thất bại (${response.status})`)
-    }
-    return { review: data.data, message: data.message }
+    return { review: data, message }
   },
 
   // ----- admin -----

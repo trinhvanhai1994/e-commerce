@@ -33,6 +33,7 @@ public class OrderResponse {
     public static class CustomerInfo {
         private String name;
         private String phone;
+        private String email;
         private String address;
         private String province;
         private String district;

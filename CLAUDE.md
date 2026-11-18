@@ -56,7 +56,8 @@ Làm chức năng mới: theo skill dự án `.claude/skills/ecommerce-dev/SKILL
 
 ## 6. Bẫy hay gặp (chi tiết: `docs/ai/00-overview.md` mục Gotchas)
 
-- Danh sách route public nằm ở hai nơi: `util/Constants.PUBLIC_ENDPOINTS` và `JwtAuthenticationFilter.shouldNotFilter`. Đổi cả hai.
+- Danh sách route public nằm ở hai nơi: `util/Constants.PUBLIC_ENDPOINTS` và `JwtAuthenticationFilter.shouldNotFilter`. Đổi cả hai. Filter cố ý vẫn chạy trên `/api/dragun/products/**` và `/api/extend/orders` để nhận token khách.
+- Có hai loại token: admin (`localStorage['authToken']`, httpClient gắn vào mọi request) và khách (`localStorage['customerSession']`, chỉ gửi qua `customer.service.js` + `stores/auth.js`). Không lưu token khách vào `authToken`. Hành động cần khách đăng nhập: `authStore.requireLogin(action, lý do)`.
 - `/api/extend/orders/**` đang `permitAll` (kể cả đổi trạng thái); admin UI dùng chung route này. Không nhân bản pattern này cho route mới.
 - Profile dev/test dùng `ddl-auto: update`, prod dùng `validate`: cột thiếu trong migration chỉ lộ ra ở prod. Mọi thay đổi schema phải có migration.
 - CMS seed (`cms-seed/*.json`) phải bằng đúng nội dung site đang hiển thị: `CmsSeedService` chỉ chèn key còn thiếu. Storefront merge section từ API lên `service-ui/src/content/homeDefaults.js`; API public không được lọc bỏ section `enabled:false`.

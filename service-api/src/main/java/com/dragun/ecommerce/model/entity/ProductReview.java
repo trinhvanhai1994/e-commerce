@@ -55,6 +55,10 @@ public class ProductReview {
     @Column(nullable = false, length = 20)
     private String source;
 
+    /** Author account (V22); null for guest, seed and admin reviews. One review per product per account. */
+    @Column(name = "customer_id")
+    private Long customerId;
+
     @Column(name = "approved_at")
     private OffsetDateTime approvedAt;
 
