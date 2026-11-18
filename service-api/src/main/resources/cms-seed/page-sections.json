@@ -109,6 +109,68 @@
     }
   },
   {
+    "page_key": "story",
+    "section_key": "ingredients",
+    "sort_order": 9,
+    "extra_json": {
+      "title": "Thành phần dinh dưỡng",
+      "subtitle": "Khám phá những thành phần tự nhiên và dinh dưỡng trong mỗi sản phẩm Thi Yên",
+      "tabs": ["THÀNH PHẦN", "THÔNG TIN CHUNG", "BẢNG CÔNG BỐ"],
+      "composition": {
+        "heading": "Thành phần tự nhiên",
+        "items": [
+          { "name": "BỘT NGŨ HẮC MÈ ĐEN", "body": "Hỗn hợp bột hạt (Yến mạch, Đậu đen, Hạt vừng, Gạo lứt đen, Diêm mạch đen, Óc chó), Erythritol, Prebiotic (Fructo Oligosaccharides), Bột khoai mỡ, Dâu tằm đen, Muối NaCl." },
+          { "name": "BỘT NGŨ SẮC HỒNG ĐẬU", "body": "Hỗn hợp bột hạt (Yến mạch, Đậu đỏ, Diêm mạch đỏ, Hạt sen), Táo đỏ, Isomalto oligosaccharide, Fructose, Bột sữa dừa, Chiết xuất củ dền, Konjac gum (INS 425), Muối NaCl." }
+        ],
+        "note": "Có chứa: gluten, các loại hạt (tree nuts)."
+      },
+      "info": {
+        "heading": "Thông tin sản phẩm",
+        "groups": [
+          { "title": "Thông tin cơ bản", "items": ["Khối lượng tịnh: 600g", "Xuất xứ: Việt Nam"] },
+          { "title": "Bảo quản & Sử dụng", "items": ["Bảo quản: Nơi khô ráo, thoáng mát", "Hạn sử dụng: Xem trên bao bì"] }
+        ]
+      },
+      "facts": {
+        "heading": "Bảng dinh dưỡng",
+        "noteLabel": "(**)",
+        "note": "Hàm lượng các vitamin và khoáng chất không thấp hơn 80% giá trị ghi trên nhãn.",
+        "valueTitle": "Giá trị dinh dưỡng",
+        "valueBody": "Giá trị dinh dưỡng trung bình trong 100ml sản phẩm"
+      }
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "products",
+    "sort_order": 10,
+    "extra_json": {
+      "title": "Sản phẩm nổi bật",
+      "subtitle": "Khám phá những sản phẩm được yêu thích nhất từ Thi Yên",
+      "items": [
+        { "name": "Bột Ngũ Hắc Mè Đen", "body": "Kết hợp 5 loại hạt đen bổ dưỡng: mè đen, gạo lứt đen, đậu đen, diêm mạch đen và dâu tằm đen", "tags": ["Thuần tự nhiên", "Bổ dưỡng"], "productId": 1, "imageAlt": "Bột Ngũ Hắc Mè Đen - Sản phẩm dinh dưỡng từ 5 loại hạt đen", "image": null, "useDefaultImage": true },
+        { "name": "Bột Ngũ Sắc Hồng Đậu", "body": "Kết hợp 5 nguyên liệu đỏ tự nhiên, giàu dưỡng chất: táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ", "tags": ["Bổ khí huyết", "Dưỡng nhan"], "productId": 3, "imageAlt": "Bột Ngũ Sắc Hồng Đậu - Sản phẩm dinh dưỡng từ 5 loại hạt đỏ", "image": null, "useDefaultImage": true }
+      ],
+      "ctaTitle": "Sẵn sàng bắt đầu hành trình sống lành?",
+      "ctaBody": "Khám phá thêm nhiều sản phẩm dinh dưỡng khác từ Thi Yên",
+      "ctaButton": "Xem tất cả sản phẩm"
+    }
+  },
+  {
+    "page_key": "story",
+    "section_key": "gallery",
+    "sort_order": 11,
+    "extra_json": {
+      "title": "BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG",
+      "items": [
+        { "alt": "Thêm mô tả 1", "image": null, "useDefaultImage": true },
+        { "alt": "Thêm mô tả 2", "image": null, "useDefaultImage": true },
+        { "alt": "Thêm mô tả 3", "image": null, "useDefaultImage": true },
+        { "alt": "Thêm mô tả 4", "image": null, "useDefaultImage": true }
+      ]
+    }
+  },
+  {
     "page_key": "philosophy",
     "section_key": "hero",
     "sort_order": 1,

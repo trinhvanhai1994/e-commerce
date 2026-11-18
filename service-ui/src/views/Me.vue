@@ -208,31 +208,29 @@
       </div>
     </section>
 
-    <!-- Ingredients Section -->
-    <section class="ingredients-section py-2">
+    <!-- Ingredients Section (CMS story/ingredients) -->
+    <section v-if="visible('ingredients')" class="ingredients-section py-2">
       <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
           <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-bold text-green-600 mb-6 gradient-text-green">Thành phần dinh dưỡng</h2>
+            <h2 class="text-4xl md:text-5xl font-bold text-green-600 mb-6 gradient-text-green">{{ ing.title }}</h2>
             <div class="w-32 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto rounded-full"></div>
-            <div class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
-              Khám phá những thành phần tự nhiên và dinh dưỡng trong mỗi sản phẩm Thi Yên
-            </div>
+            <div v-if="ing.subtitle" class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">{{ ing.subtitle }}</div>
           </div>
-          
+
           <div class="bg-gradient-to-br from-white to-green-50 rounded-3xl shadow-2xl p-8 md:p-12 border border-green-100" data-aos="fade-up" data-aos-delay="200">
             <div class="grid lg:grid-cols-4 gap-8">
               <!-- Tab Navigation -->
               <div class="lg:col-span-1">
                 <div class="space-y-3">
-                  <button 
-                    v-for="(tab, index) in tabs" 
+                  <button
+                    v-for="(tab, index) in ingTabs"
                     :key="index"
                     @click="activeTab = index"
                     :class="[
                       'w-full text-left px-6 py-4 rounded-2xl transition-all duration-300 font-semibold text-sm md:text-base',
-                      activeTab === index 
-                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-105' 
+                      activeTab === index
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-105'
                         : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-600 border border-gray-200 hover:border-green-200'
                     ]"
                   >
@@ -241,12 +239,12 @@
                         'w-2 h-2 rounded-full transition-all duration-300',
                         activeTab === index ? 'bg-white' : 'bg-green-500'
                       ]"></div>
-                      <span>{{ tab.title }}</span>
+                      <span>{{ tab }}</span>
                     </div>
                   </button>
                 </div>
               </div>
-              
+
               <!-- Tab Content -->
               <div class="lg:col-span-3">
                 <div class="tab-content bg-white rounded-2xl p-8 shadow-lg">
@@ -255,82 +253,76 @@
                       <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                         <span class="text-green-600 text-xl">🌿</span>
                       </div>
-                      <h3 class="text-2xl font-bold text-gray-800">Thành phần tự nhiên</h3>
+                      <h3 class="text-2xl font-bold text-gray-800">{{ ing.composition?.heading }}</h3>
                     </div>
-                    <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl border-l-4 border-green-500">
+                    <div v-if="(ing.composition?.items || []).length" class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl border-l-4 border-green-500">
                       <div class="space-y-4">
-                        <div class="bg-white p-4 rounded-lg border border-green-200">
-                          <h4 class="font-bold text-green-800 mb-2">BỘT NGŨ HẮC MÈ ĐEN</h4>
-                          <p class="text-gray-700 leading-relaxed text-sm">
-                            Hỗn hợp bột hạt (Yến mạch, Đậu đen, Hạt vừng, Gạo lứt đen, Diêm mạch đen, Óc chó), Erythritol, Prebiotic (Fructo Oligosaccharides), Bột khoai mỡ, Dâu tằm đen, Muối NaCl.
-                          </p>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg border border-pink-200">
-                          <h4 class="font-bold text-pink-800 mb-2">BỘT NGŨ SẮC HỒNG ĐẬU</h4>
-                          <p class="text-gray-700 leading-relaxed text-sm">
-                            Hỗn hợp bột hạt (Yến mạch, Đậu đỏ, Diêm mạch đỏ, Hạt sen), Táo đỏ, Isomalto oligosaccharide, Fructose, Bột sữa dừa, Chiết xuất củ dền, Konjac gum (INS 425), Muối NaCl.
-                          </p>
+                        <div
+                          v-for="(item, idx) in ing.composition.items"
+                          :key="idx"
+                          class="bg-white p-4 rounded-lg border"
+                          :class="idx % 2 ? 'border-pink-200' : 'border-green-200'"
+                        >
+                          <h4 class="font-bold mb-2" :class="idx % 2 ? 'text-pink-800' : 'text-green-800'">{{ item.name }}</h4>
+                          <p class="text-gray-700 leading-relaxed text-sm" v-html="renderRichText(item.body)"></p>
                         </div>
                       </div>
                     </div>
-                    <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                    <div v-if="ing.composition?.note" class="bg-amber-50 p-4 rounded-lg border border-amber-200">
                       <p class="text-amber-800 font-medium">
-                        <span class="font-bold">⚠️ Lưu ý:</span> Có chứa: gluten, các loại hạt (tree nuts).
+                        <span class="font-bold">⚠️ Lưu ý:</span> {{ ing.composition.note }}
                       </p>
                     </div>
                   </div>
-                  
+
                   <div v-if="activeTab === 1" class="space-y-6">
                     <div class="flex items-center space-x-3 mb-6">
                       <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                         <span class="text-blue-600 text-xl">📋</span>
                       </div>
-                      <h3 class="text-2xl font-bold text-gray-800">Thông tin sản phẩm</h3>
+                      <h3 class="text-2xl font-bold text-gray-800">{{ ing.info?.heading }}</h3>
                     </div>
                     <div class="grid md:grid-cols-2 gap-6">
-                      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl">
+                      <div
+                        v-for="(group, gIdx) in ing.info?.groups || []"
+                        :key="gIdx"
+                        class="p-6 rounded-xl"
+                        :class="gIdx % 2 ? 'bg-gradient-to-br from-green-50 to-emerald-50' : 'bg-gradient-to-br from-blue-50 to-indigo-50'"
+                      >
                         <h4 class="font-bold text-gray-800 mb-3 flex items-center">
-                          <span class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
-                          Thông tin cơ bản
+                          <span
+                            class="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm mr-3"
+                            :class="gIdx % 2 ? 'bg-green-500' : 'bg-blue-500'"
+                          >{{ gIdx + 1 }}</span>
+                          {{ group.title }}
                         </h4>
-                    <ul class="space-y-2 text-gray-700">
-                          <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>Khối lượng tịnh: 600g</li>
-                          <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>Xuất xứ: Việt Nam</li>
-                    </ul>
-                      </div>
-                      <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl">
-                        <h4 class="font-bold text-gray-800 mb-3 flex items-center">
-                          <span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
-                          Bảo quản & Sử dụng
-                        </h4>
-                    <ul class="space-y-2 text-gray-700">
-                          <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Bảo quản: Nơi khô ráo, thoáng mát</li>
-                          <li class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Hạn sử dụng: Xem trên bao bì</li>
-                    </ul>
+                        <ul class="space-y-2 text-gray-700">
+                          <li v-for="(line, lIdx) in group.items || []" :key="lIdx" class="flex items-center">
+                            <span class="w-2 h-2 rounded-full mr-3" :class="gIdx % 2 ? 'bg-green-500' : 'bg-blue-500'"></span>{{ line }}
+                          </li>
+                        </ul>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div v-if="activeTab === 2" class="space-y-6">
                     <div class="flex items-center space-x-3 mb-6">
                       <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                         <span class="text-purple-600 text-xl">📊</span>
                       </div>
-                      <h3 class="text-2xl font-bold text-gray-800">Bảng dinh dưỡng</h3>
+                      <h3 class="text-2xl font-bold text-gray-800">{{ ing.facts?.heading }}</h3>
                     </div>
-                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-l-4 border-purple-500">
+                    <div v-if="ing.facts?.note" class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-l-4 border-purple-500">
                       <p class="text-gray-700 leading-relaxed mb-4">
-                        <strong>(**)</strong> Hàm lượng các vitamin và khoáng chất không thấp hơn 80% giá trị ghi trên nhãn.
+                        <strong v-if="ing.facts.noteLabel">{{ ing.facts.noteLabel }}</strong> {{ ing.facts.note }}
                       </p>
                     </div>
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl">
+                    <div v-if="ing.facts?.valueTitle || ing.facts?.valueBody" class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl">
                       <div class="flex items-center space-x-3 mb-4">
                         <span class="text-2xl">📈</span>
-                        <h4 class="text-lg font-bold text-gray-800">Giá trị dinh dưỡng</h4>
+                        <h4 class="text-lg font-bold text-gray-800">{{ ing.facts.valueTitle }}</h4>
                       </div>
-                      <p class="text-gray-600 font-medium">
-                        Giá trị dinh dưỡng trung bình trong 100ml sản phẩm
-                      </p>
+                      <p class="text-gray-600 font-medium">{{ ing.facts.valueBody }}</p>
                     </div>
                   </div>
                 </div>
@@ -341,90 +333,71 @@
       </div>
     </section>
 
-    <!-- Product Showcase Section -->
-    <section class="product-showcase py-2">
+    <!-- Product Showcase Section (CMS story/products) -->
+    <section v-if="visible('products')" class="product-showcase py-2">
       <div class="container mx-auto px-4">
         <div class="max-w-7xl mx-auto">
           <div class="text-center mb-8" data-aos="fade-up">
-            <h2 class="text-4xl md:text-5xl font-bold text-green-600 mb-6 gradient-text-green">Sản phẩm nổi bật</h2>
+            <h2 class="text-4xl md:text-5xl font-bold text-green-600 mb-6 gradient-text-green">{{ prod.title }}</h2>
             <div class="w-32 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto rounded-full"></div>
-            <p class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
-              Khám phá những sản phẩm được yêu thích nhất từ Thi Yên
-            </p>
+            <p v-if="prod.subtitle" class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">{{ prod.subtitle }}</p>
           </div>
-          
+
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <!-- Product 1 -->
-            <div class="product-card bg-gradient-to-br from-white to-green-50 rounded-3xl p-8 shadow-2xl border border-green-100" data-aos="fade-right">
+            <div
+              v-for="(item, idx) in prod.items || []"
+              :key="idx"
+              class="product-card bg-gradient-to-br from-white rounded-3xl p-8 shadow-2xl border"
+              :class="idx % 2 ? 'to-pink-50 border-pink-100' : 'to-green-50 border-green-100'"
+              :data-aos="idx % 2 ? 'fade-left' : 'fade-right'"
+            >
               <div class="relative overflow-hidden rounded-2xl mb-6">
                 <img
-                  :src="getImageUrlFromApi('/images/me/item1.png')"
-                  alt="Bột Ngũ Hắc Mè Đen"
+                  v-if="imageOf('products', item, idx)"
+                  :src="imageOf('products', item, idx)"
+                  :alt="item.imageAlt || item.name"
                   class="w-full h-80 object-contain bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer hover:scale-105"
-                  @click="openImageModal('/images/me/item1.png', 'Bột Ngũ Hắc Mè Đen - Sản phẩm dinh dưỡng từ 5 loại hạt đen')"
+                  @click="openImageModal(imageOf('products', item, idx), item.imageAlt || item.name)"
                 />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-end justify-center pb-4">
-                  <button 
-                    @click="goToProductDetail(1)"
-                    class="bg-white/90 text-green-600 px-4 py-2 rounded-full font-semibold text-sm"
+                <div
+                  v-if="item.productId"
+                  class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-end justify-center pb-4"
+                >
+                  <button
+                    @click="goToProductDetail(Number(item.productId))"
+                    class="bg-white/90 px-4 py-2 rounded-full font-semibold text-sm"
+                    :class="idx % 2 ? 'text-pink-600' : 'text-green-600'"
                   >
                     Xem chi tiết
                   </button>
                 </div>
               </div>
               <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-800 mb-3">Bột Ngũ Hắc Mè Đen</h3>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                  Kết hợp 5 loại hạt đen bổ dưỡng: mè đen, gạo lứt đen, đậu đen, diêm mạch đen và dâu tằm đen
-                </p>
-                <div class="flex justify-center space-x-4">
-                  <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Thuần tự nhiên</span>
-                  <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">Bổ dưỡng</span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Product 2 -->
-            <div class="product-card bg-gradient-to-br from-white to-pink-50 rounded-3xl p-8 shadow-2xl border border-pink-100" data-aos="fade-left">
-              <div class="relative overflow-hidden rounded-2xl mb-6">
-                <img
-                  :src="getImageUrlFromApi('/images/me/item2.png')"
-                  alt="Bột Ngũ Sắc Hồng Đậu"
-                  class="w-full h-80 object-contain bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer hover:scale-105"
-                  @click="openImageModal(getImageUrlFromApi('/images/me/item2.png'), 'Bột Ngũ Sắc Hồng Đậu - Sản phẩm dinh dưỡng từ 5 loại hạt đỏ')"
-                />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-end justify-center pb-4">
-                  <button 
-                    @click="goToProductDetail(3)"
-                    class="bg-white/90 text-pink-600 px-4 py-2 rounded-full font-semibold text-sm"
-                  >
-                    Xem chi tiết
-                  </button>
-                </div>
-              </div>
-              <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-800 mb-3">Bột Ngũ Sắc Hồng Đậu</h3>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                  Kết hợp 5 nguyên liệu đỏ tự nhiên, giàu dưỡng chất: táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ
-                </p>
-                <div class="flex justify-center space-x-4">
-                  <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium">Bổ khí huyết</span>
-                  <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">Dưỡng nhan</span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">{{ item.name }}</h3>
+                <p class="text-gray-600 leading-relaxed mb-4">{{ item.body }}</p>
+                <div v-if="(item.tags || []).length" class="flex justify-center space-x-4">
+                  <span
+                    v-for="(tag, tIdx) in item.tags"
+                    :key="tIdx"
+                    class="px-3 py-1 rounded-full text-sm font-medium"
+                    :class="tagClass(idx, tIdx)"
+                  >{{ tag }}</span>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- Call to Action -->
-          <div class="text-center mt-8" data-aos="fade-up" data-aos-delay="300">
+          <div v-if="prod.ctaTitle || prod.ctaButton" class="text-center mt-8" data-aos="fade-up" data-aos-delay="300">
             <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white">
-              <h3 class="text-2xl md:text-3xl font-bold mb-4">Sẵn sàng bắt đầu hành trình sống lành?</h3>
-              <p class="text-lg mb-6 opacity-90">Khám phá thêm nhiều sản phẩm dinh dưỡng khác từ Thi Yên</p>
-              <button 
+              <h3 class="text-2xl md:text-3xl font-bold mb-4">{{ prod.ctaTitle }}</h3>
+              <p v-if="prod.ctaBody" class="text-lg mb-6 opacity-90">{{ prod.ctaBody }}</p>
+              <button
+                v-if="prod.ctaButton"
                 @click="goToProducts"
                 class="bg-white text-green-600 px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
               >
-                Xem tất cả sản phẩm
+                {{ prod.ctaButton }}
               </button>
             </div>
           </div>
@@ -432,9 +405,9 @@
       </div>
     </section>
 
-    <!-- BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG -->
-    <section class="max-w-8xl mx-auto px-4 py-2" data-aos="fade-up">
-      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-6 text-center gradient-text-green" data-aos="fade-up">BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG</h2>
+    <!-- Meal gallery (CMS story/gallery) -->
+    <section v-if="visible('gallery') && images.length" class="max-w-8xl mx-auto px-4 py-2" data-aos="fade-up">
+      <h2 class="text-2xl md:text-3xl font-bold text-green-600 mb-6 text-center gradient-text-green" data-aos="fade-up">{{ extra('gallery').title }}</h2>
       <!-- Desktop: ảnh vuông to, ẩn trên mobile -->
       <div class="hidden md:grid md:grid-cols-4 md:gap-6">
         <img
@@ -526,6 +499,7 @@
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { navigateToMainDomain, navigateToSubdomain } from '../utils/domainUtils';
 import { getImageUrlFromApi } from '../utils/imageUtils.js';
@@ -572,8 +546,20 @@ export default {
     // Story sections editable in admin (Câu chuyện Thi Yên); falls back to packaged content
     const { extra, visible, imageOf } = usePageContent('story');
     const paragraphs = (key) => extra(key).paragraphs || [];
+    const ing = computed(() => extra('ingredients'));
+    const ingTabs = computed(() => (ing.value.tabs || []).slice(0, 3));
+    const prod = computed(() => extra('products'));
+    const TAG_CLASSES = [
+      ['bg-green-100 text-green-800', 'bg-blue-100 text-blue-800'],
+      ['bg-pink-100 text-pink-800', 'bg-purple-100 text-purple-800'],
+    ];
+    const tagClass = (cardIdx, tagIdx) => TAG_CLASSES[cardIdx % 2][tagIdx % 2];
 
     return {
+      ing,
+      ingTabs,
+      prod,
+      tagClass,
       goToProducts,
       goToProductDetail,
       modules,
@@ -588,20 +574,9 @@ export default {
   data() {
     return {
       activeTab: 0,
-      tabs: [
-        { title: 'THÀNH PHẦN' },
-        { title: 'THÔNG TIN CHUNG' },
-        { title: 'BẢNG CÔNG BỐ' }
-      ],
       showImageModal: false,
       zoomedImageSrc: '',
-      zoomedImageAlt: '',
-      imagePaths: [
-        { src: '/images/struct/1.png', alt: 'Thêm mô tả 1' },
-        { src: '/images/struct/2.png', alt: 'Thêm mô tả 2' },
-        { src: '/images/struct/3.png', alt: 'Thêm mô tả 3' },
-        { src: '/images/struct/4.png', alt: 'Thêm mô tả 4' },
-      ]
+      zoomedImageAlt: ''
     }
   },
   methods: {
@@ -611,18 +586,17 @@ export default {
     }
   },
   computed: {
-    // Computed property để map images với getImageUrlFromApi
+    // Gallery images from CMS story/gallery; an item without a resolvable image is skipped
     images() {
-      return this.imagePaths.map(img => ({
-        ...img,
-        src: this.getImageUrlFromApi(img.src)
-      }))
+      return (this.extra('gallery').items || [])
+        .map((item, idx) => ({ src: this.imageOf('gallery', item, idx), alt: item.alt || '' }))
+        .filter((img) => img.src)
     },
     // Computed property để duplicate images nếu cần cho loop
     // Loop cần ít nhất 2 * slidesPerView slides để hoạt động đúng
     loopImages() {
       const minSlidesForLoop = Math.ceil(2 * 2.5) // 2 * slidesPerView, làm tròn lên
-      if (this.images.length >= minSlidesForLoop) {
+      if (this.images.length === 0 || this.images.length >= minSlidesForLoop) {
         return this.images
       }
       // Duplicate images để đủ cho loop

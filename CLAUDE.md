@@ -50,6 +50,7 @@ Làm chức năng mới: theo skill dự án `.claude/skills/ecommerce-dev/SKILL
 
 - API path: public `/api/dragun/...`, admin `/api/dragun/admin/...` (`@PreAuthorize("hasRole('ADMIN')")`), response bọc `ApiResponse`.
 - Ảnh upload qua `/api/dragun/admin/files/upload-cms` theo slot (`cms/ImageSlot.java` ↔ `service-ui/src/constants/imageSlots.js`, phải giữ đồng bộ).
+- Commit và push repo này chỉ bằng email `trinhhai28041994@gmail.com` (GitHub `trinhvanhai1994`). Kiểm bằng `bash .claude/skills/ecommerce-dev/scripts/check-git-account.sh` trước khi hỏi commit và trước khi push (chi tiết: skill `ecommerce-dev` mục 9).
 - Không commit `node_modules/`, `dist/`, `target/`, `uploads/`, file `.env.local`. Không đọc hoặc in giá trị trong file `.env*`.
 - Văn bản tài liệu: tiếng Việt, không dùng em-dash (theo `docs/req/CLAUDE.md` mục D).
 

@@ -117,5 +117,7 @@ Chỉ báo xong khi cả hai xanh trong lượt này, kèm số liệu. Đỏ th
 
 ## 9. Commit
 
+- **Tài khoản git**: repo này chỉ được commit và push bằng email `trinhhai28041994@gmail.com` (tài khoản GitHub `trinhvanhai1994`). Máy local đăng nhập nhiều tài khoản, global config là người khác. Trước khi hỏi commit và trước khi push, chạy `bash .claude/skills/ecommerce-dev/scripts/check-git-account.sh`; chỉ commit/push khi in `GIT_ACCOUNT=ok`. Sai thì báo owner, đề xuất đặt `git config --local`, không tự sửa global config, không tự viết lại commit cũ.
+- Hook `PreToolUse` trong `.claude/settings.json` (file local, bị ignore) gọi cùng script với `--hook`, chặn `git commit`/`git push`/`git-open-pr` khi tài khoản sai. Máy mới cần tạo lại hook đó.
 - Hỏi trước khi commit. Không stage file `.env*` (ví dụ `service-ui/.env` đang có thay đổi local), `dist/`, `target/`, `uploads/`.
 - Một thay đổi gồm cả BE và FE thì commit chung, hoặc commit BE trước ở dạng FE cũ vẫn chạy.

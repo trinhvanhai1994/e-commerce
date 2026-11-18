@@ -132,6 +132,43 @@
                   <div v-if="(ex(block.key).blocks || []).length > 8" class="text-[8px] text-gray-400">…</div>
                 </div>
 
+                <!-- ingredients (3 tabs) -->
+                <div v-else-if="block.type === 'ingredients'" class="p-3 pt-6">
+                  <div class="text-[10px] font-bold text-center text-green-700 mb-1.5">{{ ex(block.key).title }}</div>
+                  <div class="flex gap-1.5" :class="device === 'mobile' ? 'flex-col' : ''">
+                    <div class="space-y-0.5 shrink-0" :class="device === 'mobile' ? '' : 'w-1/4'">
+                      <div v-for="(t, i) in ex(block.key).tabs || []" :key="i" class="text-[7px] font-semibold rounded px-1 py-0.5 truncate" :class="i === 0 ? 'bg-green-600 text-white' : 'bg-white text-gray-600'">{{ t }}</div>
+                    </div>
+                    <div class="flex-1 bg-white rounded p-1 space-y-0.5 min-w-0">
+                      <div v-for="(it, i) in ex(block.key).composition?.items || []" :key="i" class="text-[7px] truncate"><b>{{ it.name }}</b> {{ plain(it.body) }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- products -->
+                <div v-else-if="block.type === 'products'" class="p-3 pt-6">
+                  <div class="text-[10px] font-bold text-center text-green-700 mb-1.5">{{ ex(block.key).title }}</div>
+                  <div class="grid gap-1.5" :class="device === 'mobile' ? 'grid-cols-1' : 'grid-cols-2'">
+                    <div v-for="(it, i) in ex(block.key).items || []" :key="i" class="bg-white rounded shadow-sm p-1.5 text-center">
+                      <img v-if="previewImage(block.key, it, i)" :src="previewImage(block.key, it, i)" alt="" class="h-10 mx-auto object-contain" />
+                      <div class="text-[8px] font-bold truncate">{{ it.name }}</div>
+                      <div class="text-[7px] text-gray-500 line-clamp-1">{{ it.body }}</div>
+                    </div>
+                  </div>
+                  <div v-if="ex(block.key).ctaTitle" class="mt-1.5 rounded bg-green-600 text-white text-[7px] text-center py-1 truncate">{{ ex(block.key).ctaTitle }}</div>
+                </div>
+
+                <!-- gallery -->
+                <div v-else-if="block.type === 'gallery'" class="p-3 pt-6">
+                  <div class="text-[10px] font-bold text-center text-green-700 mb-1.5">{{ ex(block.key).title }}</div>
+                  <div class="grid grid-cols-4 gap-1">
+                    <template v-for="(it, i) in ex(block.key).items || []" :key="i">
+                      <img v-if="previewImage(block.key, it, i)" :src="previewImage(block.key, it, i)" alt="" class="w-full aspect-square object-contain bg-white rounded" />
+                      <div v-else class="w-full aspect-square rounded bg-white border border-dashed"></div>
+                    </template>
+                  </div>
+                </div>
+
                 <!-- locked (rendered from code) -->
                 <div v-else class="p-3 pt-6 bg-blue-50/50">
                   <div class="text-[10px] font-bold text-center text-green-700">{{ block.previewTitle }}</div>
@@ -315,6 +352,169 @@
                 </div>
               </template>
 
+              <!-- ingredients -->
+              <template v-if="activeBlock.type === 'ingredients'">
+                <label class="block text-sm font-semibold">Dòng phụ dưới tiêu đề
+                  <input v-model="d.extra.subtitle" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                </label>
+                <div class="grid md:grid-cols-3 gap-2">
+                  <label v-for="(label, i) in INGREDIENT_TAB_LABELS" :key="i" class="block text-xs font-semibold text-gray-600">{{ label }}
+                    <input v-model="d.extra.tabs[i]" class="mt-1 w-full border rounded-lg px-3 py-1.5 text-sm" />
+                  </label>
+                </div>
+
+                <fieldset class="border rounded-lg p-3 space-y-2">
+                  <legend class="px-1 text-sm font-bold text-green-700">Tab 1: thành phần</legend>
+                  <label class="block text-sm font-semibold">Tiêu đề trong tab
+                    <input v-model="d.extra.composition.heading" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <div v-for="(it, idx) in d.extra.composition.items" :key="idx" class="border rounded-lg p-2 space-y-1">
+                    <div class="flex gap-2">
+                      <input v-model="it.name" class="flex-1 border rounded px-3 py-1.5 text-sm font-semibold" placeholder="Tên sản phẩm" />
+                      <ListControls :list="d.extra.composition.items" :index="idx" />
+                    </div>
+                    <textarea v-model="it.body" rows="3" class="w-full border rounded px-3 py-2 text-sm" placeholder="Thành phần" />
+                  </div>
+                  <button
+                    v-if="d.extra.composition.items.length < 8"
+                    type="button"
+                    class="text-xs border border-dashed rounded px-3 py-1 text-green-700"
+                    @click="d.extra.composition.items.push({ name: '', body: '' })"
+                  >+ Thêm sản phẩm</button>
+                  <label class="block text-sm font-semibold">Lưu ý (sau chữ "⚠️ Lưu ý:", để trống thì ẩn)
+                    <input v-model="d.extra.composition.note" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                </fieldset>
+
+                <fieldset class="border rounded-lg p-3 space-y-2">
+                  <legend class="px-1 text-sm font-bold text-green-700">Tab 2: thông tin chung</legend>
+                  <label class="block text-sm font-semibold">Tiêu đề trong tab
+                    <input v-model="d.extra.info.heading" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <div v-for="(g, gIdx) in d.extra.info.groups" :key="gIdx" class="border rounded-lg p-2 space-y-1">
+                    <div class="flex gap-2">
+                      <input v-model="g.title" class="flex-1 border rounded px-3 py-1.5 text-sm font-semibold" placeholder="Tên nhóm" />
+                      <ListControls :list="d.extra.info.groups" :index="gIdx" />
+                    </div>
+                    <div v-for="(line, lIdx) in g.items" :key="lIdx" class="flex gap-2 items-center pl-3">
+                      <span class="text-gray-400">•</span>
+                      <input v-model="g.items[lIdx]" class="flex-1 border rounded px-3 py-1 text-sm" />
+                      <ListControls :list="g.items" :index="lIdx" />
+                    </div>
+                    <button type="button" class="ml-3 text-xs border border-dashed rounded px-3 py-1 text-green-700" @click="g.items.push('')">+ Thêm dòng</button>
+                  </div>
+                  <button
+                    v-if="d.extra.info.groups.length < 4"
+                    type="button"
+                    class="text-xs border border-dashed rounded px-3 py-1 text-green-700"
+                    @click="d.extra.info.groups.push({ title: '', items: [''] })"
+                  >+ Thêm nhóm</button>
+                </fieldset>
+
+                <fieldset class="border rounded-lg p-3 space-y-2">
+                  <legend class="px-1 text-sm font-bold text-green-700">Tab 3: bảng công bố</legend>
+                  <label class="block text-sm font-semibold">Tiêu đề trong tab
+                    <input v-model="d.extra.facts.heading" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <div class="grid grid-cols-4 gap-2">
+                    <label class="block text-sm font-semibold">Ký hiệu
+                      <input v-model="d.extra.facts.noteLabel" class="mt-1 w-full border rounded-lg px-3 py-2" placeholder="(**)" />
+                    </label>
+                    <label class="col-span-3 block text-sm font-semibold">Ghi chú (để trống thì ẩn)
+                      <input v-model="d.extra.facts.note" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                    </label>
+                  </div>
+                  <label class="block text-sm font-semibold">Tiêu đề hộp giá trị dinh dưỡng
+                    <input v-model="d.extra.facts.valueTitle" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <label class="block text-sm font-semibold">Mô tả hộp giá trị dinh dưỡng
+                    <input v-model="d.extra.facts.valueBody" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                </fieldset>
+              </template>
+
+              <!-- products -->
+              <template v-if="activeBlock.type === 'products'">
+                <label class="block text-sm font-semibold">Dòng phụ dưới tiêu đề
+                  <input v-model="d.extra.subtitle" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                </label>
+                <div v-for="(it, idx) in d.extra.items" :key="idx" class="border rounded-lg p-3 grid md:grid-cols-3 gap-3">
+                  <CmsImageUploader
+                    v-model="it.image"
+                    v-model:use-default="it.useDefaultImage"
+                    :default-src="cmsImg(pageDefaultImage(pageKey, activeKey, idx))"
+                    slot-key="product_main"
+                    entity-type="cms"
+                    :entity-id="`${pageKey}-${activeKey}-${idx}`"
+                    :label="`Ảnh sản phẩm ${idx + 1}`"
+                  />
+                  <div class="md:col-span-2 space-y-2">
+                    <div class="flex gap-2">
+                      <input v-model="it.name" class="flex-1 border rounded px-3 py-2 text-sm font-semibold" placeholder="Tên sản phẩm" />
+                      <ListControls :list="d.extra.items" :index="idx" />
+                    </div>
+                    <textarea v-model="it.body" rows="3" class="w-full border rounded px-3 py-2 text-sm" placeholder="Mô tả" />
+                    <div class="grid grid-cols-2 gap-2">
+                      <input v-model="it.tags[0]" class="border rounded px-3 py-1.5 text-sm" placeholder="Nhãn 1" />
+                      <input v-model="it.tags[1]" class="border rounded px-3 py-1.5 text-sm" placeholder="Nhãn 2" />
+                    </div>
+                    <label class="block text-xs font-semibold text-gray-600">ID sản phẩm cho nút "Xem chi tiết" (để trống thì ẩn nút)
+                      <input v-model.number="it.productId" type="number" min="1" class="mt-1 w-full border rounded px-3 py-1.5 text-sm" />
+                    </label>
+                    <label class="block text-xs font-semibold text-gray-600">Mô tả ảnh (hiện khi phóng to)
+                      <input v-model="it.imageAlt" class="mt-1 w-full border rounded px-3 py-1.5 text-sm" />
+                    </label>
+                  </div>
+                </div>
+                <button
+                  v-if="d.extra.items.length < MAX_PRODUCTS"
+                  type="button"
+                  class="text-xs border border-dashed rounded px-3 py-1 text-green-700"
+                  @click="d.extra.items.push({ name: '', body: '', tags: ['', ''], productId: '', imageAlt: '', image: '', useDefaultImage: false })"
+                >+ Thêm sản phẩm (tối đa {{ MAX_PRODUCTS }})</button>
+
+                <fieldset class="border rounded-lg p-3 space-y-2">
+                  <legend class="px-1 text-sm font-bold text-green-700">Hộp kêu gọi mua (để trống tiêu đề và nút thì ẩn)</legend>
+                  <label class="block text-sm font-semibold">Tiêu đề
+                    <input v-model="d.extra.ctaTitle" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <label class="block text-sm font-semibold">Mô tả
+                    <input v-model="d.extra.ctaBody" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                  <label class="block text-sm font-semibold">Chữ trên nút (mở trang /products)
+                    <input v-model="d.extra.ctaButton" class="mt-1 w-full border rounded-lg px-3 py-2" />
+                  </label>
+                </fieldset>
+              </template>
+
+              <!-- gallery -->
+              <template v-if="activeBlock.type === 'gallery'">
+                <div class="grid md:grid-cols-2 gap-3">
+                  <div v-for="(it, idx) in d.extra.items" :key="idx" class="border rounded-lg p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-semibold">Ảnh {{ idx + 1 }}</span>
+                      <ListControls :list="d.extra.items" :index="idx" />
+                    </div>
+                    <CmsImageUploader
+                      v-model="it.image"
+                      v-model:use-default="it.useDefaultImage"
+                      :default-src="cmsImg(pageDefaultImage(pageKey, activeKey, idx))"
+                      slot-key="meal_tile"
+                      entity-type="cms"
+                      :entity-id="`${pageKey}-${activeKey}-${idx}`"
+                    />
+                    <input v-model="it.alt" class="w-full border rounded px-3 py-1.5 text-sm" placeholder="Mô tả ảnh" />
+                  </div>
+                </div>
+                <button
+                  v-if="d.extra.items.length < MAX_GALLERY"
+                  type="button"
+                  class="text-xs border border-dashed rounded px-3 py-1 text-green-700"
+                  @click="d.extra.items.push({ alt: '', image: '', useDefaultImage: false })"
+                >+ Thêm ảnh (tối đa {{ MAX_GALLERY }})</button>
+                <p class="text-[11px] text-gray-400">Ảnh chưa chọn sẽ không hiện trên trang.</p>
+              </template>
+
               <!-- actions -->
               <div class="flex flex-wrap items-center justify-end gap-2 pt-3 border-t">
                 <span v-if="activeSection?.updatedAt" class="text-xs text-gray-400 mr-auto">
@@ -370,19 +570,9 @@ const PAGES = {
       { key: 'mission', label: 'Sứ mệnh', type: 'mission' },
       { key: 'values', label: 'Giá trị cốt lõi', type: 'cards' },
       { key: 'nutrition', label: 'Dinh dưỡng', type: 'highlights' },
-      {
-        key: '__ingredients', label: 'Thành phần dinh dưỡng', locked: true, previewTitle: 'Thành phần dinh dưỡng',
-        lockedText: 'Khối tab thành phần, thông tin và bảng dinh dưỡng sản phẩm hiện nằm cố định trong code trang.',
-      },
-      {
-        key: '__products', label: 'Sản phẩm nổi bật', locked: true, previewTitle: 'Sản phẩm nổi bật',
-        lockedText: 'Khối giới thiệu 2 sản phẩm và lời kêu gọi mua hàng hiện nằm cố định trong code trang.',
-        linkTo: '/admin/products', linkLabel: 'Quản lý sản phẩm',
-      },
-      {
-        key: '__gallery', label: 'Gallery bữa ăn', locked: true, previewTitle: 'BỮA ĂN THAY THẾ THƠM NGON, BỔ DƯỠNG',
-        lockedText: 'Gallery ảnh bữa ăn ở cuối trang hiện nằm cố định trong code trang.',
-      },
+      { key: 'ingredients', label: 'Thành phần dinh dưỡng', type: 'ingredients' },
+      { key: 'products', label: 'Sản phẩm nổi bật', type: 'products' },
+      { key: 'gallery', label: 'Gallery bữa ăn', type: 'gallery' },
     ],
   },
   philosophy: {
@@ -442,7 +632,12 @@ const d = computed(() => drafts[activeKey.value])
 const clone = (v) => JSON.parse(JSON.stringify(v ?? null))
 const cmsImg = (path) => resolveCmsImage(path || '')
 const plain = (text) => String(text ?? '').replace(/\*\*/g, '')
-const hasParagraphs = (type) => ['paragraphs', 'feature', 'mission', 'article'].includes(type)
+const hasParagraphs = (type) => ['paragraphs', 'feature', 'mission', 'article', 'ingredients'].includes(type)
+
+/** Limits enforced by ContentService.validateStoryExtra too. */
+const MAX_PRODUCTS = 4
+const MAX_GALLERY = 12
+const INGREDIENT_TAB_LABELS = ['Tab 1: thành phần', 'Tab 2: thông tin chung', 'Tab 3: bảng công bố']
 
 /** Extra of a block for the map: the draft when loaded, else the packaged default. */
 const ex = (key) => drafts[key]?.extra || PAGE_DEFAULTS[props.pageKey]?.[key]?.extraJson || {}
@@ -465,6 +660,18 @@ function normalize(section) {
   if (block?.type === 'cards') extra.items = (extra.items || []).map(withImage)
   if (block?.type === 'highlights') extra.items = extra.items || []
   if (block?.type === 'article') extra.blocks = extra.blocks || []
+  if (block?.type === 'ingredients') {
+    extra.tabs = [0, 1, 2].map((i) => extra.tabs?.[i] || '')
+    extra.composition = { heading: '', note: '', ...extra.composition }
+    extra.composition.items = extra.composition.items || []
+    extra.info = { heading: '', ...extra.info }
+    extra.info.groups = (extra.info.groups || []).map((g) => ({ title: '', ...g, items: g.items || [] }))
+    extra.facts = { heading: '', noteLabel: '', note: '', valueTitle: '', valueBody: '', ...extra.facts }
+  }
+  if (block?.type === 'products') {
+    extra.items = (extra.items || []).map((it) => ({ ...withImage(it), tags: [0, 1].map((i) => it.tags?.[i] || ''), productId: it.productId ?? '' }))
+  }
+  if (block?.type === 'gallery') extra.items = (extra.items || []).map(withImage)
   return { enabled: section.enabled !== false, extra }
 }
 
@@ -475,6 +682,18 @@ function buildExtra(extra) {
   if (Array.isArray(out.items)) out.items = out.items.map((it) => (typeof it === 'object' ? fix(it) : it))
   if (Array.isArray(out.paragraphs)) out.paragraphs = out.paragraphs.filter((p) => String(p).trim())
   if (Array.isArray(out.blocks)) out.blocks = out.blocks.filter((b) => String(b.text || '').trim())
+  if (Array.isArray(out.items)) {
+    out.items = out.items.map((it) => {
+      if (!it || typeof it !== 'object') return it
+      const next = { ...it }
+      if (Array.isArray(next.tags)) next.tags = next.tags.filter((t) => String(t).trim())
+      if ('productId' in next) next.productId = Number(next.productId) > 0 ? Number(next.productId) : null
+      return next
+    })
+  }
+  if (out.info?.groups) {
+    out.info.groups = out.info.groups.map((g) => ({ ...g, items: (g.items || []).filter((l) => String(l).trim()) }))
+  }
   return out
 }
 

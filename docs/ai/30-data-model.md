@@ -115,6 +115,10 @@ Cả hai map `@JdbcTypeCode(SqlTypes.JSON)`; DB không có ràng buộc shape.
   - `meal_gallery`: `{ title, banner: string|null, useDefaultBanner: bool, tiles: [{ src: string|null, useDefault: bool, alt }] }` (V18:76-114)
   - `floating_chat`: `{ messengerUrl, zaloUrl }`
   - `hero`, `story`, `header_logo`: `{}`
+- `page_key='story'` (trang /me), khối 9-11 thêm 2026-11-18 (seed `res/cms-seed/page-sections.json`, sort 9-11):
+  - `ingredients`: `{ title, subtitle, tabs: [3 chuỗi], composition: { heading, items: [{ name, body }], note }, info: { heading, groups: [{ title, items: [string] }] }, facts: { heading, noteLabel, note, valueTitle, valueBody } }`
+  - `products`: `{ title, subtitle, items: [{ name, body, tags: [string], productId: number|null, imageAlt, image: string|null, useDefaultImage: bool }], ctaTitle, ctaBody, ctaButton }` (tối đa 4 thẻ)
+  - `gallery`: `{ title, items: [{ alt, image: string|null, useDefaultImage: bool }] }` (tối đa 12 ảnh). Ảnh mặc định theo vị trí: `FE/content/pageDefaults.js` `PAGE_DEFAULT_IMAGES.story`.
 - `blog_posts.content_json` (`List<Map<String,Object>>`, `ent/BlogPost.java:40-42`): mảng block có `type`: `p {text, class?}`, `h2 {text}`, `img {src}`, `ul {items}`, `table {headers, rows}`, `cta {to, linkText, bold}` (`res/cms-seed/blog-posts.json`).
 
 ## Seed và data migrations

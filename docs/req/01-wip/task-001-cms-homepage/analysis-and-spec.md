@@ -202,6 +202,21 @@ Mục tiêu: deploy xong trang public hiển thị y như trước; chỉ mục 
 - Vấn đề 7: API trả thành công thì Home dùng đúng danh sách bài nổi bật từ DB (rỗng thì ẩn khối); chỉ dùng 3 bài mặc định khi API lỗi.
 - Blog và chi tiết bài: khi API không gọi được (không phải 404) thì dùng bản sao seed đóng gói `service-ui/src/content/blog-posts.seed.json`, tránh trang trắng nếu FE lên trước BE.
 
+## 7c. Thay đổi 2026-11-18: sửa khối 9-11 của "Câu chuyện Thi Yên" (/me)
+
+Yêu cầu owner (nguyên văn): "Sửa lại logic cho phép edit các mục sau trong edit Câu chuyện thi yên trên admin: 9. Thành phần dinh dưỡng, 10. Sản phẩm nổi bật, 11. Gallery bữa ăn".
+
+Trước đó 3 khối này nằm cứng trong `Me.vue`, admin chỉ hiện dạng "Cố định". Quyết định owner chốt 2026-11-18 (chọn phương án mặc định đề xuất):
+
+- **Thành phần dinh dưỡng** (`ingredients`): giữ 3 tab và kiểu trình bày; sửa tiêu đề, dòng phụ, tên tab, tab 1 (thẻ thành phần, tối đa 8, và dòng lưu ý), tab 2 (nhóm thông tin, tối đa 4, mỗi nhóm có các dòng), tab 3 (ký hiệu + ghi chú, tiêu đề và mô tả hộp giá trị dinh dưỡng).
+- **Sản phẩm nổi bật** (`products`): admin tự nhập từng thẻ (ảnh slot `product_main`, tên, mô tả, 2 nhãn, ID sản phẩm cho nút "Xem chi tiết", mô tả ảnh), tối đa 4 thẻ; sửa được hộp kêu gọi mua (tiêu đề, mô tả, chữ nút).
+- **Gallery bữa ăn** (`gallery`): ảnh vuông slot `meal_tile`, tối đa 12, mỗi ảnh có mô tả; ảnh chưa chọn không hiện.
+
+Đã triển khai: 3 key thêm vào `ContentService.PAGE_SECTIONS["story"]` và giới hạn ở `validateStoryExtra`; seed đúng nội dung đang hiển thị (deploy không đổi giao diện tới khi admin lưu); `Me.vue` đọc từ CMS, khối tắt thì ẩn; editor trong `AdminPageContent.vue`. Test: `ContentServicePageTest`.
+
+- [INFERRED] Màu thẻ (xanh/hồng) và màu nhãn xoay vòng theo vị trí thẻ, không cho admin chọn màu.
+- [PROPOSED] Giới hạn 8 thẻ thành phần và 4 nhóm thông tin chỉ chặn ở FE; BE chặn chung 40 mục/list.
+
 ## 8. Ghi chú kiểm chứng
 
 - Vấn đề 1: suy ra chắc chắn từ code (API lọc `enabled=true` + FE merge mặc định có `enabled: true`), chưa chạy thử.

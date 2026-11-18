@@ -24,6 +24,8 @@ export const PAGE_DEFAULT_IMAGES = {
     feature_1: '/images/me/COMBO-MIX.png',
     feature_2: '/images/me/item4.png',
     values: ['/images/icons/tu-nhien.png', '/images/icons/can-bang.png', '/images/icons/tien-loi.png'],
+    products: ['/images/me/item1.png', '/images/me/item2.png'],
+    gallery: ['/images/struct/1.png', '/images/struct/2.png', '/images/struct/3.png', '/images/struct/4.png'],
   },
   philosophy: {
     hero: '/images/me/banner.jpg',

@@ -28,12 +28,17 @@ public class ContentService {
     /** Editable sections per public page. Keys outside this map are rejected. */
     public static final Map<String, Set<String>> PAGE_SECTIONS = Map.of(
         PAGE_HOME, Set.of("hero", "story", "quality", "meal_gallery", "floating_chat", "header_logo", "footer"),
-        "story", Set.of("hero", "intro", "feature_1", "feature_2", "vision", "mission", "values", "nutrition"),
+        "story", Set.of("hero", "intro", "feature_1", "feature_2", "vision", "mission", "values", "nutrition",
+            "ingredients", "products", "gallery"),
         "philosophy", Set.of("hero", "article", "principles", "food")
     );
 
     /** Max items of any list inside a story/philosophy section (paragraphs, cards, bullet items). */
     private static final int PAGE_MAX_LIST_ITEMS = 40;
+
+    /** Story page: product cards and meal gallery images (owner decision, task-001 change 2026-11-18). */
+    private static final int STORY_MAX_PRODUCTS = 4;
+    private static final int STORY_MAX_GALLERY = 12;
 
     private static final int FOOTER_MAX_POLICY_LINKS = 8;
     private static final int FOOTER_MAX_SOCIALS = 6;
@@ -106,6 +111,9 @@ public class ContentService {
             validateExtraJson(sectionKey, extra);
         } else {
             validatePageExtra(extra, 0);
+            if ("story".equals(pageKey)) {
+                validateStoryExtra(sectionKey, extra);
+            }
         }
         validateLink(request.getCtaLink(), "CTA link");
 
@@ -142,6 +150,25 @@ public class ContentService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trang không tồn tại");
         }
         return keys;
+    }
+
+    private void validateStoryExtra(String sectionKey, Map<String, Object> extra) {
+        if ("products".equals(sectionKey)) {
+            List<?> items = extra.get("items") instanceof List<?> list ? list : List.of();
+            if (items.size() > STORY_MAX_PRODUCTS) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tối đa " + STORY_MAX_PRODUCTS + " sản phẩm nổi bật");
+            }
+            for (Object item : items) {
+                Object id = item instanceof Map<?, ?> map ? map.get("productId") : null;
+                if (id != null && !(id instanceof Number n && n.longValue() > 0 && n.doubleValue() == n.longValue())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID sản phẩm phải là số nguyên dương");
+                }
+            }
+        }
+        if ("gallery".equals(sectionKey)
+            && extra.get("items") instanceof List<?> list && list.size() > STORY_MAX_GALLERY) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Gallery tối đa " + STORY_MAX_GALLERY + " ảnh");
+        }
     }
 
     /**
