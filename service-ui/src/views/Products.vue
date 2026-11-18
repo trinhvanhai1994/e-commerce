@@ -93,7 +93,7 @@
             <img
               :src="getProductImage(product)"
               :alt="product.name"
-              class="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+              class="w-full aspect-square object-cover hover:scale-105 transition-transform duration-300"
             />
             <div v-if="getProductDiscount(product) > 0" class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
               -{{ getProductDiscount(product) }}%

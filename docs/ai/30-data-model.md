@@ -5,7 +5,7 @@
 Đường dẫn rút gọn: `mig/` = `service-api/src/main/resources/db/migration/`, `ent/` = `service-api/src/main/java/com/dragun/ecommerce/model/entity/`, `pk/` = `service-api/src/main/java/com/dragun/ecommerce/integration/pancake/model/`, `res/` = `service-api/src/main/resources/`.
 
 ## Schema ownership
-- Flyway là nguồn schema: `enabled: true`, `baseline-on-migrate: true` (`res/application.yml:34-37`). Head hiện tại: **V24** (`mig/V24__Add_order_customer_email.sql`).
+- Flyway là nguồn schema: `enabled: true`, `baseline-on-migrate: true` (`res/application.yml:34-37`). Head hiện tại: **V25** (`mig/V25__Add_product_detail_sections.sql`).
 - Hibernate `ddl-auto: validate` ở default và prod (`res/application.yml:27`, `res/application-prod.yml:11`), nhưng **`update` ở dev và test** kèm `flyway.validate-on-migrate: false` (`res/application-dev.yml:11-14`, `res/application-test.yml:11-14`). Hệ quả: DB dev/test có thể có cột/constraint do Hibernate tự thêm mà migration không có; luôn viết migration, đừng dựa vào `update` (inferred).
 - `validate` chỉ kiểm tra tồn tại cột và kiểu, không kiểm tra NOT NULL / độ dài, nên các lệch ở mục Drift bên dưới không làm app fail khi khởi động (inferred).
 - Kiểu thời gian: bảng cũ dùng `TIMESTAMP` không timezone + `LocalDateTime` (vd `mig/V1__Initial_schema.sql:8`, `ent/Order.java:71`); bảng CMS dùng `TIMESTAMPTZ` + `OffsetDateTime` (`mig/V16__Create_cms_tables.sql:15`, `ent/BlogPost.java:60`).
@@ -26,6 +26,8 @@
 - Soft delete: `deleted BOOLEAN DEFAULT FALSE`, `status VARCHAR(20) DEFAULT 'ACTIVE'` (`mig/V10__Add_deleted_and_status_to_products.sql:3-4`); `priority INTEGER DEFAULT 999` (thấp = ưu tiên cao) (`mig/V11__Add_priority_to_products.sql:3`).
 - Pancake: `pancake_product_id VARCHAR(100)`, `pancake_synced_at` (`mig/V8__Add_pancake_integration_tables.sql:4-6`).
 - Index: `category` (V1:111), `deleted`, `status` (V10:12-13), `priority` (V11:11), `pancake_product_id` (V8:57).
+- Trang chi tiết sản phẩm (task-006, `mig/V25__Add_product_detail_sections.sql`): `video_url VARCHAR(1000)` (link YouTube hoặc `/video/...`), `target_users`, `highlights`, `shelf_life TEXT`; cùng 5 cột cũ `specifications` (THÔNG TIN SẢN PHẨM), `ingredients`, `benefits`, `technology`, `storage`. Mỗi cột văn bản nhiều dòng: dòng `# ` tiêu đề con, `> ` chú thích, còn lại mỗi dòng một mục (`FE/utils/productSections.js`). V25 seed id 1-5 bằng nội dung trước đây viết cứng trong `ProductDetail.vue`.
+- V4 chèn id cố định không đẩy sequence; V25 `setval` `products_id_seq` lên `MAX(id)` (trước đó admin thêm sản phẩm trên DB mới bị trùng khoá chính).
 
 ### product_images (element collection)
 `ent/Product.java:43-48`, `mig/V1__Initial_schema.sql:37-41` + V9, V14

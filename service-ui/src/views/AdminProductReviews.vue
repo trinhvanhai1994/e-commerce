@@ -361,7 +361,7 @@ async function uploadImages(event) {
   uploading.value = true
   try {
     for (const file of files.slice(0, Math.max(room, 0))) {
-      const processed = await processImageForSlot(file, 'review_image')
+      const processed = await processImageForSlot(file, 'review_image', 'fit')
       const path = await contentService.uploadCmsImage(processed.file, 'review_image', 'review', editor.form.productId)
       editor.form.images.push(path)
     }

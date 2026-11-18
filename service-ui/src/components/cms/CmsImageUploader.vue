@@ -12,7 +12,7 @@
       >{{ statusBadge }}</span>
     </div>
 
-    <label class="flex items-center gap-2 text-sm mb-2 cursor-pointer select-none">
+    <label v-if="hasDefaultToggle" class="flex items-center gap-2 text-sm mb-2 cursor-pointer select-none">
       <input
         type="checkbox"
         :checked="useDefault"
@@ -26,7 +26,7 @@
       class="relative w-full bg-white border rounded-lg overflow-hidden mb-2 flex items-center justify-center"
       :style="previewBoxStyle"
     >
-      <template v-if="useDefault">
+      <template v-if="usingDefault">
         <img
           v-if="defaultSrc"
           :src="defaultSrc"
@@ -58,7 +58,7 @@
 
     <p v-if="error" class="text-xs text-red-600 mb-2">{{ error }}</p>
 
-    <div v-if="!useDefault" class="flex gap-2">
+    <div v-if="!usingDefault" class="flex gap-2">
       <input ref="fileInput" type="file" class="hidden" :accept="accept" @change="onFileChange" />
       <button
         type="button"
@@ -78,19 +78,32 @@
         Xóa
       </button>
     </div>
+    <ImageCropDialog
+      v-if="cropping"
+      :loaded="cropping.loaded"
+      :file="cropping.file"
+      @confirm="onCropConfirm"
+      @cancel="onCropCancel"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { getImageSlot } from '../../constants/imageSlots.js'
-import { formatSlotHint, processImageForSlot } from '../../utils/imageSlotPipeline.js'
+import { formatSlotHint, loadImageForSlot, renderImageForSlot } from '../../utils/imageSlotPipeline.js'
+import ImageCropDialog from './ImageCropDialog.vue'
 import { getImageUrlFromApi } from '../../utils/imageUtils.js'
 import { contentService } from '../../services/content.service.js'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  useDefault: { type: Boolean, default: true },
+  /**
+   * Bind with v-model:use-default when the slot has a packaged default image (CMS pages).
+   * Left unbound (product images): no "Dùng ảnh mặc định" toggle, the uploader always allows upload.
+   * The default must stay `undefined` so an absent prop is told apart from `false`.
+   */
+  useDefault: { type: Boolean, default: undefined },
   slotKey: { type: String, required: true },
   label: { type: String, default: '' },
   entityType: { type: String, default: 'cms' },
@@ -107,13 +120,18 @@ const fileInput = ref(null)
 const loading = ref(false)
 const error = ref('')
 const localPreview = ref('')
+// Ảnh lệch tỷ lệ slot đang chờ admin chọn vùng hiển thị: { file, loaded }
+const cropping = ref(null)
+
+const hasDefaultToggle = computed(() => props.useDefault !== undefined)
+const usingDefault = computed(() => hasDefaultToggle.value && props.useDefault === true)
 
 const slotMeta = computed(() => getImageSlot(props.slotKey))
 const hint = computed(() => formatSlotHint(props.slotKey))
 const accept = computed(() => slotMeta.value.mime.join(','))
 
 const displayUrl = computed(() => {
-  if (props.useDefault) return ''
+  if (usingDefault.value) return ''
   if (localPreview.value) return localPreview.value
   if (!props.modelValue) return ''
   if (props.modelValue.startsWith('data:') || props.modelValue.startsWith('blob:') || props.modelValue.startsWith('http')) {
@@ -132,14 +150,14 @@ const previewBoxStyle = computed(() => {
 
 const statusBadge = computed(() => {
   if (error.value) return 'Sai mẫu'
-  if (props.useDefault) return 'Mặc định'
+  if (usingDefault.value) return 'Mặc định'
   if (props.modelValue) return `Đạt chuẩn ${slotMeta.value.outputWidth}×${slotMeta.value.outputHeight}`
   return 'Trống'
 })
 
 const statusBadgeClass = computed(() => {
   if (error.value) return 'bg-red-100 text-red-700'
-  if (props.useDefault) return 'bg-amber-100 text-amber-800'
+  if (usingDefault.value) return 'bg-amber-100 text-amber-800'
   if (props.modelValue) return 'bg-green-100 text-green-700'
   return 'bg-gray-100 text-gray-600'
 })
@@ -169,20 +187,53 @@ async function onFileChange(event) {
 
   loading.value = true
   error.value = ''
+  let loaded
   try {
-    const processed = await processImageForSlot(file, props.slotKey)
+    loaded = await loadImageForSlot(file, props.slotKey)
+  } catch (e) {
+    fail(e)
+    loading.value = false
+    return
+  }
+  if (loaded.needsCrop) {
+    // Không tự cắt giữa: admin chọn vùng hoặc "Vừa toàn bộ ảnh", để không mất nội dung ở mép
+    cropping.value = { file, loaded }
+    return
+  }
+  await upload(file, loaded, null)
+}
+
+async function onCropConfirm(placement) {
+  const { file, loaded } = cropping.value
+  cropping.value = null
+  await upload(file, loaded, placement)
+}
+
+function onCropCancel() {
+  cropping.value = null
+  loading.value = false
+}
+
+async function upload(file, loaded, placement) {
+  loading.value = true
+  try {
+    const processed = await renderImageForSlot(loaded, file, placement)
     localPreview.value = processed.previewUrl
     const path = await contentService.uploadCmsImage(processed.file, props.slotKey, props.entityType, props.entityId)
     emit('update:useDefault', false)
     emit('update:modelValue', path)
     emit('uploaded', path)
   } catch (e) {
-    error.value = e.message || 'Upload thất bại'
-    emit('error', error.value)
+    fail(e)
     localPreview.value = ''
   } finally {
     loading.value = false
   }
+}
+
+function fail(e) {
+  error.value = e.message || 'Upload thất bại'
+  emit('error', error.value)
 }
 
 function clear() {

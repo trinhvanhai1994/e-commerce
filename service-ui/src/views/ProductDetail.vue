@@ -30,7 +30,7 @@
                   :key="index"
                   @click="selectImage(image, index)"
                   :class="[
-                    'relative aspect-square bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
+                    'relative flex-shrink-0 aspect-square bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group border-2',
                     currentImageIndex === index
                       ? 'border-green-500 shadow-lg transform scale-105 ring-2 ring-green-200'
                       : 'border-gray-200 hover:border-green-300 hover:shadow-md hover:scale-102'
@@ -80,7 +80,7 @@
               <div class="relative overflow-hidden rounded-none md:rounded-lg shadow-none md:shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 p-0 md:p-4 group">
                 <!-- Carousel Container with touch support -->
                 <div 
-                  class="relative h-[400px] md:h-64 lg:h-80 overflow-hidden rounded-none md:rounded-lg touch-pan-x aspect-square"
+                  class="relative w-full max-w-[560px] mx-auto aspect-square overflow-hidden rounded-none md:rounded-lg touch-pan-x"
                   @touchstart="handleTouchStart"
                   @touchmove="handleTouchMove"
                   @touchend="handleTouchEnd"
@@ -524,7 +524,7 @@
                 <!-- Preview ảnh đã chọn -->
                 <div v-if="newReviewForm.images.length > 0" class="grid grid-cols-4 gap-2">
                   <div v-for="(img, idx) in newReviewForm.images" :key="img.previewUrl" class="relative group">
-                    <img :src="img.previewUrl" alt="Preview" class="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                    <img :src="img.previewUrl" alt="Preview" class="w-full aspect-square object-cover rounded-lg border border-gray-200" />
                     <button
                       type="button"
                       @click="removeImagePreview(idx)"
@@ -561,172 +561,76 @@
       </div>
 
       <!-- Video giới thiệu sản phẩm (PC only - trước phần mô tả) -->
-      <div class="hidden lg:block mt-4 mb-6">
+      <div v-if="productVideoInfo" class="hidden lg:block mt-4 mb-6">
         <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
           <h2 class="text-lg md:text-xl font-bold text-green-700 mb-4 text-center">Video giới thiệu sản phẩm</h2>
           <div class="flex justify-center">
+            <iframe
+              v-if="productVideoInfo.kind === 'youtube'"
+              :src="productVideoInfo.src"
+              class="w-full max-w-2xl aspect-video rounded-lg"
+              title="Video giới thiệu sản phẩm"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
             <video
+              v-else
+              :key="productVideoInfo.src"
               class="w-full max-w-2xl rounded-lg"
               controls
               style="max-height: 70vh; object-fit: contain;"
             >
-              <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
+              <source :src="productVideoInfo.src" type="video/mp4" />
               Trình duyệt của bạn không hỗ trợ video.
             </video>
           </div>
         </div>
       </div>
 
-              <!-- Product Details Table -->
-        <div class="space-y-6">
+              <!-- Product Details Table: 9 mục do admin sửa (task-006, utils/productSections.js) -->
+        <div v-if="detailSections.length" class="space-y-6">
           <div class="grid grid-cols-1 gap-6">
-            <!-- THÔNG TIN SẢN PHẨM - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
-              <ul class="benefits-list">
-                <li>Tên sản phẩm: Bột Ngũ Hắc Mè Đen</li>
-                <li>Quy cách: Lon thiếc 600g</li>
-                <li>Hạn sử dụng: 10 tháng kể từ ngày sản xuất</li>
-                <li>Xuất xứ: Việt Nam</li>
-              </ul>
+            <div v-for="section in detailSections" :key="section.key" class="product-detail-section">
+              <h3 class="section-title">{{ section.title }}</h3>
+              <template v-if="section.style === 'paragraph'">
+                <template v-for="(line, idx) in section.lines" :key="idx">
+                  <h3 v-if="line.type === 'heading'" class="section-title">{{ line.text }}</h3>
+                  <p v-else-if="line.type === 'note'" class="section-subtitle">{{ line.text }}</p>
+                  <p v-else class="section-content">{{ line.text }}</p>
+                </template>
+              </template>
+              <template v-else>
+                <template v-for="(group, gIdx) in groupSectionLines(section.lines)" :key="gIdx">
+                  <h3 v-if="group.heading" class="section-title">{{ group.heading }}</h3>
+                  <p v-for="(note, nIdx) in group.notes" :key="'n' + nIdx" class="section-subtitle">{{ note }}</p>
+                  <ul v-if="group.items.length" class="benefits-list">
+                    <li v-for="(item, iIdx) in group.items" :key="iIdx">{{ section.style === 'bullet' ? '• ' + item : item }}</li>
+                  </ul>
+                </template>
+              </template>
             </div>
-
-            <!-- THÔNG TIN SẢN PHẨM - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">THÔNG TIN SẢN PHẨM</h3>
-              <ul class="benefits-list">
-                <li>Tên sản phẩm: Bột Ngũ Sắc Hồng Đậu</li>
-                <li>Quy cách: Lon thiếc 600g</li>
-                <li>Hạn sử dụng: 08 tháng kể từ ngày sản xuất</li>
-                <li>Xuất xứ: Việt Nam</li>
-              </ul>
-            </div>
-
-            <!-- THÀNH PHẦN - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">THÀNH PHẦN</h3>
-              <p class="section-content">Yến mạch; Gạo lứt đen; Đậu đỏ có vỏ; Diêm mạch đen; Mè đen; Dâu tằm đen; Đậu đen có vỏ (trắng lòng); Óc chó; Erythritol; FOS, Khoai mỡ.</p>
-            </div>
-
-            <!-- THÀNH PHẦN - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">THÀNH PHẦN</h3>
-              <p class="section-content">Đậu đỏ nhỏ có vỏ, Hạt sen đỏ Củ dền đỏ, Diêm mạch đỏ, Yến mạch, Táo đỏ khô, Konjac Gum, Bột sữa dừa, Nacl, Fructose, Isomalto Oligosaccharide.</p>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 v-if="product.id === 5" class="section-title">1. BỘT NGŨ HẮC MÈ ĐEN</h3>
-              <h3 class="section-title">CÔNG DỤNG</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng đen cho tóc chắc khỏe, đen mượt</li>
-                <li v-if="product.id === 1 || product.id === 2">• Bổi bổ sức khoẻ, nuôi dưỡng khí huyết: công thức ngũ hắc dưỡng sinh kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, nuôi dưỡng cơ thể và khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dinh dưỡng cho giấc ngủ: 5 nguyên liệu đen có tính bình kết hợp cùng hạt óc chó giàu dưỡng chất nuôi dưỡng giấc ngủ</li>
-                <li v-if="product.id === 1 || product.id === 2">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
-
-                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo </li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho tóc chắc khỏe, đen mượt từ 5 loại hạt đen giàu dưỡng chất</li>
-                <li v-if="product.id === 52">• Bổ huyết, bồi bổ sức khỏe: kết hợp đa dạng nhóm thực phẩm từ hạt, ngũ cốc và quả, cung cấp 4 nhóm dưỡng chất thiết yếu, hỗ trợ tuần hoàn máu, bổ sung dưỡng chất cần thiết giúp cơ thể duy trì thể trạng</li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ, giúp cơ thể thư giãn, dễ đi vào giấc ngủ, ngủ ngon và ngủ sâu hơn.</li>
-                <li v-if="product.id === 52">• Giàu chất xơ tự nhiên từ thực vật, giúp duy trì chế độ ăn lành mạnh.</li>
-              </ul>
-
-              <h3 v-if="product.id === 52" class="section-title">2. BỘT NGŨ SẮC HỒNG ĐẬU</h3>
-              <h3 v-if="product.id === 52" class="section-title">CÔNG DỤNG</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 52">• Thay thế bữa sáng, bữa phụ, tiện lợi giàu dinh dưỡng ít calo, phù hợp cho chế độ ăn lành mạnh.</li>
-                <li v-if="product.id === 52">• Nuôi dưỡng khí huyết: sự kết hợp của táo đỏ, củ dền, đậu đỏ, diêm mạch đỏ, hạt sen đỏ tạo nên nguồn dưỡng chất nuôi dưỡng cơ thể, khí huyết mỗi ngày.</li>
-                <li v-if="product.id === 52">• Dưỡng nhan thuần thực vật: nuôi dưỡng làn da hồng hào, nhuận sắc, rạng rỡ từ bên trong.</li>
-                <li v-if="product.id === 52">• Dinh dưỡng cho giấc ngủ: Hạt sen đỏ có tính bình, dưỡng tâm, khi kết hợp hài hòa cùng các nguyên liệu khác tạo nên thức uống ấm bụng, vị dịu nhẹ, giúp cơ thể thư thái, ngủ ngon hơn.</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">ĐỐI TƯỢNG PHÙ HỢP</h3>
-              <p class="section-subtitle">Phù hợp với người lớn và trẻ em trên 03 tuổi</p>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 1 || product.id === 2">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 1 || product.id === 2">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 1 || product.id === 2">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 1 || product.id === 2">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-                
-                <li v-if="product.id === 3 || product.id === 4">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 3 || product.id === 4">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 3 || product.id === 4">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 3 || product.id === 4">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 3 || product.id === 4">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-
-                <li v-if="product.id === 52">• Người ăn chay, người đang ăn kiêng, kiểm soát cân nặng</li>
-                <li v-if="product.id === 52">• Người lớn tuổi, cần bổ sung dưỡng chất nhẹ, dễ tiêu</li>
-                <li v-if="product.id === 52">• Phụ nữ sau sinh, người cần dưỡng huyết, ngủ ngon, tóc khỏe</li>
-                <li v-if="product.id === 52">• Dân văn phòng bận rộn, không kịp nấu nhưng vẫn muốn ăn lành mạnh, bổ dưỡng</li>
-                <li v-if="product.id === 52">• Phù hợp với người thức khuya mất ngủ làm việc quá sức</li>
-              </ul>
-            </div>
-
-            <!-- ƯU ĐIỂM NỔI BẬT - ME_DEN -->
-            <div v-if="product.id === 1 || product.id === 2" class="product-detail-section">
-              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
-              <ul class="benefits-list">
-                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
-                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
-                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
-                <li>• Hàm lượng natri gần như bằng 0, phù hợp với người muốn ăn nhạt, kiểm soát huyết áp.</li>
-              </ul>
-            </div>
-
-            <!-- ƯU ĐIỂM NỔI BẬT - HONG_DAU -->
-            <div v-if="product.id === 3 || product.id === 4" class="product-detail-section">
-              <h3 class="section-title">ƯU ĐIỂM NỔI BẬT</h3>
-              <ul class="benefits-list">
-                <li>• Bữa sáng nhanh, dinh dưỡng, nhẹ bụng, chỉ 1 phút pha chế</li>
-                <li>• 5 Không: Không chất bảo quản - Không axit béo chuyển hoá - Không dinh dưỡng nhân tạo - Không chất tạo màu - Không đậu nành</li>
-                <li>• Ít calo, giàu dinh dưỡng: Chỉ 105 kcal/ khẩu phần 30(g) < một quả táo (~150 kcal), nhưng vẫn cung cấp đủ protein, chất xơ và chất béo tốt giúp no lâu.</li>
-                <li>• Giàu sắt, kẽm và phytoestrogen tự nhiên</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">CÔNG NGHỆ VƯỢT TRỘI TỐI ƯU DƯỠNG CHẤT</h3>
-              <ul class="benefits-list">
-                <li v-if="product.id === 1 || product.id === 2">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-                
-                <li v-if="product.id === 3 || product.id === 4">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-
-                <li v-if="product.id === 52">• Nghiền bảo tồn siêu mịn giúp tối ưu hàm lượng dinh dưỡng và giữ nguyên hương vị nguyên bản, không lợn cợn, dễ uống.</li>
-              </ul>
-            </div>
-
-            <div class="product-detail-section">
-              <h3 class="section-title">HƯỚNG DẪN BẢO QUẢN</h3>
-              <p class="section-content">Bảo quản ở nơi thoáng mát, tránh ánh nắng trực tiếp chiếu vào sản phẩm. Sản phẩm đã mở nắp cần sử dụng trong vòng 4 tuần.</p>
-            </div>
-
-            <div v-if="product.specifications" class="product-detail-section">
-              <h3 class="section-title">HẠN SỬ DỤNG</h3>
-              <p v-if="product.id === 1 || product.id === 2" class="section-content">10 tháng từ ngày sản xuất</p>
-              <p v-if="product.id === 3 || product.id === 4" class="section-content">8 tháng từ ngày sản xuất</p>
-              <p v-if="product.id === 52" class="section-content">8 tháng từ ngày sản xuất. Nên dùng sau khi mở nắp trong vòng 4 tuần</p>
-            </div>
-           
           </div>
         </div>
 
          <!-- Ảnh liên quan đến sản phẩm -->
      <div class="bg-white rounded-none shadow-none md:rounded-lg md:shadow-lg p-2 md:p-4 mt-2 md:mt-4 md:hidden">
        <!-- Video giới thiệu sản phẩm -->
-       <video
-         class="w-full max-w-2xl mx-auto rounded-lg mb-4"
-         controls
-       >
-         <source :src="product.id === 3 || product.id === 4 ? '/video/hongdau.mp4' : '/video/intro.mp4'" type="video/mp4" />
-         Trình duyệt của bạn không hỗ trợ video.
-       </video>
+       <template v-if="productVideoInfo">
+         <iframe
+           v-if="productVideoInfo.kind === 'youtube'"
+           :src="productVideoInfo.src"
+           class="w-full max-w-2xl mx-auto aspect-video rounded-lg mb-4"
+           title="Video giới thiệu sản phẩm"
+           allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+           allowfullscreen
+           loading="lazy"
+         ></iframe>
+         <video v-else :key="productVideoInfo.src" class="w-full max-w-2xl mx-auto rounded-lg mb-4" controls>
+           <source :src="productVideoInfo.src" type="video/mp4" />
+           Trình duyệt của bạn không hỗ trợ video.
+         </video>
+       </template>
        <div class="flex flex-col gap-3">
          <div
            v-for="(image, idx) in relatedImages"
@@ -1266,6 +1170,7 @@ import { reviewService } from '../services/review.service.js'
 import { useAuthStore } from '../stores/auth.js'
 import { processImageForSlot } from '../utils/imageSlotPipeline.js'
 import { resolveCmsImage } from '../content/homeDefaults.js'
+import { productDetailSections, productVideo } from '../utils/productSections.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1325,6 +1230,25 @@ async function fetchProductById(id) {
 }
 
 const selectedProductId = computed(() => Number(product.value?.id))
+
+// 9 mục chi tiết và video do admin nhập (task-006)
+const detailSections = computed(() => productDetailSections(product.value))
+const productVideoInfo = computed(() => productVideo(product.value?.videoUrl))
+
+// Danh sách: mỗi tiêu đề con (#) mở một nhóm mới; chú thích (>) và mục thuộc nhóm hiện tại
+function groupSectionLines(lines) {
+  const groups = [{ heading: '', notes: [], items: [] }]
+  for (const line of lines) {
+    if (line.type === 'heading') {
+      groups.push({ heading: line.text, notes: [], items: [] })
+    } else if (line.type === 'note') {
+      groups[groups.length - 1].notes.push(line.text)
+    } else {
+      groups[groups.length - 1].items.push(line.text)
+    }
+  }
+  return groups.filter((g) => g.heading || g.notes.length || g.items.length)
+}
 
 // Thay thế các chỗ dùng productData
 const relatedProducts = computed(() => {
@@ -1527,7 +1451,7 @@ async function handleImageUpload(event) {
   try {
     for (const file of files.slice(0, Math.max(remaining, 0))) {
       try {
-        const processed = await processImageForSlot(file, 'review_image')
+        const processed = await processImageForSlot(file, 'review_image', 'fit')
         newReviewForm.value.images.push({ file: processed.file, previewUrl: processed.previewUrl })
       } catch (error) {
         showErrorPopup(error.message || `Không xử lý được ảnh ${file.name}`)

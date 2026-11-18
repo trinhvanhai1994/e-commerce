@@ -16,18 +16,24 @@ function loadImageFromFile(file) {
   })
 }
 
-function isAspectOk(width, height, slot) {
+/** Ảnh đã đúng tỷ lệ slot (trong dung sai), không cần chọn vùng cắt. */
+export function isAspectOk(width, height, slot) {
   const actual = width / height
   const diff = Math.abs(actual - slot.aspectRatio)
   return diff <= slot.aspectTolerance || diff <= slot.aspectTolerance * slot.aspectRatio
 }
 
-/**
- * Center-crop to slot aspect, then resize to output WxH. Returns a PNG or JPEG File (see mime choice below).
- */
-export async function processImageForSlot(file, slotKey) {
-  const slot = getImageSlot(slotKey)
+/** PNG giữ nền trong suốt; còn lại xuất JPEG (nền trắng). Slot không nhận JPEG (icon) luôn xuất PNG. */
+export function outputMimeForSlot(file, slot) {
+  const pngOnly = !slot.mime.includes('image/jpeg')
+  return (file.type === 'image/png' || pngOnly) && slot.mime.includes('image/png') ? 'image/png' : 'image/jpeg'
+}
 
+/**
+ * Bước 1: kiểm định dạng, dung lượng, kích thước tối thiểu. Trả về ảnh đã đọc để chọn vùng cắt hoặc xuất.
+ */
+export async function loadImageForSlot(file, slotKey) {
+  const slot = getImageSlot(slotKey)
   if (!file || !file.type) {
     throw new Error('File không hợp lệ')
   }
@@ -37,54 +43,66 @@ export async function processImageForSlot(file, slotKey) {
   if (file.size > slot.maxBytes) {
     throw new Error(`File vượt quá ${(slot.maxBytes / 1024).toFixed(0)}KB cho ${slot.label}`)
   }
-
   const img = await loadImageFromFile(file)
-  if (img.width < slot.minWidth || (slot.minHeight > 0 && img.height < slot.minHeight)) {
+  const iw = img.naturalWidth || img.width
+  const ih = img.naturalHeight || img.height
+  // Ảnh lệch tỷ lệ được xét theo cạnh tương ứng của khung, nên ảnh dọc vào banner ngang không bị loại oan
+  const coverScale = Math.max(slot.outputWidth / iw, slot.outputHeight / ih)
+  const fitScale = Math.min(slot.outputWidth / iw, slot.outputHeight / ih)
+  if (iw < slot.minWidth && ih < (slot.minHeight || slot.minWidth / slot.aspectRatio)) {
     throw new Error(
-      `Ảnh quá nhỏ. Tối thiểu ${slot.minWidth}x${slot.minHeight || '?'}, hiện tại ${img.width}x${img.height}`
+      `Ảnh quá nhỏ. Tối thiểu ${slot.minWidth}x${slot.minHeight || Math.round(slot.minWidth / slot.aspectRatio)}, hiện tại ${iw}x${ih}`
     )
   }
+  return { img, slot, width: iw, height: ih, coverScale, fitScale, needsCrop: !isAspectOk(iw, ih, slot) }
+}
 
-  // Reject extreme aspect before crop if user image is wildly off and would upscale crop too much
-  const targetAspect = slot.aspectRatio
-  let cropW = img.width
-  let cropH = img.height
-  if (img.width / img.height > targetAspect) {
-    cropW = Math.round(img.height * targetAspect)
-  } else {
-    cropH = Math.round(img.width / targetAspect)
-  }
-  const sx = Math.floor((img.width - cropW) / 2)
-  const sy = Math.floor((img.height - cropH) / 2)
+/** Vị trí ảnh trên khung xuất (toạ độ pixel output): lấp đầy khung, căn giữa. */
+export function coverPlacement(width, height, slot) {
+  const scale = Math.max(slot.outputWidth / width, slot.outputHeight / height)
+  return centeredPlacement(width, height, slot, scale)
+}
 
-  if (cropW < slot.minWidth * 0.9) {
-    throw new Error(
-      `Sau khi cắt theo tỷ lệ ${slot.aspectRatio.toFixed(2)}, ảnh còn quá nhỏ (${cropW}x${cropH}). Hãy dùng ảnh đúng mẫu hơn.`
-    )
-  }
+/** Vị trí ảnh trên khung xuất: thấy toàn bộ ảnh, phần thừa là nền. */
+export function fitPlacement(width, height, slot) {
+  const scale = Math.min(slot.outputWidth / width, slot.outputHeight / height)
+  return centeredPlacement(width, height, slot, scale)
+}
+
+function centeredPlacement(width, height, slot, scale) {
+  const dw = width * scale
+  const dh = height * scale
+  return { dx: (slot.outputWidth - dw) / 2, dy: (slot.outputHeight - dh) / 2, dw, dh }
+}
+
+/** Ảnh bị phóng to quá mức này (pixel output trên pixel gốc) sẽ mờ thấy rõ. */
+export const BLUR_UPSCALE_LIMIT = 1.25
+
+/**
+ * Bước 2: vẽ ảnh lên khung đúng kích thước slot theo placement { dx, dy, dw, dh } (toạ độ output),
+ * đúng như admin thấy ở hộp chọn vùng cắt. Phần khung không có ảnh: nền trắng (JPEG) hoặc trong suốt (PNG).
+ */
+export async function renderImageForSlot(loaded, file, placement) {
+  const { img, slot, width, height } = loaded
+  const place = placement || coverPlacement(width, height, slot)
+  const mime = outputMimeForSlot(file, slot)
 
   const canvas = document.createElement('canvas')
   canvas.width = slot.outputWidth
   canvas.height = slot.outputHeight
   const ctx = canvas.getContext('2d')
-  ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, slot.outputWidth, slot.outputHeight)
-
-  // Keep PNG for PNG sources; use JPEG otherwise, except for slots that do not accept JPEG (icons: png/webp),
-  // where a WebP source must be re-encoded to PNG or the server rejects it.
-  const pngOnly = !slot.mime.includes('image/jpeg')
-  const mime =
-    (file.type === 'image/png' || pngOnly) && slot.mime.includes('image/png') ? 'image/png' : 'image/jpeg'
-  const blob = await new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error('Không xuất được ảnh'))),
-      mime,
-      0.85
-    )
-  })
-
-  if (!isAspectOk(slot.outputWidth, slot.outputHeight, slot)) {
-    throw new Error('Lỗi nội bộ: output không đúng tỷ lệ slot')
+  if (mime === 'image/jpeg') {
+    // JPEG không có kênh alpha: không tô nền thì vùng trong suốt / vùng thừa thành màu đen
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, 0, 0, width, height, place.dx, place.dy, place.dw, place.dh)
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Không xuất được ảnh'))), mime, 0.9)
+  })
 
   const ext = mime === 'image/png' ? 'png' : 'jpg'
   const processed = new File([blob], `${slot.key}.${ext}`, { type: mime })
@@ -95,6 +113,19 @@ export async function processImageForSlot(file, slotKey) {
     height: slot.outputHeight,
     slot,
   }
+}
+
+/**
+ * Một bước, không hỏi người dùng (ảnh đánh giá của khách).
+ * mode 'cover': lấp đầy khung, cắt giữa; 'fit': giữ toàn bộ ảnh, thêm nền.
+ * Ảnh đúng tỷ lệ thì hai mode cho cùng kết quả.
+ */
+export async function processImageForSlot(file, slotKey, mode = 'cover') {
+  const loaded = await loadImageForSlot(file, slotKey)
+  const place = mode === 'fit'
+    ? fitPlacement(loaded.width, loaded.height, loaded.slot)
+    : coverPlacement(loaded.width, loaded.height, loaded.slot)
+  return renderImageForSlot(loaded, file, place)
 }
 
 export function formatSlotHint(slotKey) {

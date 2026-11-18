@@ -74,6 +74,8 @@ SĐT là tên đăng nhập, chuẩn hoá về `0` + 9 số (`BE/util/PhoneNumbe
 
 Nguồn: `BE/controller/external/ProductController.java:13,19-45`. `/{id}` và `/{id}/details` trùng logic (`ProductController.java:36,43`).
 
+`ProductResponse` có thêm (task-006, V25) `videoUrl`, `targetUsers`, `highlights`, `shelfLife`; cùng `specifications`, `ingredients`, `benefits`, `technology`, `storage` là 9 mục trang chi tiết, render bởi `FE/views/ProductDetail.vue` qua `FE/utils/productSections.js`. Mục rỗng thì ẩn.
+
 ### 2.2b Đánh giá sản phẩm (chưa commit)
 
 | Method | Path | Quyền | Request -> Response | Lỗi | FE caller |
@@ -95,7 +97,7 @@ Nguồn: `BE/controller/external/ProductReviewController.java`, `BE/controller/a
 |---|---|---|---|---|---|
 | GET | `/api/dragun/admin/products` | -> `List<ProductResponse>` (ACTIVE + INACTIVE) | 403 | - | `FE/services/admin.service.js:26`, `FE/services/product-management.service.js:17` |
 | POST | `/api/dragun/admin/products` | `ProductRequest` (name `@NotBlank`, price/stock `@Positive`) -> `ProductResponse` | 400 validation | ghi DB; nếu `syncToPancake=true` đẩy lên Pancake, lỗi sync chỉ log (`BE/service/AdminService.java:80-91`) | `FE/services/product-management.service.js:42`, `FE/services/admin.service.js:37` |
-| PUT | `/api/dragun/admin/products` | `ProductRequest` có `id` trong body (không có path id) -> `ProductResponse` | 400, 404 | như POST | `FE/services/product-management.service.js:52`, `FE/services/admin.service.js:37` |
+| PUT | `/api/dragun/admin/products` | `ProductRequest` có `id` trong body (không có path id) -> `ProductResponse`. Ghi đè toàn bộ trường, gồm 9 mục trang chi tiết (thiếu thì thành null); `videoUrl` rỗng thành null, khác rỗng phải bắt đầu `https://` hoặc `/video/`, tối đa 1000 ký tự (`AdminService.normalizeVideoUrl`) | 400 (gồm link video sai), 404 | như POST | `FE/services/product-management.service.js:52`, `FE/services/admin.service.js:37` |
 | DELETE | `/api/dragun/admin/products/{id}` | -> `null` | 404 (inferred) | xóa sản phẩm (`AdminService.java:100-101`) | `FE/services/product-management.service.js:61`, `FE/services/admin.service.js:49` |
 | PATCH | `/api/dragun/admin/products/{id}/toggle-status` | -> `ProductResponse` | 404 (inferred) | đảo ACTIVE/INACTIVE | `FE/services/product-management.service.js:70` |
 

@@ -12,11 +12,13 @@ import com.dragun.ecommerce.repository.ProductRepository;
 import com.dragun.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -123,6 +125,10 @@ public class AdminService {
             .specifications(request.getSpecifications())
             .technology(request.getTechnology())
             .storage(request.getStorage())
+            .videoUrl(normalizeVideoUrl(request.getVideoUrl()))
+            .targetUsers(request.getTargetUsers())
+            .highlights(request.getHighlights())
+            .shelfLife(request.getShelfLife())
             .discount(request.getDiscount())
             .rating(request.getRating())
             .reviewCount(request.getReviewCount());
@@ -142,6 +148,22 @@ public class AdminService {
         }
         
         return builder.build();
+    }
+
+    /** Link video giới thiệu (task-006): rỗng thành null; chỉ nhận https:// hoặc file tĩnh /video/. */
+    static String normalizeVideoUrl(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String url = raw.trim();
+        if (url.length() > 1000) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Link video tối đa 1000 ký tự");
+        }
+        if (!(url.startsWith("https://") || url.startsWith("/video/")) || url.chars().anyMatch(Character::isWhitespace)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Link video phải bắt đầu bằng https:// hoặc /video/");
+        }
+        return url;
     }
 }
 

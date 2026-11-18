@@ -80,6 +80,7 @@ Thứ tự: `services/*.service.js` → view/component → route → mục menu.
 - Gọi API qua `services/*.service.js` (`httpClient` + `unwrap`), không gọi `fetch` trong view. Upload multipart là ngoại lệ, dùng `fetch` trong service (mẫu `reviewService.submitReview`).
 - Trang admin: bọc `AdminLayout`, route có `beforeEnter` kiểm đăng nhập (mẫu `views/AdminHomepage.vue`, `router/index.js`).
 - Trang public đọc CMS: merge dữ liệu API lên default trong `src/content/homeDefaults.js`. Section `enabled:false` thì ẩn, API public không lọc bỏ.
+- **Ảnh upload**: dùng `CmsImageUploader` (tự mở hộp chọn vùng khi ảnh lệch tỷ lệ slot). Chỉ bind `v-model:use-default` khi slot có ảnh mặc định đóng gói. Khung hiển thị phải cùng tỷ lệ slot (`aspect-square`, `aspect-[16/10]`) với `object-cover`, hoặc `w-full h-auto`; không dùng `h-*` cố định với `object-cover`.
 - **Ảnh lỗi**: dùng `applyImageFallback(event, path)` trong `utils/imageUtils.js`. Không tự gán `event.target.src` trong `@error`: ảnh dự phòng cũng lỗi sẽ gây request lặp vô hạn (`onerror = null` không chặn được `@error` của Vue).
 - Biến trong template phải đúng tên biến của `v-for` (lỗi cũ: `:key` dùng `img` trong khi biến là `image`).
 - Đổi text hiển thị cho khách thì đổi cả message BE tương ứng nếu FE dùng message từ API.

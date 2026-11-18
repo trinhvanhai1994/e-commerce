@@ -24,6 +24,13 @@ export default {
       fontFamily: {
         sans: ['Inter var', 'sans-serif'],
       },
+      // @tailwindcss/aspect-ratio thay theme aspectRatio bằng 1..16, làm mất aspect-square / aspect-video
+      // của Tailwind (class có trong code nhưng không sinh CSS). Thêm lại để khung ảnh đúng tỷ lệ slot.
+      aspectRatio: {
+        auto: 'auto',
+        square: '1 / 1',
+        video: '16 / 9',
+      },
       typography: {
         DEFAULT: {
           css: {

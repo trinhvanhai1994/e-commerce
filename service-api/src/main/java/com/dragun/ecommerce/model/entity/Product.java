@@ -70,7 +70,20 @@ public class Product {
     
     @Column(columnDefinition = "TEXT")
     private String storage;
-    
+
+    /** Trang chi tiết sản phẩm (task-006, V25): link video và 3 mục văn bản nhiều dòng. */
+    @Column(name = "video_url", length = 1000)
+    private String videoUrl;
+
+    @Column(name = "target_users", columnDefinition = "TEXT")
+    private String targetUsers;
+
+    @Column(columnDefinition = "TEXT")
+    private String highlights;
+
+    @Column(name = "shelf_life", columnDefinition = "TEXT")
+    private String shelfLife;
+
     private Integer discount;
     
     private Double rating;

@@ -178,6 +178,12 @@
             </div>
           </div>
 
+          <!-- Detail Sections: video + 8 mục ở trang chi tiết (task-006) -->
+          <div class="mb-6 md:mb-8">
+            <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Thông tin chi tiết trên trang sản phẩm</h3>
+            <ProductDetailSectionsEditor :model-value="sectionValues" @update:model-value="(v) => Object.assign(form, v)" />
+          </div>
+
           <!-- Images Section -->
           <div class="mb-6 md:mb-8">
             <h3 class="text-lg md:text-xl font-bold text-green-700 mb-3 md:mb-4 pb-2 border-b">Hình ảnh sản phẩm</h3>
@@ -355,6 +361,8 @@ import { productManagementAPI } from '@/utils/api.js'
 import { getImageUrlFromApi } from '@/utils/imageUtils.js'
 import CmsImageUploader from '../components/cms/CmsImageUploader.vue'
 import { useProductCategories } from '../composables/useProductCategories.js'
+import ProductDetailSectionsEditor from '../components/admin/ProductDetailSectionsEditor.vue'
+import { PRODUCT_SECTION_KEYS, videoUrlError } from '../utils/productSections.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5678'
 
@@ -415,6 +423,9 @@ const form = reactive({
   specifications: '',
   technology: '',
   storage: '',
+  videoUrl: '',
+  highlights: '',
+  shelfLife: '',
   image: '',
   gallery: [],
   galleryText: '',
@@ -425,6 +436,9 @@ const form = reactive({
   priority: 999,
   syncToPancake: false
 })
+
+// Video + 8 mục trang chi tiết (task-006), chuyển qua lại với ProductDetailSectionsEditor
+const sectionValues = computed(() => Object.fromEntries(PRODUCT_SECTION_KEYS.map((k) => [k, form[k] || ''])))
 
 // Computed property để tự động tính discount dựa trên price và oldPrice
 const calculatedDiscount = computed(() => {
@@ -507,6 +521,9 @@ async function fetchProduct() {
       specifications: product.specifications || '',
       technology: product.technology || '',
       storage: product.storage || '',
+      videoUrl: product.videoUrl || '',
+      highlights: product.highlights || '',
+      shelfLife: product.shelfLife || '',
       image: mainImage,
       gallery: gallery,
       galleryText: gallery.length > 0 ? gallery.join('\n') : '',
@@ -549,6 +566,12 @@ async function submitForm() {
     }
     if ((form.status || 'ACTIVE') === 'ACTIVE' && (!imagePath || !String(imagePath).trim())) {
       showErrorPopup('Sản phẩm ACTIVE bắt buộc có ảnh đại diện')
+      submitting.value = false
+      return
+    }
+    const videoError = videoUrlError(form.videoUrl)
+    if (videoError) {
+      showErrorPopup(videoError)
       submitting.value = false
       return
     }
@@ -647,6 +670,10 @@ async function submitForm() {
       specifications: form.specifications || '',
       technology: form.technology || '',
       storage: form.storage || '',
+      videoUrl: form.videoUrl || '',
+      targetUsers: form.targetUsers || '',
+      highlights: form.highlights || '',
+      shelfLife: form.shelfLife || '',
       syncToPancake: form.syncToPancake
     }
 

@@ -149,8 +149,8 @@
                   <div v-if="onHomeNow">
                     <p class="text-[11px] text-gray-500 mb-2">Thẻ của bài này trên Trang chủ:</p>
                     <div class="bg-white rounded-xl shadow p-3 md:p-4 flex flex-col items-center" :class="device === 'mobile' ? 'w-full' : 'max-w-[280px]'">
-                      <img v-if="coverUrl" :src="coverUrl" :alt="draft.title" class="w-full h-32 md:h-40 object-cover rounded mb-3" />
-                      <div v-else class="w-full h-32 md:h-40 rounded mb-3 bg-gray-100"></div>
+                      <img v-if="coverUrl" :src="coverUrl" :alt="draft.title" class="w-full aspect-[16/10] object-cover rounded mb-3" />
+                      <div v-else class="w-full aspect-[16/10] rounded mb-3 bg-gray-100"></div>
                       <div class="font-bold text-green-700 text-sm md:text-base mb-1 text-center">{{ draft.title || 'Tiêu đề bài viết' }}</div>
                       <div class="text-gray-600 text-xs md:text-sm text-center">{{ draft.excerpt || 'Mô tả ngắn sẽ hiện ở đây.' }}</div>
                     </div>

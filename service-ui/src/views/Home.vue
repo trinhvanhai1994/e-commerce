@@ -53,7 +53,7 @@
             <img
               :src="getProductImage(product)"
               :alt="product.name"
-              class="w-full h-48 md:h-64 object-cover hover:scale-105 transition-transform duration-300"
+              class="w-full aspect-square object-cover hover:scale-105 transition-transform duration-300"
               @error="handleImageError"
               loading="lazy"
             />
@@ -199,7 +199,7 @@
         <div v-for="(post, index) in blogPosts" :key="post.id" :data-aos="'fade-up'" :data-aos-delay="index * 150" class="bg-white rounded-xl shadow p-3 md:p-4 flex flex-col items-center blog-card">
           <!-- Ảnh với 2 tùy chọn: click để phóng to hoặc click để xem bài viết -->
           <div class="relative w-full">
-            <img :src="postCover(post)" :alt="post.title" class="w-full h-32 md:h-40 object-cover rounded mb-3 cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(postCover(post), post.title)" />
+            <img :src="postCover(post)" :alt="post.title" class="w-full aspect-[16/10] object-cover rounded mb-3 cursor-pointer hover:opacity-90 transition-opacity duration-300" @click="openImageModal(postCover(post), post.title)" />
             <!-- Nút xem bài viết trên ảnh -->
             <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 rounded mb-3 flex items-center justify-center">
               <router-link :to="{ name: 'BlogDetail', params: { slug: post.slug } }" class="opacity-0 hover:opacity-100 transition-opacity duration-300 bg-white text-green-600 px-3 py-1 rounded-full text-xs font-semibold">
